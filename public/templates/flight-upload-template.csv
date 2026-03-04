@@ -1,0 +1,13 @@
+Flight Name,Flight Number,Start Time,Start Hole,Player Name,Player Email,Player Handicap
+Flight A,1,08:00,1,John Doe,john.doe@example.com,12
+Flight A,1,08:00,1,Jane Smith,jane.smith@example.com,15
+Flight A,1,08:00,1,Bob Wilson,bob.wilson@example.com,8
+Flight A,1,08:00,1,Alice Brown,alice.brown@example.com,20
+Flight B,2,08:10,1,Charlie Davis,charlie.davis@example.com,10
+Flight B,2,08:10,1,Diana Evans,diana.evans@example.com,18
+Flight B,2,08:10,1,Frank Miller,frank.miller@example.com,14
+Flight B,2,08:10,1,Grace Taylor,grace.taylor@example.com,22
+Flight C,3,08:20,10,Henry Anderson,henry.anderson@example.com,16
+Flight C,3,08:20,10,Ivy Thomas,ivy.thomas@example.com,11
+Flight C,3,08:20,10,Jack Martinez,jack.martinez@example.com,9
+Flight C,3,08:20,10,Kelly Garcia,kelly.garcia@example.com,25

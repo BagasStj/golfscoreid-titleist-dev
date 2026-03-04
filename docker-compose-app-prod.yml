@@ -1,0 +1,29 @@
+# ============================================
+# TT Invitational Indonesia - Production
+# React + Vite + Convex Online
+# https://ttinvitationalindonesia.golfscore.co.id
+# ============================================
+
+name: tt-invitational-indonesia-prod
+
+services:
+  app:
+    image: ajarka/tt-invitational-indonesia:latest
+    container_name: tt-invitational-indonesia-prod
+    restart: always
+    ports:
+      - "3014:3000"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - shared-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  shared-network:
+    external: true

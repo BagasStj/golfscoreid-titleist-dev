@@ -1,0 +1,17 @@
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/send-email.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "EMAIL_API_SECRET": "golf-score-email-secret-2024"
+  }
+}

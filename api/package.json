@@ -1,0 +1,9 @@
+{
+  "name": "email-api",
+  "version": "1.0.0",
+  "description": "Serverless email sending API",
+  "main": "send-email.js",
+  "dependencies": {
+    "nodemailer": "^6.9.7"
+  }
+}
