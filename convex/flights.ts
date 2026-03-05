@@ -417,3 +417,51 @@ export const getOrCreatePlayer = mutation({
     return { success: true, playerId };
   },
 });
+
+// Get Tournament Flights with All Participants
+export const getTournamentFlightsWithParticipants = query({
+  args: {
+    tournamentId: v.id("tournaments"),
+  },
+  handler: async (ctx, args) => {
+    const flights = await ctx.db
+      .query("tournament_flights")
+      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .collect();
+
+    // Sort by flight number
+    flights.sort((a, b) => a.flightNumber - b.flightNumber);
+
+    // Get participants for each flight
+    const flightsWithParticipants = await Promise.all(
+      flights.map(async (flight) => {
+        const participations = await ctx.db
+          .query("tournament_participants")
+          .withIndex("by_flight", (q) => q.eq("flightId", flight._id))
+          .collect();
+
+        const participants = await Promise.all(
+          participations.map(async (p) => {
+            const player = await ctx.db.get(p.playerId);
+            return player
+              ? {
+                  ...player,
+                  startHole: p.startHole,
+                  registeredAt: p.registeredAt,
+                  participationId: p._id,
+                }
+              : null;
+          })
+        );
+
+        return {
+          ...flight,
+          participants: participants.filter((p) => p !== null),
+          participantCount: participants.filter((p) => p !== null).length,
+        };
+      })
+    );
+
+    return flightsWithParticipants;
+  },
+});

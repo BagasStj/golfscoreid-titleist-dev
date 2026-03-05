@@ -564,3 +564,53 @@ export const getPendingScoreStatus = query({
     };
   },
 });
+
+// Get Current Hole for Flight (first hole where not all players have scored)
+export const getCurrentHoleForFlight = query({
+  args: {
+    tournamentId: v.id("tournaments"),
+    playerIds: v.array(v.id("users")),
+  },
+  handler: async (ctx, args) => {
+    // Get tournament to get holes config
+    const tournament = await ctx.db.get(args.tournamentId);
+    if (!tournament) {
+      return null;
+    }
+
+    // Get holes config
+    let holesConfig = await ctx.db.query("holes_config").collect();
+    if (tournament.courseType === "F9") {
+      holesConfig = holesConfig.filter((h) => h.holeNumber >= 1 && h.holeNumber <= 9);
+    } else if (tournament.courseType === "B9") {
+      holesConfig = holesConfig.filter((h) => h.holeNumber >= 10 && h.holeNumber <= 18);
+    }
+    holesConfig.sort((a, b) => a.holeNumber - b.holeNumber);
+
+    // Get all scores for all players
+    const allScores = await ctx.db
+      .query("scores")
+      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .collect();
+
+    // Filter to only include scores for the specified players
+    const playerIdsSet = new Set(args.playerIds);
+    const filteredScores = allScores.filter(score => playerIdsSet.has(score.playerId));
+
+    // Find first hole where not all players have scored
+    for (const hole of holesConfig) {
+      const playersWhoScored = new Set(
+        filteredScores
+          .filter(s => s.holeNumber === hole.holeNumber)
+          .map(s => s.playerId)
+      );
+      
+      if (playersWhoScored.size < args.playerIds.length) {
+        return hole.holeNumber;
+      }
+    }
+
+    // All holes completed by all players, return last hole
+    return holesConfig.length > 0 ? holesConfig[holesConfig.length - 1].holeNumber : 1;
+  },
+});

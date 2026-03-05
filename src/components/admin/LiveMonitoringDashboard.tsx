@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { Trophy, Activity, RefreshCw, Star } from 'lucide-react';
+import { Trophy, Activity, RefreshCw, Star, Download, Maximize2 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 export default function LiveMonitoringDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'special'>('all');
+  const [isFullView, setIsFullView] = useState(false);
 
   // Get active tournaments
   const tournaments = useQuery(
@@ -86,6 +88,76 @@ export default function LiveMonitoringDashboard() {
     return total;
   };
 
+  // Helper function to count completed holes
+  const countCompletedHoles = (playerScorecard: any[]) => {
+    return playerScorecard.filter(s => s.strokes !== null && s.strokes !== undefined).length;
+  };
+
+  // Helper function to calculate total over/under par
+  const calculateTotalOver = (playerScorecard: any[], holesMap: Map<number, any>) => {
+    let totalOver = 0;
+    for (const score of playerScorecard) {
+      if (score.strokes !== null && score.strokes !== undefined) {
+        const holeData = holesMap.get(score.holeNumber);
+        if (holeData) {
+          totalOver += score.strokes - holeData.par;
+        }
+      }
+    }
+    return totalOver;
+  };
+
+  // Export to Excel function
+  const exportToExcel = () => {
+    if (!monitoringData || !selectedTournament) return;
+
+    const exportData = monitoringData.players.map(player => {
+      const completedHoles = countCompletedHoles(player.scorecard);
+      const totalOver = calculateTotalOver(player.scorecard, holesMap);
+      
+      const row: any = {
+        'Nama Pemain': player.playerName,
+      };
+
+      // Add individual hole scores
+      if (activeTab === 'all') {
+        if (is18Holes) {
+          for (let i = 1; i <= 18; i++) {
+            const score = getScoreForHole(player.scorecard, i);
+            row[`Hole ${i}`] = score !== null ? score : '-';
+          }
+        } else {
+          const holeRange = selectedTournament.courseType === 'F9' 
+            ? [1, 2, 3, 4, 5, 6, 7, 8, 9]
+            : [10, 11, 12, 13, 14, 15, 16, 17, 18];
+          holeRange.forEach(hole => {
+            const score = getScoreForHole(player.scorecard, hole);
+            row[`Hole ${hole}`] = score !== null ? score : '-';
+          });
+        }
+      } else if (activeTab === 'special' && hasSpecialHoles) {
+        specialHoles.forEach(hole => {
+          const score = getScoreForHole(player.scorecard, hole);
+          row[`Hole ${hole} (Special)`] = score !== null ? score : '-';
+        });
+      }
+
+      // Add summary columns at the end
+      row['Hole Selesai'] = completedHoles;
+      row['Total Stroke'] = player.totalScore || 0;
+      row['Total Over/Under'] = totalOver > 0 ? `+${totalOver}` : totalOver === 0 ? 'E' : totalOver;
+
+      return row;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Live Monitoring');
+
+    const fileName = `${selectedTournament.name}_Live_Monitoring_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  };
+
   // Helper function to get score color
   const getScoreColor = (strokes: number, par: number) => {
     if (strokes < par) return 'bg-green-400 text-black font-bold'; // Birdie or better - bright green with black text
@@ -95,19 +167,16 @@ export default function LiveMonitoringDashboard() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 ${isFullView ? 'fixed inset-0 z-50 bg-[#1a1a1a] overflow-auto p-6' : ''}`}>
       {/* Header */}
       <div className="bg-gradient-to-r from-red-900/60 to-red-800/60 rounded-xl shadow-[0_8px_24px_rgba(139,0,0,0.4)] p-6 text-white border border-red-900/40">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold mb-2">Live Monitoring</h2>
+            <h2 className="text-3xl font-bold mb-2">Monitoring Langsung</h2>
             <p className="text-gray-300 text-lg">{selectedTournament.name}</p>
             <div className="flex items-center gap-4 mt-3 text-sm">
               <span className="bg-white/20 px-3 py-1 rounded-full border border-white/30">
-                {selectedTournament.courseType === '18holes' ? '18 Holes' : selectedTournament.courseType === 'F9' ? 'Front 9' : 'Back 9'}
-              </span>
-              <span className="bg-white/20 px-3 py-1 rounded-full border border-white/30">
-                {selectedTournament.gameMode === 'strokePlay' ? 'Stroke Play' : selectedTournament.gameMode === 'stableford' ? 'Stableford' : 'System 36'}
+                {selectedTournament.courseType === '18holes' ? '18 Hole' : selectedTournament.courseType === 'F9' ? '9 Hole Depan' : '9 Hole Belakang'}
               </span>
               <span className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full border border-white/30">
                 <span className="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
@@ -115,10 +184,28 @@ export default function LiveMonitoringDashboard() {
               </span>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-4xl mb-2">🏆</div>
-            <div className="text-sm text-gray-300">
-              {monitoringData.players.length} Players
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <div className="text-4xl mb-2">🏆</div>
+              <div className="text-sm text-gray-300">
+                {monitoringData.players.length} Pemain
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={exportToExcel}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-all shadow-md"
+              >
+                <Download className="w-4 h-4" />
+                Export Excel
+              </button>
+              <button
+                onClick={() => setIsFullView(!isFullView)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all shadow-md"
+              >
+                <Maximize2 className="w-4 h-4" />
+                {isFullView ? 'Tutup' : 'Full View'}
+              </button>
             </div>
           </div>
         </div>
@@ -129,11 +216,11 @@ export default function LiveMonitoringDashboard() {
         <div className="bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-white">Scorecard View</h3>
+              <h3 className="font-semibold text-white">Tampilan Scorecard</h3>
               <p className="text-sm text-gray-400">
                 {activeTab === 'all' 
-                  ? 'Showing all holes scorecard' 
-                  : `Showing special holes only (${specialHoles.length} holes)`}
+                  ? 'Menampilkan semua hole' 
+                  : `Menampilkan hole spesial saja (${specialHoles.length} hole)`}
               </p>
             </div>
             <div className="flex gap-2">
@@ -146,7 +233,7 @@ export default function LiveMonitoringDashboard() {
                 }`}
               >
                 <Trophy className="w-4 h-4" />
-                All Holes
+                Semua Hole
               </button>
               <button
                 onClick={() => setActiveTab('special')}
@@ -157,7 +244,7 @@ export default function LiveMonitoringDashboard() {
                 }`}
               >
                 <Star className="w-4 h-4" />
-                Special Holes
+                Hole Spesial
               </button>
             </div>
           </div>
@@ -171,11 +258,11 @@ export default function LiveMonitoringDashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-red-500" />
-              <h3 className="text-lg font-bold text-white">Live Scorecard</h3>
+              <h3 className="text-lg font-bold text-white">Scorecard Langsung</h3>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <RefreshCw className="w-4 h-4 animate-spin" />
-              <span>Auto-updating</span>
+              <span>Update Otomatis</span>
             </div>
           </div>
         </div>
@@ -186,7 +273,7 @@ export default function LiveMonitoringDashboard() {
               {/* Hole Numbers Row */}
               <tr className="bg-gray-800/80 border-b-2 border-gray-700/60">
                 <th className="sticky left-0 z-10 bg-gray-800/80 px-4 py-3 text-left font-bold text-gray-300 border-r-2 border-gray-700/60">
-                  Player
+                  Pemain
                 </th>
                 {is18Holes ? (
                   <>
@@ -208,8 +295,14 @@ export default function LiveMonitoringDashboard() {
                     <th className="px-3 py-3 text-center font-bold text-green-400 bg-green-950/40 border-x-2 border-gray-700/60 min-w-[50px]">
                       IN
                     </th>
-                    <th className="px-4 py-3 text-center font-bold text-blue-400 bg-blue-950/40 border-l-2 border-gray-700/60 min-w-[60px]">
+                    <th className="px-3 py-3 text-center font-bold text-blue-400 bg-blue-950/40 border-l-2 border-gray-700/60 min-w-[60px]">
                       TOTAL
+                    </th>
+                    <th className="px-3 py-3 text-center font-bold text-purple-400 bg-purple-950/40 border-l-2 border-gray-700/60 min-w-[60px]">
+                      OVER
+                    </th>
+                    <th className="px-3 py-3 text-center font-bold text-orange-400 bg-orange-950/40 border-l-2 border-gray-700/60 min-w-[60px]">
+                      SELESAI
                     </th>
                   </>
                 ) : (
@@ -226,8 +319,14 @@ export default function LiveMonitoringDashboard() {
                           </th>
                         ))
                     }
-                    <th className="px-4 py-3 text-center font-bold text-blue-400 bg-blue-950/40 border-l-2 border-gray-700/60 min-w-[60px]">
+                    <th className="px-3 py-3 text-center font-bold text-blue-400 bg-blue-950/40 border-l-2 border-gray-700/60 min-w-[60px]">
                       TOTAL
+                    </th>
+                    <th className="px-3 py-3 text-center font-bold text-purple-400 bg-purple-950/40 border-l-2 border-gray-700/60 min-w-[60px]">
+                      OVER
+                    </th>
+                    <th className="px-3 py-3 text-center font-bold text-orange-400 bg-orange-950/40 border-l-2 border-gray-700/60 min-w-[60px]">
+                      SELESAI
                     </th>
                   </>
                 )}
@@ -292,12 +391,16 @@ export default function LiveMonitoringDashboard() {
             <tbody>
               {monitoringData.players.length === 0 ? (
                 <tr>
-                  <td colSpan={is18Holes ? 22 : 11} className="px-4 py-12 text-center text-gray-400">
-                    No players registered yet
+                  <td colSpan={is18Holes ? 25 : 14} className="px-4 py-12 text-center text-gray-400">
+                    Belum ada pemain terdaftar
                   </td>
                 </tr>
               ) : (
-                monitoringData.players.map((player, playerIndex) => (
+                monitoringData.players.map((player, playerIndex) => {
+                  const completedHoles = countCompletedHoles(player.scorecard);
+                  const totalOver = calculateTotalOver(player.scorecard, holesMap);
+                  
+                  return (
                   <tr 
                     key={player.playerId}
                     className={`border-b border-gray-800/60 hover:bg-red-950/20 ${
@@ -308,7 +411,7 @@ export default function LiveMonitoringDashboard() {
                       <div>
                         <div className="font-bold">{player.playerName}</div>
                         <div className="text-xs text-gray-400 mt-1">
-                          Start: Hole {player.startHole} • Current: Hole {player.currentHole}
+                          Mulai: Hole {player.startHole} • Saat Ini: Hole {player.currentHole}
                         </div>
                       </div>
                     </td>
@@ -353,8 +456,14 @@ export default function LiveMonitoringDashboard() {
                           {calculateNineTotal(player.scorecard, 10, 18) || '-'}
                         </td>
                         
-                        <td className="px-4 py-3 text-center font-bold text-blue-400 bg-blue-950/40 border-l-2 border-gray-800/60 text-lg">
+                        <td className="px-3 py-3 text-center font-bold text-blue-400 bg-blue-950/40 border-l-2 border-gray-800/60 text-lg">
                           {player.totalScore || '-'}
+                        </td>
+                        <td className="px-3 py-3 text-center font-bold text-purple-400 bg-purple-950/40 border-l-2 border-gray-800/60 text-lg">
+                          {totalOver > 0 ? `+${totalOver}` : totalOver === 0 ? 'E' : totalOver}
+                        </td>
+                        <td className="px-3 py-3 text-center font-bold text-orange-400 bg-orange-950/40 border-l-2 border-gray-800/60 text-lg">
+                          {completedHoles}/18
                         </td>
                       </>
                     ) : (
@@ -376,13 +485,20 @@ export default function LiveMonitoringDashboard() {
                             </td>
                           );
                         })}
-                        <td className="px-4 py-3 text-center font-bold text-blue-400 bg-blue-950/40 border-l-2 border-gray-800/60 text-lg">
+                        <td className="px-3 py-3 text-center font-bold text-blue-400 bg-blue-950/40 border-l-2 border-gray-800/60 text-lg">
                           {player.totalScore || '-'}
+                        </td>
+                        <td className="px-3 py-3 text-center font-bold text-purple-400 bg-purple-950/40 border-l-2 border-gray-800/60 text-lg">
+                          {totalOver > 0 ? `+${totalOver}` : totalOver === 0 ? 'E' : totalOver}
+                        </td>
+                        <td className="px-3 py-3 text-center font-bold text-orange-400 bg-orange-950/40 border-l-2 border-gray-800/60 text-lg">
+                          {completedHoles}/9
                         </td>
                       </>
                     )}
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -397,14 +513,14 @@ export default function LiveMonitoringDashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Star className="w-5 h-5 text-amber-400" />
-              <h3 className="text-lg font-bold text-white">Special Holes Scorecard</h3>
+              <h3 className="text-lg font-bold text-white">Scorecard Hole Spesial</h3>
               <span className="ml-2 px-2 py-1 bg-amber-700/60 text-amber-200 text-xs font-bold rounded-full border border-amber-600/40">
-                {specialHoles.length} Holes
+                {specialHoles.length} Hole
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-300">
               <RefreshCw className="w-4 h-4 animate-spin" />
-              <span>Auto-updating</span>
+              <span>Update Otomatis</span>
             </div>
           </div>
         </div>
@@ -415,7 +531,7 @@ export default function LiveMonitoringDashboard() {
               {/* Hole Numbers Row */}
               <tr className="bg-gray-800/80 border-b-2 border-amber-900/40">
                 <th className="sticky left-0 z-10 bg-gray-800/80 px-4 py-3 text-left font-bold text-gray-300 border-r-2 border-amber-900/40">
-                  Player
+                  Pemain
                 </th>
                 {specialHoles.map(hole => (
                   <th key={hole} className="px-3 py-3 text-center font-bold text-gray-300 min-w-[50px] bg-amber-950/20">
@@ -425,8 +541,14 @@ export default function LiveMonitoringDashboard() {
                     </div>
                   </th>
                 ))}
-                <th className="px-4 py-3 text-center font-bold text-amber-400 bg-amber-950/40 border-l-2 border-amber-900/40 min-w-[60px]">
+                <th className="px-3 py-3 text-center font-bold text-amber-400 bg-amber-950/40 border-l-2 border-amber-900/40 min-w-[60px]">
                   TOTAL
+                </th>
+                <th className="px-3 py-3 text-center font-bold text-purple-400 bg-purple-950/40 border-l-2 border-amber-900/40 min-w-[60px]">
+                  OVER
+                </th>
+                <th className="px-3 py-3 text-center font-bold text-orange-400 bg-orange-950/40 border-l-2 border-amber-900/40 min-w-[60px]">
+                  SELESAI
                 </th>
               </tr>
 
@@ -452,12 +574,29 @@ export default function LiveMonitoringDashboard() {
             <tbody>
               {monitoringData.players.length === 0 ? (
                 <tr>
-                  <td colSpan={specialHoles.length + 2} className="px-4 py-12 text-center text-gray-400">
-                    No players registered yet
+                  <td colSpan={specialHoles.length + 5} className="px-4 py-12 text-center text-gray-400">
+                    Belum ada pemain terdaftar
                   </td>
                 </tr>
               ) : (
-                monitoringData.players.map((player, playerIndex) => (
+                monitoringData.players.map((player, playerIndex) => {
+                  const specialCompletedHoles = specialHoles.filter(hole => 
+                    getScoreForHole(player.scorecard, hole) !== null
+                  ).length;
+                  
+                  // Calculate over/under for special holes only
+                  let specialTotalOver = 0;
+                  for (const hole of specialHoles) {
+                    const score = getScoreForHole(player.scorecard, hole);
+                    if (score !== null) {
+                      const holeData = holesMap.get(hole);
+                      if (holeData) {
+                        specialTotalOver += score - holeData.par;
+                      }
+                    }
+                  }
+                  
+                  return (
                   <tr 
                     key={player.playerId}
                     className={`border-b border-gray-800/60 hover:bg-amber-950/20 ${
@@ -468,7 +607,7 @@ export default function LiveMonitoringDashboard() {
                       <div>
                         <div className="font-bold">{player.playerName}</div>
                         <div className="text-xs text-gray-400 mt-1">
-                          Start: Hole {player.startHole} • Current: Hole {player.currentHole}
+                          Mulai: Hole {player.startHole} • Saat Ini: Hole {player.currentHole}
                         </div>
                       </div>
                     </td>
@@ -488,11 +627,18 @@ export default function LiveMonitoringDashboard() {
                       );
                     })}
                     
-                    <td className="px-4 py-3 text-center font-bold text-amber-400 bg-amber-950/40 border-l-2 border-amber-900/40 text-lg">
+                    <td className="px-3 py-3 text-center font-bold text-amber-400 bg-amber-950/40 border-l-2 border-amber-900/40 text-lg">
                       {calculateSpecialTotal(player.scorecard, specialHoles) || '-'}
                     </td>
+                    <td className="px-3 py-3 text-center font-bold text-purple-400 bg-purple-950/40 border-l-2 border-amber-900/40 text-lg">
+                      {specialTotalOver > 0 ? `+${specialTotalOver}` : specialTotalOver === 0 ? 'E' : specialTotalOver}
+                    </td>
+                    <td className="px-3 py-3 text-center font-bold text-orange-400 bg-orange-950/40 border-l-2 border-amber-900/40 text-lg">
+                      {specialCompletedHoles}/{specialHoles.length}
+                    </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -502,31 +648,31 @@ export default function LiveMonitoringDashboard() {
 
       {/* Legend */}
       <div className="bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 p-4">
-        <h4 className="font-semibold text-white mb-3">Score Legend</h4>
+        <h4 className="font-semibold text-white mb-3">Legenda Skor</h4>
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-100 border border-green-200 rounded flex items-center justify-center font-bold text-green-800">
+            <div className="w-8 h-8 bg-green-400 border border-green-500 rounded flex items-center justify-center font-bold text-black">
               3
             </div>
-            <span className="text-gray-400">Birdie or Better</span>
+            <span className="text-gray-400">Eagle</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gray-100 border border-gray-200 rounded flex items-center justify-center font-semibold text-gray-800">
+            <div className="w-8 h-8 bg-gray-300 border border-gray-400 rounded flex items-center justify-center font-semibold text-black">
               4
             </div>
             <span className="text-gray-400">Par</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-yellow-100 border border-yellow-200 rounded flex items-center justify-center font-semibold text-yellow-800">
+            <div className="w-8 h-8 bg-yellow-300 border border-yellow-400 rounded flex items-center justify-center font-semibold text-black">
               5
             </div>
             <span className="text-gray-400">Bogey</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-red-100 border border-red-200 rounded flex items-center justify-center font-semibold text-red-800">
+            <div className="w-8 h-8 bg-red-400 border border-red-500 rounded flex items-center justify-center font-semibold text-black">
               6
             </div>
-            <span className="text-gray-400">Double Bogey+</span>
+            <span className="text-gray-400"> Bogey+</span>
           </div>
         </div>
       </div>
@@ -535,7 +681,7 @@ export default function LiveMonitoringDashboard() {
       <div className="text-center">
         <p className="text-sm text-gray-400 flex items-center justify-center gap-2">
           <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-          Real-time updates enabled
+          Update real-time aktif
         </p>
       </div>
     </div>

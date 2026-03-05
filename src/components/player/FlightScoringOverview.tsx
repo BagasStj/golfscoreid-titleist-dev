@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
@@ -13,6 +13,7 @@ const FlightScoringOverview: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'scorecard' | 'leaderboard'>('scorecard');
   const [scoringMode, setScoringMode] = useState<'stroke' | 'over'>('stroke');
   const [showIncompleteAlert, setShowIncompleteAlert] = useState(false);
+  const [currentHole, setCurrentHole] = useState<number>(1);
 
   // Fetch tournament details
   const tournament = useQuery(
@@ -40,6 +41,30 @@ const FlightScoringOverview: React.FC = () => {
 
   // Fetch scores for all players in flight
   const flightParticipants = flightDetails?.participants || [];
+
+  // Get current hole based on flight (first hole where not all players scored)
+  const currentHoleFromFlight = useQuery(
+    api.scores.getCurrentHoleForFlight,
+    flightParticipants.length > 0 && id ? {
+      tournamentId: id as Id<'tournaments'>,
+      playerIds: flightParticipants.map(p => p._id)
+    } : 'skip'
+  );
+
+  // Update current hole when flight data changes, but only if not manually set
+  useEffect(() => {
+    if (currentHoleFromFlight !== undefined && currentHoleFromFlight !== null) {
+      // Check if we have a saved current hole in localStorage
+      const savedHole = localStorage.getItem(`currentHole_${id}`);
+      if (savedHole) {
+        setCurrentHole(parseInt(savedHole));
+      } else {
+        // First time, use the calculated current hole
+        setCurrentHole(currentHoleFromFlight);
+        localStorage.setItem(`currentHole_${id}`, currentHoleFromFlight.toString());
+      }
+    }
+  }, [currentHoleFromFlight, id]);
 
   if (!tournament || !playerFlight || !flightDetails) {
     return (
@@ -70,12 +95,12 @@ const FlightScoringOverview: React.FC = () => {
             {/* Back Button */}
             <div className="mb-3">
               <button
-                onClick={() => navigate(`/player/tournament/${id}`)}
+                onClick={() => navigate('/player/my-tournaments')}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/8 text-gray-400 hover:text-white transition-colors active:scale-95"
                 style={{ background: "rgba(255,255,255,0.04)" }}
               >
                 <ChevronLeft className="w-4 h-4" />
-                <span className="text-xs font-semibold">Kembali ke Detail Tournament</span>
+                <span className="text-xs font-semibold">Kembali ke My Tournament</span>
               </button>
             </div>
             
@@ -155,29 +180,20 @@ const FlightScoringOverview: React.FC = () => {
               currentUserId={user?._id}
               scoringMode={scoringMode}
               setScoringMode={setScoringMode}
+              currentHole={currentHole}
+              setCurrentHole={setCurrentHole}
             />
             {/* Action Buttons - Outside Table - Only show for active tournaments */}
             {user && flightParticipants.some(p => p._id === user._id) && tournament.status === 'active' && (
-              <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg border border-gray-800 p-3 space-y-2">
-                <button
-                  onClick={() => navigate(`/player/scoring/${id}?playerId=${user._id}`)}
-                  className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3.5 rounded-lg transition-all shadow-lg flex items-center justify-center space-x-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  <span className="text-base">Input Skor</span>
-                </button>
-                <button
-                  onClick={handleFinishTournament}
-                  className="w-full bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black hover:from-gray-800 hover:via-[#171718] hover:to-black text-white font-semibold py-3 px-4 rounded-lg border border-gray-800 hover:border-gray-700 transition-all flex items-center justify-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Selesaikan Pertandingan</span>
-                </button>
-              </div>
+              <ActionButtons
+                tournament={tournament}
+                flightParticipants={flightParticipants}
+                currentHole={currentHole}
+                userId={user._id}
+                tournamentId={id as Id<'tournaments'>}
+                navigate={navigate}
+                handleFinishTournament={handleFinishTournament}
+              />
             )}
           </>
         ) : (
@@ -236,6 +252,119 @@ const FlightScoringOverview: React.FC = () => {
   );
 };
 
+// Action Buttons Component
+const ActionButtons: React.FC<{
+  tournament: any;
+  flightParticipants: any[];
+  currentHole: number;
+  userId: Id<'users'>;
+  tournamentId: Id<'tournaments'>;
+  navigate: any;
+  handleFinishTournament: () => void;
+}> = ({ tournament, flightParticipants, currentHole, userId, tournamentId, navigate, handleFinishTournament }) => {
+  // Use getFlightScores to fetch all scores at once
+  const flightScoresData = useQuery(
+    api.scores.getFlightScores,
+    flightParticipants.length > 0 ? {
+      tournamentId: tournament._id,
+      playerIds: flightParticipants.map(p => p._id)
+    } : 'skip'
+  );
+
+  // Transform the data to match our expected format
+  const participantScores = flightParticipants.map(participant => {
+    const playerData = flightScoresData?.find(ps => ps.playerId === participant._id);
+    return {
+      participant,
+      scores: playerData?.scores || []
+    };
+  });
+
+  // Check if current user has scored current hole
+  const userScoresData = participantScores.find(ps => ps.participant._id === userId);
+  const userHasScored = userScoresData?.scores?.some(s => s.holeNumber === currentHole) || false;
+
+  // Check if all players have scored current hole
+  const playersWhoScored = participantScores.filter(ps => 
+    ps.scores?.some(s => s.holeNumber === currentHole)
+  );
+  const allPlayersScored = playersWhoScored.length === flightParticipants.length;
+  const waitingCount = flightParticipants.length - playersWhoScored.length;
+
+  // Check if all holes are completed by current user
+  const holesConfig = tournament.holesConfig || [];
+  const allHolesCompleted = userScoresData?.scores?.length === holesConfig.length;
+
+  return (
+    <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg border border-gray-800 p-3 space-y-2">
+      {userHasScored ? (
+        <>
+          <button
+            onClick={() => navigate(`/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`)}
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3.5 rounded-lg transition-all shadow-lg flex items-center justify-center space-x-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span className="text-base">Edit Score</span>
+          </button>
+          <button
+            onClick={() => {
+              if (allPlayersScored) {
+                // Update localStorage to next hole
+                const currentHoleIndex = holesConfig.findIndex((h: any) => h.holeNumber === currentHole);
+                if (currentHoleIndex < holesConfig.length - 1) {
+                  const nextHole = holesConfig[currentHoleIndex + 1];
+                  localStorage.setItem(`currentHole_${tournamentId}`, nextHole.holeNumber.toString());
+                }
+                // Reload page to update current hole
+                window.location.reload();
+              }
+            }}
+            disabled={!allPlayersScored}
+            className={`w-full font-semibold py-3 px-4 rounded-lg border transition-all flex items-center justify-center gap-2 ${
+              allPlayersScored
+                ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-green-600 shadow-lg cursor-pointer'
+                : 'bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed'
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span>
+              {allPlayersScored 
+                ? 'Simpan & Lanjut ke Hole Berikutnya' 
+                : `Menunggu ${waitingCount} pemain lainnya`}
+            </span>
+          </button>
+        </>
+      ) : (
+        <button
+          onClick={() => navigate(`/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`)}
+          className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3.5 rounded-lg transition-all shadow-lg flex items-center justify-center space-x-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          <span className="text-base">Input Skor</span>
+        </button>
+      )}
+      
+      {allHolesCompleted && (
+        <button
+          onClick={handleFinishTournament}
+          className="w-full bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black hover:from-gray-800 hover:via-[#171718] hover:to-black text-white font-semibold py-3 px-4 rounded-lg border border-gray-800 hover:border-gray-700 transition-all flex items-center justify-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Selesaikan Pertandingan</span>
+        </button>
+      )}
+    </div>
+  );
+};
+
 // Scorecard Table Component - Single Table for All Players
 const ScorecardTable: React.FC<{
   tournament: any;
@@ -244,7 +373,9 @@ const ScorecardTable: React.FC<{
   currentUserId?: Id<'users'>;
   scoringMode: 'stroke' | 'over';
   setScoringMode: (mode: 'stroke' | 'over') => void;
-}> = ({ tournament, flightParticipants, holesConfig, currentUserId, scoringMode, setScoringMode }) => {
+  currentHole: number;
+  setCurrentHole: (hole: number) => void;
+}> = ({ tournament, flightParticipants, holesConfig, currentUserId, scoringMode, setScoringMode, currentHole, setCurrentHole }) => {
   // Fetch scores for all participants
   const participantScores = flightParticipants.map((participant) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -290,26 +421,33 @@ const ScorecardTable: React.FC<{
 
       {/* Legend - Above Table */}
       <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg border border-gray-800 p-2">
-        <div className="flex flex-nowrap items-center justify-center gap-2 text-[10px] overflow-x-auto">
-          <div className="flex items-center space-x-1 flex-shrink-0">
-            <div className="w-4 h-4 rounded-full bg-yellow-500 ring-1 ring-yellow-400"></div>
-            <span className="text-gray-300 font-medium">Eagle</span>
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-nowrap items-center justify-center gap-2 text-[10px] overflow-x-auto">
+            <div className="flex items-center space-x-1 flex-shrink-0">
+              <div className="w-4 h-4 rounded-full bg-yellow-500 ring-1 ring-yellow-400"></div>
+              <span className="text-gray-300 font-medium">Eagle</span>
+            </div>
+            <div className="flex items-center space-x-1 flex-shrink-0">
+              <div className="w-4 h-4 rounded-full bg-red-500 ring-1 ring-red-400"></div>
+              <span className="text-gray-300 font-medium">Birdie</span>
+            </div>
+            <div className="flex items-center space-x-1 flex-shrink-0">
+              <div className="w-4 h-4 rounded-full bg-blue-500"></div>
+              <span className="text-gray-300 font-medium">Par</span>
+            </div>
+            <div className="flex items-center space-x-1 flex-shrink-0">
+              <div className="w-4 h-4 rounded-full bg-gray-600"></div>
+              <span className="text-gray-300 font-medium">Bogey</span>
+            </div>
+            <div className="flex items-center space-x-1 flex-shrink-0">
+              <div className="w-4 h-4 rounded-full bg-gray-700"></div>
+              <span className="text-gray-300 font-medium">Double+</span>
+            </div>
           </div>
-          <div className="flex items-center space-x-1 flex-shrink-0">
-            <div className="w-4 h-4 rounded-full bg-red-500 ring-1 ring-red-400"></div>
-            <span className="text-gray-300 font-medium">Birdie</span>
-          </div>
-          <div className="flex items-center space-x-1 flex-shrink-0">
-            <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-            <span className="text-gray-300 font-medium">Par</span>
-          </div>
-          <div className="flex items-center space-x-1 flex-shrink-0">
-            <div className="w-4 h-4 rounded-full bg-gray-600"></div>
-            <span className="text-gray-300 font-medium">Bogey</span>
-          </div>
-          <div className="flex items-center space-x-1 flex-shrink-0">
-            <div className="w-4 h-4 rounded-full bg-gray-700"></div>
-            <span className="text-gray-300 font-medium">Double+</span>
+          <div className="text-center">
+            <span className="text-[10px] text-gray-400">
+              Hole saat ini: <span className="text-red-500 font-bold">#{currentHole}</span>
+            </span>
           </div>
         </div>
       </div>
@@ -325,7 +463,12 @@ const ScorecardTable: React.FC<{
                   Pemain
                 </th>
                 {holesConfig.map((hole) => (
-                  <th key={hole.holeNumber} className="text-center text-white font-bold py-2 px-1.5 min-w-[32px]">
+                  <th 
+                    key={hole.holeNumber} 
+                    className={`text-center text-white font-bold py-2 px-1.5 min-w-[32px] ${
+                      hole.holeNumber === currentHole ? 'bg-red-600/30 ring-2 ring-red-500' : ''
+                    }`}
+                  >
                     {hole.holeNumber}
                   </th>
                 ))}
@@ -421,6 +564,7 @@ const ScorecardTable: React.FC<{
                       const score = scoresMap.get(hole.holeNumber);
                       const strokes = score?.strokes;
                       const par = hole.par;
+                      const isCurrentHole = hole.holeNumber === currentHole;
                       
                       let bgColor = 'bg-gray-800/50';
                       let textColor = 'text-gray-500';
@@ -470,7 +614,12 @@ const ScorecardTable: React.FC<{
                       }
                       
                       return (
-                        <td key={hole.holeNumber} className="text-center py-2 px-1.5">
+                        <td 
+                          key={hole.holeNumber} 
+                          className={`text-center py-2 px-1.5 ${
+                            isCurrentHole ? 'bg-red-600/10' : ''
+                          }`}
+                        >
                           <div className={`w-7 h-7 rounded-full ${bgColor} ${textColor} ${borderColor} flex items-center justify-center mx-auto font-bold text-xs`}>
                             {displayValue}
                           </div>

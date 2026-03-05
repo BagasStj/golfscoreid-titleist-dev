@@ -22,6 +22,10 @@ export default function ModernScoringInterface() {
   const { user } = useAuth();
   const { showSuccess, showError } = useToast();
   
+  // Get hole parameter from URL
+  const searchParams = new URLSearchParams(window.location.search);
+  const holeParam = searchParams.get('hole');
+  
   const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
   const [strokes, setStrokes] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -104,6 +108,17 @@ export default function ModernScoringInterface() {
     }
   }, [id, user, navigate]);
 
+  // Set initial hole based on URL parameter
+  useEffect(() => {
+    if (holeParam && holesConfig.length > 0) {
+      const holeNumber = parseInt(holeParam);
+      const holeIndex = holesConfig.findIndex(h => h.holeNumber === holeNumber);
+      if (holeIndex !== -1) {
+        setCurrentHoleIndex(holeIndex);
+      }
+    }
+  }, [holeParam, holesConfig]);
+
   useEffect(() => {
     if (currentHole) {
       // If editing, use existing score, otherwise use par
@@ -149,17 +164,11 @@ export default function ModernScoringInterface() {
         });
       }
 
-      // Move to next hole if not at the end
-      if (currentHoleIndex < holesConfig.length - 1) {
-        setCurrentHoleIndex(currentHoleIndex + 1);
-      }
-      
-      // Check if all holes are completed
-      if (holesCompleted >= totalHoles - 1 && !isEditMode) {
-        setTimeout(() => {
-          navigate(`/player/tournament/${id}/scorecard`);
-        }, 1500);
-      }
+      // Navigate back to flight scoring overview after submission
+      // Don't auto-advance to next hole, let user click Save button
+      setTimeout(() => {
+        navigate(`/player/flight-scoring/${id}`);
+      }, 800);
     } catch (error) {
       console.error('Submit error:', error);
     } finally {
@@ -194,7 +203,7 @@ export default function ModernScoringInterface() {
             You've completed all holes. Check your scorecard to see your results.
           </p>
           <button
-            onClick={() => navigate(`/player/tournament/${id}/scorecard`)}
+            onClick={() => navigate(`/player/flight-scoring/${id}`)}
             className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-xl"
           >
             View Scorecard
@@ -213,7 +222,7 @@ export default function ModernScoringInterface() {
         <div className="container mx-auto px-3 py-2">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(`/player/flight-scoring/${id}`)}
               className="p-1.5 hover:bg-gray-800 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-white" />
@@ -389,7 +398,7 @@ export default function ModernScoringInterface() {
           </div>
 
           {/* Hole Navigation */}
-          <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl p-3 border border-gray-800">
+          {/* <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl p-3 border border-gray-800">
             <h3 className="text-xs font-bold text-white mb-2">ALL HOLES</h3>
             <div className="grid grid-cols-6 sm:grid-cols-9 gap-1.5">
               {holesConfig.map((hole, index) => {
@@ -422,7 +431,7 @@ export default function ModernScoringInterface() {
             <p className="text-[10px] text-gray-400 mt-2 text-center">
               Click any hole to score or edit • Blue = Already scored
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

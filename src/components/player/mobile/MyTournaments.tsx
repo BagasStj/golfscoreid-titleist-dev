@@ -84,6 +84,12 @@ const TournamentCard: React.FC<{
     } : 'skip'
   );
 
+  // Fetch all flights in tournament to show all participants
+  const allFlights = useQuery(
+    api.flights.getTournamentFlightsWithParticipants,
+    { tournamentId: tournament._id }
+  );
+
   if (!tournamentDetails) {
     return (
       <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl p-4 border border-gray-800">
@@ -279,6 +285,86 @@ const TournamentCard: React.FC<{
         </div>
       )}
 
+      {/* All Tournament Participants */}
+      {allFlights && allFlights.length > 0 && (
+        <div className="p-4 border-b border-gray-800">
+          <h4 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
+            <Users className="w-4 h-4 text-green-500" />
+            Semua Peserta Tournament
+          </h4>
+
+          <div className="space-y-3">
+            {allFlights.map((flight) => (
+              <div key={flight._id} className="bg-gray-900/40 rounded-lg p-3 border border-gray-800/60">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <h5 className="text-white font-bold text-xs">
+                      {flight.flightName}
+                    </h5>
+                    <p className="text-gray-400 text-[10px]">
+                      {flight.participants?.length || 0} pemain
+                    </p>
+                  </div>
+                  <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center text-white font-bold text-xs">
+                    {flight.flightNumber}
+                  </div>
+                </div>
+
+                {/* Flight Participants */}
+                <div className="space-y-1 mt-2">
+                  {flight.participants && flight.participants.length > 0 ? (
+                    flight.participants.map((participant: any) => (
+                      <div
+                        key={participant._id}
+                        className={`flex items-center gap-2 p-1.5 rounded ${
+                          participant._id === userId
+                            ? "bg-green-900/40 border border-green-700/60"
+                            : "bg-gray-800/40"
+                        }`}
+                      >
+                        <div
+                          className={`w-6 h-6 rounded flex items-center justify-center text-white font-bold text-[10px] ${
+                            participant._id === userId
+                              ? "bg-gradient-to-br from-green-600 to-green-700"
+                              : "bg-gradient-to-br from-gray-600 to-gray-700"
+                          }`}
+                        >
+                          {participant.name.charAt(0).toUpperCase()}
+                        </div>
+                        <p className="text-white text-[11px] font-semibold flex items-center gap-1 flex-1">
+                          {participant.name}
+                          {participant._id === userId && (
+                            <span className="text-[9px] bg-green-600 text-white px-1 py-0.5 rounded-full font-semibold">
+                              Anda
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-[10px] text-center py-1">
+                      Belum ada peserta
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Total Participants Summary */}
+          <div className="mt-3 bg-gradient-to-r from-green-900/40 to-green-950/40 rounded-lg p-2 border border-green-800/40">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-300 text-xs font-semibold">
+                Total Peserta
+              </span>
+              <span className="text-green-400 text-sm font-bold">
+                {allFlights.reduce((total, flight) => total + (flight.participants?.length || 0), 0)} pemain
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className="p-4 space-y-2">
         {/* Scoring Button - Only for active tournaments */}
@@ -293,7 +379,7 @@ const TournamentCard: React.FC<{
         )}
 
         {/* View Details Button */}
-        <button
+        {/* <button
           onClick={() => navigate(`/player/tournament/${tournament._id}`, {
             state: { fromMyTournaments: true }
           })}
@@ -304,7 +390,7 @@ const TournamentCard: React.FC<{
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
           </svg>
           <span>Lihat Detail</span>
-        </button>
+        </button> */}
       </div>
     </div>
   );
