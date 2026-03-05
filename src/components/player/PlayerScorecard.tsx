@@ -5,6 +5,7 @@ import { api } from '../../../convex/_generated/api';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Id } from '../../../convex/_generated/dataModel';
 import ScoreClassificationBadge from '../shared/ScoreClassificationBadge';
+import { ChevronLeft } from 'lucide-react';
 
 export default function PlayerScorecard() {
   const { tournamentId } = useParams<{ tournamentId: string }>();
@@ -94,22 +95,17 @@ export default function PlayerScorecard() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] via-[#0f0f0f] to-black" style={{ backgroundColor: '#0f0f0f' }}>
       <div className="container mx-auto px-4 py-6 max-w-4xl">
-        {/* Header with Navigation */}
-        {/* <div className="flex items-center justify-between mb-6">
+        {/* Back Button */}
+        <div className="mb-4">
           <button
             onClick={() => navigate(`/player/tournament/${tournamentId}`)}
-            className="flex items-center gap-2 text-white hover:text-red-500 font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/8 text-gray-400 hover:text-white transition-colors active:scale-95"
+            style={{ background: "rgba(255,255,255,0.04)" }}
           >
-            <span className="text-xl">←</span>
-            <span>Back to Scoring</span>
+            <ChevronLeft className="w-4 h-4" />
+            <span className="text-xs font-semibold">Kembali ke Detail Tournament</span>
           </button>
-          <button
-            onClick={() => navigate(`/player/tournament/${tournamentId}/leaderboard`)}
-            className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-medium hover:from-red-700 hover:to-red-800 transition-all shadow-xl"
-          >
-            Leaderboard
-          </button>
-        </div> */}
+        </div>
 
         <div className="space-y-6">
           {/* Tournament Header */}

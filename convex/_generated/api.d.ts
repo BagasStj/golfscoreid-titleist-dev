@@ -16,6 +16,7 @@ import type * as emailActions from "../emailActions.js";
 import type * as emailNotifications from "../emailNotifications.js";
 import type * as flights from "../flights.js";
 import type * as hiddenHoles from "../hiddenHoles.js";
+import type * as information from "../information.js";
 import type * as leaderboard from "../leaderboard.js";
 import type * as migrateClubSets from "../migrateClubSets.js";
 import type * as migrateHolesConfig from "../migrateHolesConfig.js";
@@ -55,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   emailNotifications: typeof emailNotifications;
   flights: typeof flights;
   hiddenHoles: typeof hiddenHoles;
+  information: typeof information;
   leaderboard: typeof leaderboard;
   migrateClubSets: typeof migrateClubSets;
   migrateHolesConfig: typeof migrateHolesConfig;

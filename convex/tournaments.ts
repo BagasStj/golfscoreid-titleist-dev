@@ -10,7 +10,7 @@ export const createTournament = mutation({
     location: v.string(),
     startHole: v.number(),
     courseType: v.union(v.literal("18holes"), v.literal("F9"), v.literal("B9")),
-    gameMode: v.union(v.literal("strokePlay"), v.literal("system36"), v.literal("stableford")),
+    gameMode: v.union(v.literal("strokePlay"), v.literal("system36"), v.literal("stableford"), v.literal("peoria")),
     scoringDisplay: v.union(v.literal("over"), v.literal("stroke")),
     specialScoringHoles: v.optional(v.array(v.number())),
     schedule: v.optional(v.string()),
@@ -431,6 +431,27 @@ export const getTournamentConfirmationSummary = query({
     return {
       confirmed: totalConfirmed,
       paid: totalPaid,
+    };
+  },
+});
+
+// Check if user is registered in tournament
+export const checkUserRegistration = query({
+  args: {
+    tournamentId: v.id("tournaments"),
+    userId: v.id("users")
+  },
+  handler: async (ctx, args) => {
+    const participation = await ctx.db
+      .query("tournament_participants")
+      .withIndex("by_tournament_and_player", (q) =>
+        q.eq("tournamentId", args.tournamentId).eq("playerId", args.userId)
+      )
+      .first();
+
+    return {
+      isRegistered: !!participation,
+      participationId: participation?._id,
     };
   },
 });

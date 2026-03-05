@@ -88,7 +88,8 @@ export default defineSchema({
     gameMode: v.union(
       v.literal("strokePlay"),
       v.literal("system36"),
-      v.literal("stableford")
+      v.literal("stableford"),
+      v.literal("peoria")
     ),
     scoringDisplay: v.union(v.literal("over"), v.literal("stroke")),
     hiddenHoles: v.array(v.number()),
@@ -162,6 +163,23 @@ export default defineSchema({
     .index("by_player", ["playerId"])
     .index("by_tournament_and_player", ["tournamentId", "playerId"])
     .index("by_tournament_player_hole", ["tournamentId", "playerId", "holeNumber"]),
+
+  // Pending Scores - waiting for approval
+  pending_scores: defineTable({
+    tournamentId: v.id("tournaments"),
+    targetPlayerId: v.id("users"), // Player whose score is being recorded
+    scoringUserId: v.id("users"), // Player who is recording the score
+    holeNumber: v.number(),
+    strokes: v.number(),
+    status: v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected")),
+    submittedAt: v.number(),
+    respondedAt: v.optional(v.number()),
+  })
+    .index("by_tournament", ["tournamentId"])
+    .index("by_target_player", ["targetPlayerId"])
+    .index("by_target_player_and_status", ["targetPlayerId", "status"])
+    .index("by_tournament_and_target", ["tournamentId", "targetPlayerId"])
+    .index("by_tournament_target_hole", ["tournamentId", "targetPlayerId", "holeNumber"]),
 
   // Golf Courses table
   courses: defineTable({
@@ -257,4 +275,34 @@ export default defineSchema({
   })
     .index("by_news", ["newsId"])
     .index("by_sent_by", ["sentBy"]),
+
+  // Information Management table (Fact Sheet, Tee Sheet, Activity, Contact)
+  information: defineTable({
+    title: v.string(),
+    description: v.optional(v.string()),
+    type: v.union(
+      v.literal("factsheet"),
+      v.literal("teesheet"),
+      v.literal("activity"),
+      v.literal("contact")
+    ),
+    // File storage
+    fileUrl: v.optional(v.string()),
+    fileStorageId: v.optional(v.id("_storage")),
+    fileType: v.optional(v.string()), // "pdf", "jpg", "png"
+    // Contact specific fields
+    contactName: v.optional(v.string()),
+    contactPhone: v.optional(v.string()),
+    contactEmail: v.optional(v.string()),
+    contactPosition: v.optional(v.string()),
+    // Metadata
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    isPublished: v.boolean(),
+    order: v.optional(v.number()), // For sorting
+  })
+    .index("by_type", ["type", "isPublished"])
+    .index("by_created_by", ["createdBy"])
+    .index("by_published", ["isPublished", "createdAt"]),
 });

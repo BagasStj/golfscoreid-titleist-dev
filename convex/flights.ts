@@ -201,6 +201,38 @@ export const removePlayerFromFlight = mutation({
   },
 });
 
+// Update Player Start Hole
+export const updatePlayerStartHole = mutation({
+  args: {
+    participationId: v.id("tournament_participants"),
+    startHole: v.number(),
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin
+    const admin = await ctx.db.get(args.userId);
+    if (!admin || admin.role !== "admin") {
+      throw new Error("Unauthorized: Only admins can update player start hole");
+    }
+
+    // Validate start hole
+    if (args.startHole < 1 || args.startHole > 18) {
+      throw new Error("Start hole must be between 1 and 18");
+    }
+
+    const participation = await ctx.db.get(args.participationId);
+    if (!participation) {
+      throw new Error("Participation not found");
+    }
+
+    await ctx.db.patch(args.participationId, {
+      startHole: args.startHole,
+    });
+
+    return { success: true };
+  },
+});
+
 // Update Flight
 export const updateFlight = mutation({
   args: {

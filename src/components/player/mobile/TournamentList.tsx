@@ -222,7 +222,9 @@ const TournamentList: React.FC = () => {
           return (
             <div
               key={tournament._id}
-              onClick={() => navigate(`/player/tournament/${tournament._id}`)}
+              onClick={() => navigate(`/player/tournament/${tournament._id}`, { 
+                state: { fromHome: true } 
+              })}
               className="relative overflow-hidden rounded-2xl cursor-pointer group transition-all duration-300 active:scale-[0.98]"
               style={{
                 background:
@@ -270,14 +272,21 @@ const TournamentList: React.FC = () => {
                       }}
                     />
                     <div
-                      className="relative w-[52px] h-[52px] rounded-xl  flex items-center justify-center overflow-hidden"
-                      
+                      className="relative w-[52px] h-[52px] rounded-xl flex items-center justify-center overflow-hidden"
                     >
-                      <img
-                        src="/ttiltlist-landing.png"
-                        alt="Titleist"
-                        className="w-9 h-9 object-contain"
-                      />
+                      {tournament.bannerUrl ? (
+                        <img
+                          src={tournament.bannerUrl}
+                          alt={tournament.name}
+                          className="w-18 h-18 object-contain p-1"
+                        />
+                      ) : (
+                        <img
+                          src="/ttiltlist-landing.png"
+                          alt="Titleist"
+                          className="w-9 h-9 object-contain"
+                        />
+                      )}
                     </div>
                   </div>
 

@@ -5,6 +5,7 @@ import TournamentList from "./TournamentList";
 import MyTournaments from "./MyTournaments";
 import NewsFeed from "./NewsFeed";
 import MyProfile from "./MyProfile";
+import PendingScoreApprovals from "../PendingScoreApprovals";
 
 const MobileLayout: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -132,8 +133,12 @@ const MobileLayout: React.FC = () => {
           </button>
 
           <button
-            disabled
-            className="flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all text-gray-500 opacity-30 cursor-not-allowed"
+            onClick={() => handleTabChange("my-tournaments")}
+            className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all ${
+              activeTab === "my-tournaments"
+                ? "text-white bg-gradient-to-br from-red-600 to-red-700 shadow-lg shadow-red-900/50"
+                : "text-gray-500 hover:text-white hover:bg-gray-900/50"
+            }`}
           >
             <svg
               className="w-6 h-6"
@@ -152,8 +157,12 @@ const MobileLayout: React.FC = () => {
           </button>
 
           <button
-            disabled
-            className="flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all text-gray-500 opacity-30 cursor-not-allowed"
+            onClick={() => handleTabChange("information")}
+            className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all ${
+              activeTab === "information"
+                ? "text-white bg-gradient-to-br from-red-600 to-red-700 shadow-lg shadow-red-900/50"
+                : "text-gray-500 hover:text-white hover:bg-gray-900/50"
+            }`}
           >
             <svg
               className="w-6 h-6"
@@ -196,6 +205,9 @@ const MobileLayout: React.FC = () => {
           </button>
         </div>
       </nav>
+
+      {/* Pending Score Approvals - Global */}
+      <PendingScoreApprovals />
     </div>
   );
 };

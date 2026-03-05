@@ -32,7 +32,7 @@ function TournamentConfirmationSummary({ tournamentId, maxParticipants }: { tour
   const summary = useQuery(api.tournaments.getTournamentConfirmationSummary, { tournamentId });
   
   if (!summary) {
-    return <span className="text-gray-500 text-sm">Loading...</span>;
+    return <span className="text-gray-500 text-sm">Memuat...</span>;
   }
 
   const { confirmed, paid } = summary;
@@ -69,7 +69,7 @@ function CourseName({ courseId }: { courseId: Id<'courses'> | undefined }) {
     api.courses.getCourse, 
     courseId ? { courseId } : 'skip'
   );
-  return <span className="text-sm text-gray-400">{course?.name ?? 'No course'}</span>;
+  return <span className="text-sm text-gray-400">{course?.name ?? 'Tidak ada course'}</span>;
 }
 
 export default function TournamentManagementTable({
@@ -129,10 +129,10 @@ export default function TournamentManagementTable({
         status: statusConfirm.newStatus,
         userId: user._id,
       });
-      showSuccess(`Tournament status updated to ${statusConfirm.newStatus}`);
+      showSuccess(`Status tournament diperbarui menjadi ${statusConfirm.newStatus === 'upcoming' ? 'Akan Datang' : statusConfirm.newStatus === 'active' ? 'Aktif' : 'Selesai'}`);
       setStatusConfirm({ isOpen: false, tournamentId: null, newStatus: null, tournamentName: '' });
     } catch (error) {
-      showError(error instanceof Error ? error.message : 'Failed to update status');
+      showError(error instanceof Error ? error.message : 'Gagal memperbarui status');
     } finally {
       setLoadingStatus(null);
     }
@@ -155,10 +155,10 @@ export default function TournamentManagementTable({
         tournamentId: deleteConfirm.tournamentId,
         userId: user._id,
       });
-      showSuccess('Tournament deleted successfully');
+      showSuccess('Tournament berhasil dihapus');
       setDeleteConfirm({ isOpen: false, tournamentId: null, tournamentName: '' });
     } catch (error) {
-      showError(error instanceof Error ? error.message : 'Failed to delete tournament');
+      showError(error instanceof Error ? error.message : 'Gagal menghapus tournament');
     } finally {
       setIsDeleting(false);
     }
@@ -184,6 +184,19 @@ export default function TournamentManagementTable({
     }
   };
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'upcoming':
+        return 'Akan Datang';
+      case 'active':
+        return 'Aktif';
+      case 'completed':
+        return 'Selesai';
+      default:
+        return status;
+    }
+  };
+
   if (tournaments === undefined) {
     return (
       <div className="bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 p-8">
@@ -200,8 +213,8 @@ export default function TournamentManagementTable({
     return (
       <div className="bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 p-12 text-center">
         <div className="text-6xl mb-4">🏆</div>
-        <h3 className="text-xl font-semibold text-white mb-2">No Tournaments Yet</h3>
-        <p className="text-gray-400">Create your first tournament to get started!</p>
+        <h3 className="text-xl font-semibold text-white mb-2">Belum Ada Tournament</h3>
+        <p className="text-gray-400">Buat tournament pertama Anda untuk memulai!</p>
       </div>
     );
   }
@@ -210,20 +223,20 @@ export default function TournamentManagementTable({
     <div className="space-y-4">
       {/* Header */}
       <div className="bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 px-6 py-5">
-        <h3 className="text-xl font-bold text-white">All Tournaments</h3>
-        <p className="text-sm text-gray-400 mt-1">Manage and monitor your tournaments</p>
+        <h3 className="text-xl font-bold text-white">Semua Tournament</h3>
+        <p className="text-sm text-gray-400 mt-1">Kelola dan monitor tournament Anda</p>
       </div>
 
       {/* Table Header */}
       <div className="bg-gray-800/60 rounded-lg px-6 py-3 border border-gray-700/60">
         <div className="grid grid-cols-12 gap-4 text-xs font-semibold text-gray-300 uppercase tracking-wider">
           <div className="col-span-2">Tournament</div>
-          <div className="col-span-2">Date</div>
+          <div className="col-span-2">Tanggal</div>
           <div className="col-span-1">Course</div>
           <div className="col-span-2">Status</div>
-          <div className="col-span-1">Players</div>
-          <div className="col-span-2">Confirmed/Paid/Quota</div>
-          <div className="col-span-2 text-right">Actions</div>
+          <div className="col-span-1">Pemain</div>
+          <div className="col-span-2">Konfirmasi/Bayar/Kuota</div>
+          <div className="col-span-2 text-right">Aksi</div>
         </div>
       </div>
 
@@ -243,8 +256,16 @@ export default function TournamentManagementTable({
                   {/* Tournament Name */}
                   <div className="col-span-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 bg-gradient-to-br from-red-900/60 to-red-800/60 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md border border-red-800/40">
-                        <span className="text-white font-bold text-lg">🏆</span>
+                      <div className="w-11 h-11 bg-gradient-to-br rounded-xl flex items-center justify-center flex-shrink-0 shadow-md border border-red-800/40 overflow-hidden">
+                        {tournament.bannerUrl ? (
+                          <img 
+                            src={tournament.bannerUrl} 
+                            alt={tournament.name}
+                            className="w-full h-full object-contain p-1"
+                          />
+                        ) : (
+                          <span className="text-white font-bold text-lg">🏆</span>
+                        )}
                       </div>
                       <div className="min-w-0 flex-1 aligh-left">
                         <h4 className="font-bold text-white text-base truncate">
@@ -263,7 +284,7 @@ export default function TournamentManagementTable({
                       <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
                       <div className="text-sm leading-tight">
                         <div className="font-semibold text-white">
-                          {tournamentDate.toLocaleDateString('en-US', {
+                          {tournamentDate.toLocaleDateString('id-ID', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric'
@@ -290,7 +311,7 @@ export default function TournamentManagementTable({
                       )}`}
                     >
                       {getStatusIcon(tournament.status)}
-                      <span className="capitalize">{tournament.status}</span>
+                      <span>{getStatusText(tournament.status)}</span>
                     </span>
                   </div>
 
@@ -326,7 +347,7 @@ export default function TournamentManagementTable({
                           onClick={() => handleStatusChange(tournament._id, 'active', tournament.name)}
                           disabled={isLoading}
                           className="p-2.5 text-green-500 hover:bg-green-950/40 rounded-lg transition-all disabled:opacity-50 hover:scale-110 border border-green-900/30"
-                          title="Start Tournament"
+                          title="Mulai Tournament"
                         >
                           <Play className="w-4 h-4" />
                         </button>
@@ -336,26 +357,17 @@ export default function TournamentManagementTable({
                           onClick={() => handleStatusChange(tournament._id, 'completed', tournament.name)}
                           disabled={isLoading}
                           className="p-2.5 text-blue-500 hover:bg-blue-950/40 rounded-lg transition-all disabled:opacity-50 hover:scale-110 border border-blue-900/30"
-                          title="Complete Tournament"
+                          title="Selesaikan Tournament"
                         >
                           <CheckCircle className="w-4 h-4" />
                         </button>
                       )}
 
-                      {/* Add Players */}
-                      {/* <button
-                        onClick={() => onAddPlayers?.(tournament._id)}
-                        className="p-2.5 text-green-500 hover:bg-green-950/40 rounded-lg transition-all hover:scale-110 border border-green-900/30"
-                        title="Add Players"
-                      >
-                        <UserPlus className="w-4 h-4" />
-                      </button> */}
-
                       {/* View Details */}
                       <button
                         onClick={() => setDetailsModal(tournament._id)}
                         className="p-2.5 text-blue-500 hover:bg-blue-950/40 rounded-lg transition-all hover:scale-110 border border-blue-900/30"
-                        title="View Details"
+                        title="Lihat Detail"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -373,7 +385,7 @@ export default function TournamentManagementTable({
                       <button
                         onClick={() => handleDelete(tournament._id, tournament.name)}
                         className="p-2.5 text-red-500 hover:bg-red-950/40 rounded-lg transition-all hover:scale-110 border border-red-900/30"
-                        title="Delete Tournament"
+                        title="Hapus Tournament"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -391,10 +403,10 @@ export default function TournamentManagementTable({
         isOpen={deleteConfirm.isOpen}
         onClose={() => setDeleteConfirm({ isOpen: false, tournamentId: null, tournamentName: '' })}
         onConfirm={confirmDelete}
-        title="Delete Tournament"
-        message={`Are you sure you want to delete "${deleteConfirm.tournamentName}"? This will permanently remove the tournament and all associated data including participants and scores. This action cannot be undone.`}
-        confirmText="Delete Tournament"
-        cancelText="Cancel"
+        title="Hapus Tournament"
+        message={`Apakah Anda yakin ingin menghapus "${deleteConfirm.tournamentName}"? Ini akan menghapus tournament secara permanen beserta semua data terkait termasuk peserta dan skor. Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Hapus Tournament"
+        cancelText="Batal"
         variant="danger"
         isLoading={isDeleting}
       />
@@ -403,14 +415,14 @@ export default function TournamentManagementTable({
         isOpen={statusConfirm.isOpen}
         onClose={() => setStatusConfirm({ isOpen: false, tournamentId: null, newStatus: null, tournamentName: '' })}
         onConfirm={confirmStatusChange}
-        title={`${statusConfirm.newStatus === 'active' ? 'Start' : 'Complete'} Tournament`}
-        message={`Are you sure you want to ${statusConfirm.newStatus === 'active' ? 'start' : 'complete'} "${statusConfirm.tournamentName}"? ${
+        title={`${statusConfirm.newStatus === 'active' ? 'Mulai' : 'Selesaikan'} Tournament`}
+        message={`Apakah Anda yakin ingin ${statusConfirm.newStatus === 'active' ? 'memulai' : 'menyelesaikan'} "${statusConfirm.tournamentName}"? ${
           statusConfirm.newStatus === 'active'
-            ? 'Players will be able to submit scores once the tournament is active.'
-            : 'Completing the tournament will finalize all scores and rankings.'
+            ? 'Pemain akan dapat mengirimkan skor setelah tournament aktif.'
+            : 'Menyelesaikan tournament akan memfinalisasi semua skor dan peringkat.'
         }`}
-        confirmText={statusConfirm.newStatus === 'active' ? 'Start Tournament' : 'Complete Tournament'}
-        cancelText="Cancel"
+        confirmText={statusConfirm.newStatus === 'active' ? 'Mulai Tournament' : 'Selesaikan Tournament'}
+        cancelText="Batal"
         variant={statusConfirm.newStatus === 'active' ? 'success' : 'info'}
         isLoading={loadingStatus !== null}
       />

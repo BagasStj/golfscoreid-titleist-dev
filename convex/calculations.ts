@@ -6,7 +6,7 @@ export type ScoreClassification = {
   color: string;
 };
 
-export type GameMode = "strokePlay" | "system36" | "stableford";
+export type GameMode = "strokePlay" | "system36" | "stableford" | "peoria";
 
 /**
  * Classify a score relative to par

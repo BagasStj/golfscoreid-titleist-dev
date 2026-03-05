@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import { useAuth } from '../../../contexts/AuthContext';
-import { ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
-import ClubSetsSelector from '../../shared/ClubSetsSelector';
+import { ArrowLeft, CheckCircle2, XCircle, Calendar } from 'lucide-react';
+import ClubSetsSelectorSimple from '../../shared/ClubSetsSelectorSimple';
 
 interface ClubEntry {
-  brand: 'Titleist' | 'Other';
+  brand: string;
   model: string;
 }
 
@@ -24,18 +24,20 @@ const EditProfilePage: React.FC = () => {
     email: user?.email || '',
     phone: (user as any)?.phone || '',
     nickname: (user as any)?.nickname || '',
-    handicap: user?.handicap || 0,
+    birthDay: '',
+    birthMonth: '',
+    birthYear: '',
+    dateOfBirth: (user as any)?.dateOfBirth || '',
     gender: (user as any)?.gender || 'male',
-    workLocation: (user as any)?.workLocation || '',
     shirtSize: (user as any)?.shirtSize || 'M',
-    gloveSize: (user as any)?.gloveSize || 'M',
+    gloveSize: (user as any)?.gloveSize || '24',
     drivers: Array.isArray((user as any)?.drivers) ? (user as any).drivers : [] as ClubEntry[],
     fairways: Array.isArray((user as any)?.fairways) ? (user as any).fairways : [] as ClubEntry[],
     hybrids: Array.isArray((user as any)?.hybrids) ? (user as any).hybrids : [] as ClubEntry[],
-    utilityIrons: Array.isArray((user as any)?.utilityIrons) ? (user as any).utilityIrons : [] as ClubEntry[],
     irons: Array.isArray((user as any)?.irons) ? (user as any).irons : [] as ClubEntry[],
     wedges: Array.isArray((user as any)?.wedges) ? (user as any).wedges : [] as ClubEntry[],
     putters: Array.isArray((user as any)?.putters) ? (user as any).putters : [] as ClubEntry[],
+    golfBalls: Array.isArray((user as any)?.golfBalls) ? (user as any).golfBalls : [] as ClubEntry[],
   });
 
   // Update form data when user data changes
@@ -43,23 +45,37 @@ const EditProfilePage: React.FC = () => {
     if (user) {
       const userData = user as any;
       
+      // Parse dateOfBirth if exists
+      let birthDay = '';
+      let birthMonth = '';
+      let birthYear = '';
+      
+      if (userData?.dateOfBirth) {
+        const date = new Date(userData.dateOfBirth);
+        birthDay = date.getDate().toString();
+        birthMonth = (date.getMonth() + 1).toString();
+        birthYear = date.getFullYear().toString();
+      }
+      
       setFormData({
         name: user.name || '',
         email: user.email || '',
         phone: userData?.phone || '',
         nickname: userData?.nickname || '',
-        handicap: user.handicap || 0,
+        birthDay,
+        birthMonth,
+        birthYear,
+        dateOfBirth: userData?.dateOfBirth || '',
         gender: userData?.gender || 'male',
-        workLocation: userData?.workLocation || '',
         shirtSize: userData?.shirtSize || 'M',
-        gloveSize: userData?.gloveSize || 'M',
+        gloveSize: userData?.gloveSize || '24',
         drivers: Array.isArray(userData?.drivers) ? userData.drivers : [],
         fairways: Array.isArray(userData?.fairways) ? userData.fairways : [],
         hybrids: Array.isArray(userData?.hybrids) ? userData.hybrids : [],
-        utilityIrons: Array.isArray(userData?.utilityIrons) ? userData.utilityIrons : [],
         irons: Array.isArray(userData?.irons) ? userData.irons : [],
         wedges: Array.isArray(userData?.wedges) ? userData.wedges : [],
         putters: Array.isArray(userData?.putters) ? userData.putters : [],
+        golfBalls: Array.isArray(userData?.golfBalls) ? userData.golfBalls : [],
       });
     }
   }, [user]);
@@ -82,29 +98,64 @@ const EditProfilePage: React.FC = () => {
     setTimeout(() => setShowToast(false), 1000);
   };
 
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => {
+      const newData = { ...prev, [name]: value };
+
+      // Update dateOfBirth when day, month, or year changes
+      if (
+        name === "birthDay" ||
+        name === "birthMonth" ||
+        name === "birthYear"
+      ) {
+        const day = name === "birthDay" ? value : prev.birthDay;
+        const month = name === "birthMonth" ? value : prev.birthMonth;
+        const year = name === "birthYear" ? value : prev.birthYear;
+
+        if (day && month && year) {
+          newData.dateOfBirth = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+        }
+      }
+
+      return newData;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // Update profile fields (phone, nickname, handicap, gender, workLocation, shirtSize, gloveSize, clubSets)
+      // Helper function to check if club entry is valid
+      const hasValidClub = (clubs: ClubEntry[]) => {
+        return clubs.length > 0 && clubs[0].brand && clubs[0].model;
+      };
+
+      // Prepare club sets data
+      const clubSetsData = {
+        drivers: hasValidClub(formData.drivers) ? formData.drivers : undefined,
+        fairways: hasValidClub(formData.fairways) ? formData.fairways : undefined,
+        hybrids: hasValidClub(formData.hybrids) ? formData.hybrids : undefined,
+        irons: hasValidClub(formData.irons) ? formData.irons : undefined,
+        wedges: hasValidClub(formData.wedges) ? formData.wedges : undefined,
+        putters: hasValidClub(formData.putters) ? formData.putters : undefined,
+        golfBalls: hasValidClub(formData.golfBalls) ? formData.golfBalls : undefined,
+      };
+
+      // Update profile fields
       await updateProfile({
         userId: user._id,
         name: formData.name,
         phone: formData.phone || undefined,
         nickname: formData.nickname || undefined,
-        handicap: formData.handicap,
+        dateOfBirth: formData.dateOfBirth || undefined,
         gender: formData.gender as "male" | "female",
-        workLocation: formData.workLocation || undefined,
-        shirtSize: formData.shirtSize as "S" | "M" | "L" | "XL",
-        gloveSize: formData.gloveSize as "S" | "M" | "L" | "XL",
-        drivers: formData.drivers.length > 0 ? formData.drivers : undefined,
-        fairways: formData.fairways.length > 0 ? formData.fairways : undefined,
-        hybrids: formData.hybrids.length > 0 ? formData.hybrids : undefined,
-        utilityIrons: formData.utilityIrons.length > 0 ? formData.utilityIrons : undefined,
-        irons: formData.irons.length > 0 ? formData.irons : undefined,
-        wedges: formData.wedges.length > 0 ? formData.wedges : undefined,
-        putters: formData.putters.length > 0 ? formData.putters : undefined,
+        shirtSize: formData.shirtSize as any,
+        gloveSize: formData.gloveSize as any,
+        ...clubSetsData,
       });
 
       // Update email separately if changed
@@ -115,21 +166,27 @@ const EditProfilePage: React.FC = () => {
         });
       }
       
-      // Update user in AuthContext for realtime refresh
+      // Update user in AuthContext for realtime refresh (including club sets)
       updateUser({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         nickname: formData.nickname,
-        handicap: formData.handicap,
+        dateOfBirth: formData.dateOfBirth,
         gender: formData.gender as "male" | "female",
-        workLocation: formData.workLocation,
-        shirtSize: formData.shirtSize as "S" | "M" | "L" | "XL",
-        gloveSize: formData.gloveSize as "S" | "M" | "L" | "XL",
+        shirtSize: formData.shirtSize as "S" | "M" | "L" | "XL" | "2XL" | "3XL",
+        gloveSize: formData.gloveSize as "22" | "23" | "24" | "25" | "26",
+        drivers: clubSetsData.drivers,
+        fairways: clubSetsData.fairways,
+        hybrids: clubSetsData.hybrids,
+        irons: clubSetsData.irons,
+        wedges: clubSetsData.wedges,
+        putters: clubSetsData.putters,
+        golfBalls: clubSetsData.golfBalls,
       });
       
       // Show success notification
-      showNotification('success', 'Profile updated successfully!');
+      showNotification('success', 'Profil berhasil diperbarui!');
       
       // Navigate back to profile after delay
       setTimeout(() => {
@@ -137,7 +194,7 @@ const EditProfilePage: React.FC = () => {
       }, 1500);
     } catch (error: any) {
       console.error('Failed to update profile:', error);
-      showNotification('error', error.message || 'Failed to update profile');
+      showNotification('error', error.message || 'Gagal memperbarui profil');
     } finally {
       setIsSubmitting(false);
     }
@@ -174,7 +231,7 @@ const EditProfilePage: React.FC = () => {
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h2 className="text-white font-bold text-xl">Edit Profile</h2>
+          <h2 className="text-white font-bold text-xl">Edit Profil</h2>
         </div>
       </div>
 
@@ -183,12 +240,14 @@ const EditProfilePage: React.FC = () => {
         <form onSubmit={handleSubmit} className="p-5 space-y-4 pb-8">
         {/* Name */}
         <div>
-          <label className="block text-gray-300 text-sm font-semibold mb-2">Full Name</label>
+          <label className="block text-gray-300 text-sm font-semibold mb-2">Nama Lengkap</label>
           <input
             type="text"
+            name="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={handleInputChange}
             className="w-full bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+            placeholder="Masukkan nama lengkap Anda"
             required
           />
         </div>
@@ -198,20 +257,23 @@ const EditProfilePage: React.FC = () => {
           <label className="block text-gray-300 text-sm font-semibold mb-2">Email</label>
           <input
             type="email"
+            name="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={handleInputChange}
             className="w-full bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+            placeholder="email@example.com"
             required
           />
         </div>
 
         {/* Phone */}
         <div>
-          <label className="block text-gray-300 text-sm font-semibold mb-2">Phone Number</label>
+          <label className="block text-gray-300 text-sm font-semibold mb-2">Nomor Telepon</label>
           <input
             type="tel"
+            name="phone"
             value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            onChange={handleInputChange}
             className="w-full bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
             placeholder="08xxxxxxxxxx"
           />
@@ -219,19 +281,161 @@ const EditProfilePage: React.FC = () => {
 
         {/* Nickname */}
         <div>
-          <label className="block text-gray-300 text-sm font-semibold mb-2">Nickname</label>
+          <label className="block text-gray-300 text-sm font-semibold mb-2">
+            Nama Alias
+          </label>
+          <p className="text-xs text-gray-500 mb-2">
+            Nama yang ingin tercetak dalam merchandise
+          </p>
           <input
             type="text"
+            name="nickname"
             value={formData.nickname}
-            onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+            onChange={handleInputChange}
             className="w-full bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-            placeholder="Your nickname"
+            placeholder="...."
           />
+        </div>
+
+        {/* Date of Birth */}
+        <div>
+          <label className="flex items-center gap-2 text-sm font-semibold text-gray-300 mb-2">
+            <Calendar className="h-4 w-4 text-red-700" />
+            <span>Tanggal Lahir</span>
+          </label>
+          <div className="grid grid-cols-3 gap-3">
+            {/* Day */}
+            <div>
+              <select
+                name="birthDay"
+                value={formData.birthDay}
+                onChange={handleInputChange}
+                className="w-full px-3 py-3 text-sm text-white bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all appearance-none cursor-pointer"
+              >
+                <option value="" className="bg-[#1a1a1a]">
+                  Tanggal
+                </option>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(
+                  (day) => (
+                    <option
+                      key={day}
+                      value={day}
+                      className="bg-[#1a1a1a]"
+                    >
+                      {day}
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
+
+            {/* Month */}
+            <div>
+              <select
+                name="birthMonth"
+                value={formData.birthMonth}
+                onChange={handleInputChange}
+                className="w-full px-3 py-3 text-sm text-white bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all appearance-none cursor-pointer"
+              >
+                <option value="" className="bg-[#1a1a1a]">
+                  Bulan
+                </option>
+                <option value="1" className="bg-[#1a1a1a]">
+                  Januari
+                </option>
+                <option value="2" className="bg-[#1a1a1a]">
+                  Februari
+                </option>
+                <option value="3" className="bg-[#1a1a1a]">
+                  Maret
+                </option>
+                <option value="4" className="bg-[#1a1a1a]">
+                  April
+                </option>
+                <option value="5" className="bg-[#1a1a1a]">
+                  Mei
+                </option>
+                <option value="6" className="bg-[#1a1a1a]">
+                  Juni
+                </option>
+                <option value="7" className="bg-[#1a1a1a]">
+                  Juli
+                </option>
+                <option value="8" className="bg-[#1a1a1a]">
+                  Agustus
+                </option>
+                <option value="9" className="bg-[#1a1a1a]">
+                  September
+                </option>
+                <option value="10" className="bg-[#1a1a1a]">
+                  Oktober
+                </option>
+                <option value="11" className="bg-[#1a1a1a]">
+                  November
+                </option>
+                <option value="12" className="bg-[#1a1a1a]">
+                  Desember
+                </option>
+              </select>
+            </div>
+
+            {/* Year */}
+            <div>
+              <select
+                name="birthYear"
+                value={formData.birthYear}
+                onChange={handleInputChange}
+                className="w-full px-3 py-3 text-sm text-white bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all appearance-none cursor-pointer"
+              >
+                <option value="" className="bg-[#1a1a1a]">
+                  Tahun
+                </option>
+                {Array.from(
+                  { length: 100 },
+                  (_, i) => new Date().getFullYear() - i,
+                ).map((year) => (
+                  <option
+                    key={year}
+                    value={year}
+                    className="bg-[#1a1a1a]"
+                  >
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {formData.birthDay &&
+            formData.birthMonth &&
+            formData.birthYear && (
+              <p className="mt-2 text-xs text-gray-400 flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3 text-green-500" />
+                Tanggal lahir: {formData.birthDay}{" "}
+                {
+                  [
+                    "",
+                    "Januari",
+                    "Februari",
+                    "Maret",
+                    "April",
+                    "Mei",
+                    "Juni",
+                    "Juli",
+                    "Agustus",
+                    "September",
+                    "Oktober",
+                    "November",
+                    "Desember",
+                  ][parseInt(formData.birthMonth)]
+                }{" "}
+                {formData.birthYear}
+              </p>
+            )}
         </div>
 
         {/* Gender */}
         <div>
-          <label className="block text-gray-300 text-sm font-semibold mb-2">Gender</label>
+          <label className="block text-gray-300 text-sm font-semibold mb-2">Jenis Kelamin</label>
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
@@ -242,7 +446,7 @@ const EditProfilePage: React.FC = () => {
                   : 'bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700'
               }`}
             >
-              Male
+              Pria
             </button>
             <button
               type="button"
@@ -253,88 +457,68 @@ const EditProfilePage: React.FC = () => {
                   : 'bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700'
               }`}
             >
-              Female
+              Wanita
             </button>
           </div>
         </div>
 
-        {/* Handicap */}
-        <div>
-          <label className="block text-gray-300 text-sm font-semibold mb-2">Handicap</label>
-          <input
-            type="number"
-            value={formData.handicap}
-            onChange={(e) => setFormData({ ...formData, handicap: parseInt(e.target.value) || 0 })}
-            className="w-full bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-            min="0"
-            max="54"
-          />
-        </div>
-
-        {/* Work Location */}
-        <div>
-          <label className="block text-gray-300 text-sm font-semibold mb-2">Work Location</label>
-          <input
-            type="text"
-            value={formData.workLocation}
-            onChange={(e) => setFormData({ ...formData, workLocation: e.target.value })}
-            className="w-full bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-            placeholder="Jakarta, Indonesia"
-          />
-        </div>
-
-        {/* Shirt Size */}
-        <div>
-          <label className="block text-gray-300 text-sm font-semibold mb-2">Shirt Size</label>
-          <div className="grid grid-cols-4 gap-2">
-            {['S', 'M', 'L', 'XL'].map((size) => (
-              <button
-                key={size}
-                type="button"
-                onClick={() => setFormData({ ...formData, shirtSize: size as any })}
-                className={`py-3 rounded-xl text-sm font-bold transition-all ${
-                  formData.shirtSize === size
-                    ? 'bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700'
-                    : 'bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700'
-                }`}
-              >
-                {size}
-              </button>
-            ))}
+        {/* Shirt Size & Glove Size */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-gray-300 text-sm font-semibold mb-2">
+              Ukuran Baju
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {(['S', 'M', 'L', 'XL', '2XL', '3XL'] as const).map((size) => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, shirtSize: size })}
+                  className={`py-3 px-2 rounded-xl text-sm font-bold transition-all ${
+                    formData.shirtSize === size
+                      ? 'bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700 shadow-lg'
+                      : 'bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700'
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Glove Size */}
-        <div>
-          <label className="block text-gray-300 text-sm font-semibold mb-2">Glove Size</label>
-          <div className="grid grid-cols-4 gap-2">
-            {['S', 'M', 'L', 'XL'].map((size) => (
-              <button
-                key={size}
-                type="button"
-                onClick={() => setFormData({ ...formData, gloveSize: size as any })}
-                className={`py-3 rounded-xl text-sm font-bold transition-all ${
-                  formData.gloveSize === size
-                    ? 'bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700'
-                    : 'bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700'
-                }`}
-              >
-                {size}
-              </button>
-            ))}
+          <div>
+            <label className="block text-gray-300 text-sm font-semibold mb-2">
+              Ukuran Sarung Tangan
+            </label>
+            <div className="grid grid-cols-5 gap-2">
+              {(['22', '23', '24', '25', '26'] as const).map((size) => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, gloveSize: size })}
+                  className={`py-3 px-2 rounded-xl text-sm font-bold transition-all ${
+                    formData.gloveSize === size
+                      ? 'bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700 shadow-lg'
+                      : 'bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700'
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Club Sets Selector */}
         <div className="md:col-span-2">
-          <ClubSetsSelector
+          <ClubSetsSelectorSimple
             drivers={formData.drivers}
             fairways={formData.fairways}
             hybrids={formData.hybrids}
-            utilityIrons={formData.utilityIrons}
             irons={formData.irons}
             wedges={formData.wedges}
             putters={formData.putters}
+            golfBalls={formData.golfBalls}
             onChange={(category, clubs) => {
               setFormData({ ...formData, [category]: clubs });
             }}
@@ -348,7 +532,7 @@ const EditProfilePage: React.FC = () => {
             disabled={isSubmitting}
             className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-4 rounded-xl shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
+            {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
           </button>
         </div>
         </form>

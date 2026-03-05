@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { Plus } from 'lucide-react';
+import { Plus, Trophy } from 'lucide-react';
 import { Button } from '../ui';
 import TournamentCreationForm from './TournamentCreationForm';
 import TournamentManagementTable from './TournamentManagementTable';
@@ -34,10 +34,10 @@ export default function TournamentManagement({ onSelectTournament }: TournamentM
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <span className="w-1 h-8 bg-red-700 rounded-full"></span>
-            Tournament Management
+            <Trophy className="w-7 h-7 text-red-500" />
+            Manajemen Tournament
           </h2>
-          <p className="text-gray-400 mt-1">Create and manage your golf tournaments</p>
+          <p className="text-gray-400 mt-1">Buat dan kelola tournament golf Anda</p>
         </div>
         <Button
           variant="primary"
@@ -45,7 +45,7 @@ export default function TournamentManagement({ onSelectTournament }: TournamentM
           icon={Plus}
           onClick={() => setShowCreateForm(true)}
         >
-          Create Tournament
+          Buat Tournament
         </Button>
       </div>
 

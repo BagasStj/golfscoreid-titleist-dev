@@ -365,38 +365,61 @@ export default function PlayerManagement() {
         <p className="text-gray-400 mt-1">Kelola akun dan registrasi pemain</p>
       </div>
 
-      {/* Search and Add Button */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-          <input
-            type="text"
-            placeholder="Cari pemain berdasarkan nama, email, atau username..."
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-gray-900/60 border-2 border-gray-700/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all"
-          />
-        </div>
-        <Button
-          variant="outline"
-          size="lg"
-          icon={Download}
-          onClick={handleExportExcel}
-          className="whitespace-nowrap"
-        >
-          Export Excel
-        </Button>
-      </div>
-
-      {/* Stats Summary */}
-      <div className="bg-gradient-to-br from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 p-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-red-400">{players?.length || 0}</div>
-            <div className="text-sm text-gray-400 mt-1">Total Pemain</div>
+      {/* Stats Summary and Search Bar - Combined */}
+      <div className="bg-gradient-to-br from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 p-4">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4">
+          {/* Stats Summary - Left */}
+          <div className="flex items-center gap-4 lg:min-w-[200px] lg:pr-4 lg:border-r lg:border-gray-700/60">
+            <div className="w-14 h-14 bg-gradient-to-br from-red-900/60 to-red-950/60 rounded-xl flex items-center justify-center border border-red-900/40 shadow-lg flex-shrink-0">
+              <Users className="w-7 h-7 text-red-400" />
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-white">{players?.length || 0}</div>
+              <div className="text-xs text-gray-400">Total Pemain</div>
+            </div>
           </div>
-         
+
+          {/* Search Bar - Center (Flexible) */}
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Cari pemain berdasarkan nama, email, atau username..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full pl-12 pr-10 py-3 bg-gray-900/60 border-2 border-gray-700/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => handleSearchChange('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-300 hover:bg-gray-800/60 rounded-lg transition-colors"
+                title="Clear search"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Export Button - Right */}
+          <Button
+            variant="outline"
+            size="lg"
+            icon={Download}
+            onClick={handleExportExcel}
+            className="whitespace-nowrap shadow-md lg:min-w-[160px]"
+          >
+            Export Excel
+          </Button>
         </div>
+
+        {/* Search Results Info */}
+        {searchQuery && filteredPlayers && (
+          <div className="mt-3 pt-3 border-t border-gray-700/60">
+            <p className="text-sm text-gray-400">
+              Ditemukan <span className="font-semibold text-red-400">{filteredPlayers.length}</span> pemain dari pencarian "<span className="text-white">{searchQuery}</span>"
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Players Table */}

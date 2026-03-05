@@ -15,7 +15,8 @@ import {
   ChevronRight,
   Newspaper,
   Plane,
-  MapPin
+  MapPin,
+  Info
 } from 'lucide-react';
 import TournamentManagement from './TournamentManagement';
 import PlayerManagement from './PlayerManagement';
@@ -24,8 +25,9 @@ import LeaderboardAdmin from './LeaderboardAdmin';
 import NewsManagement from './NewsManagement';
 import FlightManagement from './FlightManagement';
 import { CourseManagement } from './CourseManagement';
+import InformationManagement from './InformationManagement';
 
-type AdminView = 'dashboard' | 'tournaments' | 'players' | 'monitoring' | 'leaderboard' | 'news' | 'flights' | 'courses';
+type AdminView = 'dashboard' | 'tournaments' | 'players' | 'monitoring' | 'leaderboard' | 'news' | 'flights' | 'courses' | 'information';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -77,7 +79,8 @@ export default function AdminDashboard() {
     { id: 'players' as AdminView, label: 'Players', icon: Users, color: 'accent' },
     { id: 'monitoring' as AdminView, label: 'Live Monitoring', icon: TrendingUp, color: 'warning' },
     { id: 'leaderboard' as AdminView, label: 'Leaderboard', icon: Award, color: 'secondary' },
-    { id: 'news' as AdminView, label: 'News', icon: Newspaper, color: 'info' },
+    // { id: 'news' as AdminView, label: 'News', icon: Newspaper, color: 'info' },
+    { id: 'information' as AdminView, label: 'Information', icon: Info, color: 'info' },
   ];
 
   const renderDashboard = () => (
@@ -327,6 +330,9 @@ export default function AdminDashboard() {
       case 'news':
         return <NewsManagement />;
 
+      case 'information':
+        return <InformationManagement />;
+
       default:
         return renderDashboard();
     }
@@ -445,6 +451,7 @@ export default function AdminDashboard() {
               {currentView === 'monitoring' && 'Real-time tournament monitoring'}
               {currentView === 'leaderboard' && 'View tournament standings'}
               {currentView === 'news' && 'Manage news and announcements'}
+              {currentView === 'information' && 'Manage fact sheets, tee sheets, activities, and contacts'}
             </p>
           </div>
 

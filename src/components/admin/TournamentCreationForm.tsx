@@ -3,7 +3,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useToast } from '../shared/ToastContainer';
 import { useAuth } from '../../contexts/AuthContext';
-import { X, Image as ImageIcon } from 'lucide-react';
+import { X, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 import type { CourseType, GameMode, ScoringDisplay } from '../../types';
 import type { Id } from '../../../convex/_generated/dataModel';
 
@@ -30,15 +30,13 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
     prize: '',
     registrationFee: '',
     contactPerson: '',
-    maxParticipants: 60,
     startHole: 1,
     courseType: '18holes' as CourseType,
-    gameMode: 'strokePlay' as GameMode,
+    gameMode: 'peoria' as GameMode,
     scoringDisplay: 'stroke' as ScoringDisplay,
     specialScoringHoles: [] as number[],
     schedule: '',
-    maleTeeBox: 'Blue' as 'Blue' | 'White' | 'Gold' | 'Black',
-    femaleTeeBox: 'Red' as 'Red' | 'White' | 'Gold',
+    teeBox: 'Blue' as 'Blue' | 'White' | 'Gold' | 'Black' | 'Red',
   });
 
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -51,20 +49,16 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
     switch (name) {
       case 'name':
         return !value || (typeof value === 'string' && !value.trim())
-          ? 'Tournament name is required'
+          ? 'Nama tournament wajib diisi'
           : '';
       case 'courseId':
         return !value || (typeof value === 'string' && !value.trim())
-          ? 'Course selection is required'
+          ? 'Lapangan golf wajib dipilih'
           : '';
       case 'date':
-        return !value ? 'Date is required' : '';
+        return !value ? 'Tanggal wajib diisi' : '';
       case 'time':
-        return !value ? 'Time is required' : '';
-      case 'startHole':
-        return typeof value === 'number' && (value < 1 || value > 18)
-          ? 'Start hole must be between 1 and 18'
-          : '';
+        return !value ? 'Waktu wajib diisi' : '';
       default:
         return '';
     }
@@ -74,7 +68,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
     const newErrors: Record<string, string> = {};
 
     // Only validate specific fields
-    ['name', 'courseId', 'date', 'time', 'startHole'].forEach((key) => {
+    ['name', 'courseId', 'date', 'time'].forEach((key) => {
       const error = validateField(key, formData[key as keyof typeof formData]);
       if (error) {
         newErrors[key] = error;
@@ -96,13 +90,13 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        showError('Please select an image file');
+        showError('Silakan pilih file gambar');
         return;
       }
       
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        showError('Image size must be less than 5MB');
+        showError('Ukuran gambar harus kurang dari 5MB');
         return;
       }
 
@@ -130,7 +124,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
 
     // Check if user is logged in
     if (!user) {
-      showError('You must be logged in to create a tournament');
+      showError('Anda harus login untuk membuat tournament');
       return;
     }
 
@@ -142,7 +136,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
     setTouched(allTouched);
 
     if (!validateForm()) {
-      showError('Please fix the errors in the form');
+      showError('Silakan perbaiki kesalahan pada form');
       return;
     }
 
@@ -160,7 +154,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
         });
         
         if (!uploadResult.ok) {
-          throw new Error('Failed to upload banner');
+          throw new Error('Gagal mengunggah banner');
         }
         
         const { storageId } = await uploadResult.json();
@@ -180,7 +174,6 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
         prize: formData.prize || undefined,
         registrationFee: formData.registrationFee || undefined,
         contactPerson: formData.contactPerson || undefined,
-        maxParticipants: formData.maxParticipants || undefined,
         bannerStorageId: bannerStorageId,
         startHole: formData.startHole,
         courseType: formData.courseType,
@@ -188,13 +181,13 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
         scoringDisplay: formData.scoringDisplay,
         specialScoringHoles: formData.specialScoringHoles.length > 0 ? formData.specialScoringHoles : undefined,
         schedule: formData.schedule || undefined,
-        maleTeeBox: formData.maleTeeBox,
-        femaleTeeBox: formData.femaleTeeBox,
+        maleTeeBox: formData.teeBox as 'Blue' | 'White' | 'Gold' | 'Black',
+        femaleTeeBox: formData.teeBox === 'Red' ? 'Red' : formData.teeBox === 'Gold' ? 'Gold' : 'White',
         userId: user._id,
       });
 
       if (result.success && result.tournamentId) {
-        showSuccess('Tournament created successfully!');
+        showSuccess('Tournament berhasil dibuat!');
         
         // Reset form
         setFormData({
@@ -207,15 +200,13 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
           prize: '',
           registrationFee: '',
           contactPerson: '',
-          maxParticipants: 60,
           startHole: 1,
           courseType: '18holes',
-          gameMode: 'strokePlay',
+          gameMode: 'peoria',
           scoringDisplay: 'stroke',
           specialScoringHoles: [],
           schedule: '',
-          maleTeeBox: 'Blue',
-          femaleTeeBox: 'Red',
+          teeBox: 'Blue',
         });
         setBannerFile(null);
         setBannerPreview(null);
@@ -227,7 +218,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
         }
       }
     } catch (error) {
-      showError(error instanceof Error ? error.message : 'Failed to create tournament');
+      showError(error instanceof Error ? error.message : 'Gagal membuat tournament');
     } finally {
       setIsSubmitting(false);
     }
@@ -237,13 +228,13 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
     <div className="bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 p-6 animate-fade-in">
       {/* Header with Close Button */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold text-white">Create New Tournament</h2>
+        <h2 className="text-2xl font-semibold text-white">Buat Tournament Baru</h2>
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
             className="p-2 text-gray-400 hover:text-white hover:bg-gray-800/60 rounded-lg transition-colors border border-gray-700/40"
-            aria-label="Close"
+            aria-label="Tutup"
           >
             <X size={24} />
           </button>
@@ -254,7 +245,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
         {/* Tournament Name */}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-            Tournament Name *
+            Nama Tournament *
           </label>
           <input
             type="text"
@@ -265,7 +256,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
             className={`w-full px-4 py-2 border rounded-lg bg-[#1a1a1a]/60 text-white focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-colors min-h-[44px] placeholder-gray-600 ${
               touched.name && errors.name ? 'border-red-500' : 'border-gray-800/60'
             }`}
-            placeholder="Enter tournament name"
+            placeholder="Masukkan nama tournament"
           />
           {touched.name && errors.name && (
             <p className="mt-1 text-sm text-red-400 animate-fade-in text-left">{errors.name}</p>
@@ -275,7 +266,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
         {/* Description */}
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-            Description
+            Deskripsi
           </label>
           <textarea
             id="description"
@@ -283,14 +274,14 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={3}
             className="w-full px-4 py-2 border border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-lg focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-colors placeholder-gray-600"
-            placeholder="Enter tournament description"
+            placeholder="Masukkan deskripsi tournament"
           />
         </div>
 
         {/* Course Selection */}
         <div>
           <label htmlFor="courseId" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-            Golf Course *
+            Lapangan Golf *
           </label>
           <select
             id="courseId"
@@ -319,9 +310,12 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
             <p className="mt-1 text-sm text-red-400 animate-fade-in text-left">{errors.courseId}</p>
           )}
           {!courses || courses.length === 0 ? (
-            <p className="mt-1 text-sm text-amber-400 text-left">
-              ⚠️ Belum ada course. Silakan buat course terlebih dahulu di menu Course Management.
-            </p>
+            <div className="mt-2 flex items-start gap-2 p-3 bg-amber-950/40 border border-amber-900/40 rounded-lg">
+              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-400">
+                Belum ada course. Silakan buat course terlebih dahulu di menu Course Management.
+              </p>
+            </div>
           ) : null}
         </div>
 
@@ -329,7 +323,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
         {formData.location && (
           <div>
             <label htmlFor="location" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-              Location (Auto-filled from course)
+              Lokasi (Otomatis dari course)
             </label>
             <input
               type="text"
@@ -359,18 +353,18 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
           </p>
         </div>
 
-        {/* Banner Upload */}
+        {/* Logo Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2 text-left">
-            Tournament Banner (Optional)
+            Logo Tournament (Opsional)
           </label>
           <div className="space-y-3">
             {bannerPreview ? (
               <div className="relative">
                 <img
                   src={bannerPreview}
-                  alt="Banner preview"
-                  className="w-full h-48 object-cover rounded-lg border-2 border-gray-800/60"
+                  alt="Preview logo"
+                  className="w-full h-48 object-contain rounded-lg border-2 border-gray-800/60 bg-gray-900/40"
                 />
                 <button
                   type="button"
@@ -386,8 +380,8 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
                 className="border-2 border-dashed border-gray-800/60 bg-[#1a1a1a]/40 rounded-lg p-8 text-center cursor-pointer hover:border-red-800 hover:bg-[#2e2e2e]/40 transition-colors"
               >
                 <ImageIcon className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                <p className="text-sm text-gray-300 mb-1">Click to upload banner image</p>
-                <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                <p className="text-sm text-gray-300 mb-1">Klik untuk upload logo tournament</p>
+                <p className="text-xs text-gray-500">PNG, JPG maksimal 5MB (disarankan logo transparan)</p>
               </div>
             )}
             <input
@@ -404,7 +398,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="date" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-              Date *
+              Tanggal *
             </label>
             <input
               type="date"
@@ -423,7 +417,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
 
           <div>
             <label htmlFor="time" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-              Time *
+              Waktu *
             </label>
             <input
               type="time"
@@ -445,7 +439,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label htmlFor="prize" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-              Prize (Optional)
+              Hadiah (Opsional)
             </label>
             <input
               type="text"
@@ -453,13 +447,13 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
               value={formData.prize}
               onChange={(e) => setFormData({ ...formData, prize: e.target.value })}
               className="w-full px-4 py-2 border border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-lg focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-colors min-h-[44px] placeholder-gray-600"
-              placeholder="e.g., Rp 50.000.000"
+              placeholder="contoh: Rp 50.000.000"
             />
           </div>
 
           <div>
             <label htmlFor="registrationFee" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-              Registration Fee (Optional)
+              Biaya Registrasi (Opsional)
             </label>
             <input
               type="text"
@@ -467,13 +461,13 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
               value={formData.registrationFee}
               onChange={(e) => setFormData({ ...formData, registrationFee: e.target.value })}
               className="w-full px-4 py-2 border border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-lg focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-colors min-h-[44px] placeholder-gray-600"
-              placeholder="e.g., Rp 500.000"
+              placeholder="contoh: Rp 500.000"
             />
           </div>
 
           <div>
             <label htmlFor="contactPerson" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-              Contact Person (Optional)
+              Kontak Person (Opsional)
             </label>
             <input
               type="text"
@@ -481,52 +475,16 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
               value={formData.contactPerson}
               onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
               className="w-full px-4 py-2 border border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-lg focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-colors min-h-[44px] placeholder-gray-600"
-              placeholder="e.g., John - 08123456789"
+              placeholder="contoh: John - 08123456789"
             />
           </div>
         </div>
 
-        {/* Max Participants */}
-        <div>
-          <label htmlFor="maxParticipants" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-            Max Participants (Optional)
-          </label>
-          <input
-            type="number"
-            id="maxParticipants"
-            value={formData.maxParticipants}
-            onChange={(e) => setFormData({ ...formData, maxParticipants: parseInt(e.target.value) || 60 })}
-            className="w-full px-4 py-2 border border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-lg focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-colors min-h-[44px]"
-            min="1"
-          />
-        </div>
-
-        {/* Start Hole & Course Type */}
+        {/* Course Type & Tee Box */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="startHole" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-              Start Hole *
-            </label>
-            <input
-              type="number"
-              id="startHole"
-              min="1"
-              max="18"
-              value={formData.startHole}
-              onChange={(e) => setFormData({ ...formData, startHole: parseInt(e.target.value) || 1 })}
-              onBlur={() => handleBlur('startHole')}
-              className={`w-full px-4 py-2 border rounded-lg bg-[#1a1a1a]/60 text-white focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-colors min-h-[44px] ${
-                touched.startHole && errors.startHole ? 'border-red-500' : 'border-gray-800/60'
-              }`}
-            />
-            {touched.startHole && errors.startHole && (
-              <p className="mt-1 text-sm text-red-400 animate-fade-in text-left">{errors.startHole}</p>
-            )}
-          </div>
-
-          <div>
             <label htmlFor="courseType" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-              Course Type *
+              Tipe Course *
             </label>
             <select
               id="courseType"
@@ -539,91 +497,52 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
               <option value="B9">Back 9 (B9)</option>
             </select>
           </div>
-        </div>
 
-        {/* Tee Box Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="maleTeeBox" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-              Tee Box Laki-laki (Male) *
+            <label htmlFor="teeBox" className="block text-sm font-medium text-gray-300 mb-2 text-left">
+              Tee Box *
             </label>
             <select
-              id="maleTeeBox"
-              value={formData.maleTeeBox}
-              onChange={(e) => setFormData({ ...formData, maleTeeBox: e.target.value as 'Blue' | 'White' | 'Gold' | 'Black' })}
+              id="teeBox"
+              value={formData.teeBox}
+              onChange={(e) => setFormData({ ...formData, teeBox: e.target.value as 'Blue' | 'White' | 'Gold' | 'Black' | 'Red' })}
               className="w-full px-4 py-2 border border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-lg focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-colors min-h-[44px]"
             >
               <option value="Blue">Blue Tee</option>
               <option value="White">White Tee</option>
               <option value="Gold">Gold Tee</option>
               <option value="Black">Black Tee</option>
-            </select>
-            <p className="mt-1 text-xs text-gray-400 text-left">
-              Pilih tee box untuk pemain laki-laki
-            </p>
-          </div>
-
-          <div>
-            <label htmlFor="femaleTeeBox" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-              Tee Box Perempuan (Female) *
-            </label>
-            <select
-              id="femaleTeeBox"
-              value={formData.femaleTeeBox}
-              onChange={(e) => setFormData({ ...formData, femaleTeeBox: e.target.value as 'Red' | 'White' | 'Gold' })}
-              className="w-full px-4 py-2 border border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-lg focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-colors min-h-[44px]"
-            >
               <option value="Red">Red Tee</option>
-              <option value="White">White Tee</option>
-              <option value="Gold">Gold Tee</option>
             </select>
             <p className="mt-1 text-xs text-gray-400 text-left">
-              Pilih tee box untuk pemain perempuan
+              Pilih tee box untuk tournament
             </p>
           </div>
         </div>
 
-        {/* Game Mode & Scoring Display */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="gameMode" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-              Game Mode *
-            </label>
-            <select
-              id="gameMode"
-              value={formData.gameMode}
-              onChange={(e) => setFormData({ ...formData, gameMode: e.target.value as GameMode })}
-              className="w-full px-4 py-2 border border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-lg focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-colors min-h-[44px]"
-            >
-              <option value="strokePlay">Stroke Play</option>
-              <option value="stableford">Stableford</option>
-              <option value="system36">System 36</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="scoringDisplay" className="block text-sm font-medium text-gray-300 mb-2 text-left">
-              Scoring Display *
-            </label>
-            <select
-              id="scoringDisplay"
-              value={formData.scoringDisplay}
-              onChange={(e) => setFormData({ ...formData, scoringDisplay: e.target.value as ScoringDisplay })}
-              className="w-full px-4 py-2 border border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-lg focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-colors min-h-[44px]"
-            >
-              <option value="stroke">Stroke</option>
-              <option value="over">Over/Under Par</option>
-            </select>
-          </div>
+        {/* Scoring Display */}
+        <div>
+          <label htmlFor="scoringDisplay" className="block text-sm font-medium text-gray-300 mb-2 text-left">
+            Tampilan Skor *
+          </label>
+          <select
+            id="scoringDisplay"
+            value={formData.scoringDisplay}
+            onChange={(e) => setFormData({ ...formData, scoringDisplay: e.target.value as ScoringDisplay })}
+            className="w-full px-4 py-2 border border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-lg focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-colors min-h-[44px]"
+          >
+            <option value="stroke">Stroke</option>
+            <option value="over">Over/Under Par</option>
+          </select>
         </div>
 
         {/* Special Scoring Holes */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2 text-left">
-            Special Scoring Holes (Optional)
+            Hole Skor Spesial (Opsional)
           </label>
           <p className="text-sm text-gray-400 mb-3 text-left">
-            Select holes for special leaderboard. Tournament will have 2 leaderboards: overall and special holes only.
+            Pilih hole untuk leaderboard spesial. Tournament akan memiliki 2 leaderboard: keseluruhan dan hole spesial saja.
           </p>
           <div className="grid grid-cols-6 sm:grid-cols-9 gap-2">
             {(() => {
@@ -669,7 +588,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
           {formData.specialScoringHoles.length > 0 && (
             <div className="mt-3 p-3 bg-green-50 border-2 border-green-300 rounded-lg">
               <p className="text-sm text-green-800 font-semibold text-left">
-                <strong>Selected holes:</strong> {formData.specialScoringHoles.join(', ')}
+                Hole terpilih: {formData.specialScoringHoles.join(', ')}
               </p>
             </div>
           )}
@@ -681,7 +600,7 @@ export default function TournamentCreationForm({ onSuccess, onCancel }: Tourname
           disabled={isSubmitting}
           className="w-full bg-gradient-to-r from-red-900 via-red-800 to-red-900 hover:from-red-800 hover:via-red-700 hover:to-red-800 text-white py-3 px-6 rounded-lg font-bold text-lg focus:outline-none focus:ring-4 focus:ring-red-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_8px_24px_rgba(139,0,0,0.4)] hover:shadow-[0_12px_32px_rgba(139,0,0,0.5)] min-h-[52px] border border-red-900/40"
         >
-          {isSubmitting ? 'Creating Tournament...' : 'Create Tournament'}
+          {isSubmitting ? 'Membuat Tournament...' : 'Buat Tournament'}
         </button>
       </form>
     </div>

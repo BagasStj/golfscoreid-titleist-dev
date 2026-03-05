@@ -2,7 +2,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 
 // Enums and Union Types
 export type CourseType = "18holes" | "F9" | "B9";
-export type GameMode = "strokePlay" | "system36" | "stableford";
+export type GameMode = "strokePlay" | "system36" | "stableford" | "peoria" ;
 export type ScoringDisplay = "over" | "stroke";
 export type TournamentStatus = "upcoming" | "active" | "completed";
 export type UserRole = "admin" | "player";
@@ -34,6 +34,8 @@ export interface Tournament {
   status: TournamentStatus;
   createdBy: Id<"users">;
   createdAt: number;
+  bannerUrl?: string;
+  bannerStorageId?: Id<"_storage">;
 }
 
 export interface Player {

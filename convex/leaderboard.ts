@@ -13,7 +13,7 @@ export type LeaderboardEntry = {
   lastUpdated: number;
 };
 
-export type GameMode = "strokePlay" | "system36" | "stableford";
+export type GameMode = "strokePlay" | "system36" | "stableford" | "peoria";
 
 /**
  * Calculate ranking for all holes

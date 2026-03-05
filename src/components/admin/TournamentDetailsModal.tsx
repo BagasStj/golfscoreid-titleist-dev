@@ -73,9 +73,9 @@ export default function TournamentDetailsModal({
                   <Calendar className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Tournament Date</p>
+                  <p className="text-sm text-gray-400">Tanggal Tournament</p>
                   <p className="font-semibold text-white">
-                    {tournamentDate.toLocaleDateString('en-US', {
+                    {tournamentDate.toLocaleDateString('id-ID', {
                       weekday: 'long',
                       year: 'numeric',
                       month: 'long',
@@ -99,7 +99,8 @@ export default function TournamentDetailsModal({
                       statusColors[tournamentDetails.status as keyof typeof statusColors]
                     }`}
                   >
-                    {tournamentDetails.status}
+                    {tournamentDetails.status === 'upcoming' ? 'Akan Datang' : 
+                     tournamentDetails.status === 'active' ? 'Aktif' : 'Selesai'}
                   </span>
                 </div>
               </div>
@@ -112,7 +113,7 @@ export default function TournamentDetailsModal({
                   <MapPin className="w-5 h-5 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Course Type</p>
+                  <p className="text-sm text-gray-400">Tipe Course</p>
                   <p className="font-semibold text-white">{tournamentDetails.courseType}</p>
                 </div>
               </div>
@@ -125,7 +126,7 @@ export default function TournamentDetailsModal({
                   <Target className="w-5 h-5 text-yellow-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Game Mode</p>
+                  <p className="text-sm text-gray-400">Mode Permainan</p>
                   <p className="font-semibold text-white capitalize">{tournamentDetails.gameMode}</p>
                 </div>
               </div>
@@ -183,16 +184,16 @@ export default function TournamentDetailsModal({
             <div className="bg-gradient-to-br from-purple-950/40 to-blue-950/40 rounded-lg p-4 border border-purple-900/40">
               <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                 <Target className="w-5 h-5 text-purple-400" />
-                Special Features
+                Fitur Khusus
               </h3>
               <div className="space-y-2">
                 {tournamentDetails.specialScoringHoles && tournamentDetails.specialScoringHoles.length > 0 && (
                   <div className="flex items-start gap-2">
                     <Eye className="w-4 h-4 text-purple-400 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-white">Special Scoring Holes</p>
+                      <p className="text-sm font-medium text-white">Hole Skor Spesial</p>
                       <p className="text-sm text-gray-400">
-                        Holes: {tournamentDetails.specialScoringHoles.join(', ')}
+                        Hole: {tournamentDetails.specialScoringHoles.join(', ')}
                       </p>
                     </div>
                   </div>
@@ -201,9 +202,9 @@ export default function TournamentDetailsModal({
                   <div className="flex items-start gap-2">
                     <EyeOff className="w-4 h-4 text-purple-400 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-white">Hidden Holes</p>
+                      <p className="text-sm font-medium text-white">Hole Tersembunyi</p>
                       <p className="text-sm text-gray-400">
-                        Holes: {tournamentDetails.hiddenHoles.join(', ')}
+                        Hole: {tournamentDetails.hiddenHoles.join(', ')}
                       </p>
                     </div>
                   </div>
@@ -217,7 +218,7 @@ export default function TournamentDetailsModal({
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-white flex items-center gap-2">
                 <Users className="w-5 h-5 text-green-500" />
-                Registered Players ({tournamentDetails.flights?.reduce((sum: number, f: any) => sum + (f.participants?.length || 0), 0) || 0})
+                Pemain Terdaftar ({tournamentDetails.flights?.reduce((sum: number, f: any) => sum + (f.participants?.length || 0), 0) || 0})
               </h3>
             </div>
 
@@ -239,7 +240,7 @@ export default function TournamentDetailsModal({
                                 <p className="text-sm text-gray-400">{participant.email}</p>
                               </div>
                               <div className="text-right">
-                                <p className="text-xs text-gray-500">Start Hole</p>
+                                <p className="text-xs text-gray-500">Hole Awal</p>
                                 <p className="text-lg font-bold text-green-500">{participant.startHole}</p>
                               </div>
                             </div>
@@ -260,7 +261,7 @@ export default function TournamentDetailsModal({
             ) : (
               <div className="text-center py-8 bg-gray-900/60 rounded-lg border border-gray-800/60">
                 <Users className="w-12 h-12 text-gray-600 mx-auto mb-2" />
-                <p className="text-gray-400">No players registered yet</p>
+                <p className="text-gray-400">Belum ada pemain terdaftar</p>
               </div>
             )}
           </div>
@@ -272,7 +273,7 @@ export default function TournamentDetailsModal({
             onClick={onClose}
             className="w-full px-6 py-3 bg-gradient-to-r from-red-900 via-red-800 to-red-900 hover:from-red-800 hover:via-red-700 hover:to-red-800 text-white rounded-lg font-semibold transition-all shadow-[0_8px_24px_rgba(139,0,0,0.4)] border border-red-900/40"
           >
-            Close
+            Tutup
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useQuery } from "convex/react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useMemo } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../contexts/AuthContext";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -14,13 +14,21 @@ import {
   Users,
   Table,
   ChevronLeft,
+  UserPlus,
 } from "lucide-react";
 import { statusConfig } from "@/lib/utils";
 
 export default function TournamentDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
+
+  // Check if user came from home/beranda (TournamentList)
+  const isFromHome = location.state?.fromHome === true;
+  // Check if user came from My Tournaments
+  const isFromMyTournaments = location.state?.fromMyTournaments === true;
 
   // Redirect if no id or user
   useEffect(() => {
@@ -150,6 +158,32 @@ export default function TournamentDetail() {
   const isCompleted = tournament.status === "completed";
   const st = statusConfig(tournament.status);
 
+  // Handle Join Tournament button click
+  const handleJoinTournament = () => {
+    if (!isRegistered) {
+      // Show alert dialog if user is not registered
+      setShowAlertDialog(true);
+    }
+  };
+
+  // Handle back button - go to appropriate page based on where user came from
+  const handleBack = () => {
+    // Always navigate to the correct page explicitly, not using browser history
+    if (isFromHome) {
+      // If came from home/beranda, go back to home tab
+      navigate("/player?tab=home");
+    } else if (isFromMyTournaments) {
+      // If came from my tournaments, go to my tournaments tab
+      navigate("/player?tab=my-tournaments");
+    } else if (isRegistered) {
+      // If user is registered (default fallback), go to my tournaments tab
+      navigate("/player?tab=my-tournaments");
+    } else {
+      // Default: go to home
+      navigate("/player?tab=home");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] via-[#0f0f0f] to-black">
       <div className="container mx-auto px-3 py-3 max-w-6xl">
@@ -159,12 +193,20 @@ export default function TournamentDetail() {
           <div className="flex items-center justify-between gap-3">
             {/* back button */}
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleBack}
               className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/8 text-gray-400 hover:text-white transition-colors active:scale-95 flex-shrink-0"
               style={{ background: "rgba(255,255,255,0.04)" }}
             >
               <ChevronLeft className="w-4 h-4" />
-              <span className="text-xs font-semibold">Kembali</span>
+              <span className="text-xs font-semibold">
+                {isFromHome 
+                  ? "Kembali ke Beranda" 
+                  : isFromMyTournaments 
+                    ? "Kembali ke Tournament Saya"
+                    : isRegistered 
+                      ? "Kembali ke Tournament Saya" 
+                      : "Kembali"}
+              </span>
             </button>
 
             {/* status pill */}
@@ -269,7 +311,7 @@ export default function TournamentDetail() {
             </div>
 
             {/* Progress Card - Only show if registered and tournament is active */}
-            {isRegistered && isActive && (
+            {/* {isRegistered && isActive && (
               <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl p-3 border border-gray-800">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -281,7 +323,6 @@ export default function TournamentDetail() {
                     </span>
                   </div>
 
-                  {/* Progress Bar */}
                   <div className="relative h-2 bg-gray-800 rounded-full overflow-hidden">
                     <div
                       className="absolute top-0 left-0 h-full bg-gradient-to-r from-red-600 to-red-700 transition-all duration-500 ease-out"
@@ -289,7 +330,6 @@ export default function TournamentDetail() {
                     />
                   </div>
 
-                  {/* Score Summary */}
                   {holesCompleted > 0 && (
                     <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-800">
                       <div className="text-center">
@@ -329,10 +369,10 @@ export default function TournamentDetail() {
                   )}
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Recent Holes - Only show if registered, active, and has scores */}
-            {isRegistered && isActive && holesCompleted > 0 && playerScores && (
+            {/* {isRegistered && isActive && holesCompleted > 0 && playerScores && (
               <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl p-3 border border-gray-800">
                 <h3 className="text-base font-bold text-white mb-2">
                   Recent Holes
@@ -387,7 +427,7 @@ export default function TournamentDetail() {
                     })}
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Upcoming Tournament Message */}
             {isUpcoming && (
@@ -404,7 +444,7 @@ export default function TournamentDetail() {
             )}
 
             {/* Completed Tournament Summary - Only show if registered */}
-            {isRegistered && isCompleted && holesCompleted > 0 && (
+            {/* {isRegistered && isCompleted && holesCompleted > 0 && (
               <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl p-3 border border-gray-800">
                 <h3 className="text-base font-bold text-white mb-2">
                   Final Score
@@ -441,13 +481,24 @@ export default function TournamentDetail() {
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           {/* Right Column - Action Buttons */}
           <div className="space-y-2">
+            {/* Join Tournament Button - Only show if from home and not registered */}
+            {isFromHome && !isRegistered && (
+              <button
+                onClick={handleJoinTournament}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-4 rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              >
+                <UserPlus className="w-5 h-5" />
+                <span className="text-base">Join Tournament</span>
+              </button>
+            )}
+
             {/* Show Start Scoring button only for registered users in active tournaments */}
-            {isRegistered && isActive && (
+            {/* {isRegistered && isActive && (
               <button
                 onClick={() =>
                   navigate(`/player/flight-scoring/${tournamentId}`)
@@ -457,10 +508,10 @@ export default function TournamentDetail() {
                 <Play className="w-5 h-5" />
                 <span className="text-base">Start Scoring</span>
               </button>
-            )}
+            )} */}
 
             {/* Show Table Scoring button only for registered users in completed tournaments */}
-            {isRegistered && isCompleted && (
+            {/* {isRegistered && isCompleted && (
               <button
                 onClick={() =>
                   navigate(`/player/flight-scoring/${tournamentId}`)
@@ -470,10 +521,10 @@ export default function TournamentDetail() {
                 <Table className="w-5 h-5" />
                 <span className="text-base">Table Scoring</span>
               </button>
-            )}
+            )} */}
 
             {/* Show View Scorecard button only for registered users in active and completed tournaments */}
-            {isRegistered && !isUpcoming && (
+            {/* {isRegistered && !isUpcoming && (
               <button
                 onClick={() =>
                   navigate(`/player/tournament/${tournamentId}/scorecard`)
@@ -483,10 +534,10 @@ export default function TournamentDetail() {
                 <ClipboardList className="w-5 h-5" />
                 <span className="text-base">View Scorecard</span>
               </button>
-            )}
+            )} */}
 
             {/* Show Leaderboard button only for registered users in active and completed tournaments */}
-            {isRegistered && !isUpcoming && (
+            {/* {isRegistered && !isUpcoming && (
               <button
                 onClick={() =>
                   navigate(`/player/tournament/${tournamentId}/leaderboard`)
@@ -496,20 +547,6 @@ export default function TournamentDetail() {
                 <Award className="w-5 h-5" />
                 <span className="text-base">Leaderboard</span>
               </button>
-            )}
-
-            {/* Tournament Banner */}
-            {/* {tournament.bannerUrl && (
-              <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl p-2 border border-gray-800">
-                <img
-                  src={tournament.bannerUrl}
-                  alt={tournament.name}
-                  className="w-full h-32 object-cover rounded-lg"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
             )} */}
 
             {/* Quick Info */}
@@ -518,14 +555,6 @@ export default function TournamentDetail() {
                 Tournament Info
               </h3>
               <div className="space-y-1.5 text-sm">
-                {(tournament.maleTeeBox || tournament.femaleTeeBox) && (
-                  <div className="flex justify-between items-center py-1.5 border-b border-gray-800">
-                    <span className="text-gray-400">Tee Box</span>
-                    <span className="text-white font-semibold">
-                      {tournament.maleTeeBox || tournament.femaleTeeBox}
-                    </span>
-                  </div>
-                )}
                 <div className="flex justify-between items-center py-1.5 border-b border-gray-800">
                   <span className="text-gray-400">Scoring Display</span>
                   <span className="text-white font-semibold capitalize">
@@ -677,7 +706,7 @@ export default function TournamentDetail() {
             )}
 
             {/* Tournament Schedule */}
-            {tournament.schedule && (
+            {/* {tournament.schedule && (
               <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl p-3 border border-gray-800">
                 <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-red-500" />
@@ -721,10 +750,57 @@ export default function TournamentDetail() {
                     })}
                 </div>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>
+
+      {/* Alert Dialog */}
+      {showAlertDialog && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-2xl shadow-2xl border border-gray-800 max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+            <div className="text-center space-y-4">
+              {/* Icon */}
+              <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
+                <svg
+                  className="w-8 h-8 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-xl font-bold text-white">
+                Belum Terdaftar
+              </h3>
+
+              {/* Message */}
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Mohon maaf, saat ini Anda belum terdaftar sebagai peserta pada turnamen ini.
+              </p>
+
+              {/* Button */}
+              <button
+                onClick={() => {
+                  setShowAlertDialog(false);
+                  navigate("/player");
+                }}
+                className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-4 rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95"
+              >
+                Kembali ke Beranda
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -698,19 +698,37 @@ export const updateProfile = mutation({
     name: v.optional(v.string()),
     phone: v.optional(v.string()),
     nickname: v.optional(v.string()),
+    dateOfBirth: v.optional(v.string()),
     handicap: v.optional(v.number()),
     gender: v.optional(v.union(v.literal("male"), v.literal("female"))),
     workLocation: v.optional(v.string()),
     shirtSize: v.optional(
-      v.union(v.literal("S"), v.literal("M"), v.literal("L"), v.literal("XL")),
+      v.union(
+        v.literal("S"),
+        v.literal("M"),
+        v.literal("L"),
+        v.literal("XL"),
+        v.literal("2XL"),
+        v.literal("3XL"),
+      ),
     ),
     gloveSize: v.optional(
-      v.union(v.literal("S"), v.literal("M"), v.literal("L"), v.literal("XL")),
+      v.union(
+        v.literal("S"),
+        v.literal("M"),
+        v.literal("L"),
+        v.literal("XL"),
+        v.literal("22"),
+        v.literal("23"),
+        v.literal("24"),
+        v.literal("25"),
+        v.literal("26"),
+      ),
     ),
     drivers: v.optional(
       v.array(
         v.object({
-          brand: v.union(v.literal("Titleist"), v.literal("Other")),
+          brand: v.string(),
           model: v.string(),
         }),
       ),
@@ -718,7 +736,7 @@ export const updateProfile = mutation({
     fairways: v.optional(
       v.array(
         v.object({
-          brand: v.union(v.literal("Titleist"), v.literal("Other")),
+          brand: v.string(),
           model: v.string(),
         }),
       ),
@@ -726,15 +744,7 @@ export const updateProfile = mutation({
     hybrids: v.optional(
       v.array(
         v.object({
-          brand: v.union(v.literal("Titleist"), v.literal("Other")),
-          model: v.string(),
-        }),
-      ),
-    ),
-    utilityIrons: v.optional(
-      v.array(
-        v.object({
-          brand: v.union(v.literal("Titleist"), v.literal("Other")),
+          brand: v.string(),
           model: v.string(),
         }),
       ),
@@ -742,7 +752,7 @@ export const updateProfile = mutation({
     irons: v.optional(
       v.array(
         v.object({
-          brand: v.union(v.literal("Titleist"), v.literal("Other")),
+          brand: v.string(),
           model: v.string(),
         }),
       ),
@@ -750,7 +760,7 @@ export const updateProfile = mutation({
     wedges: v.optional(
       v.array(
         v.object({
-          brand: v.union(v.literal("Titleist"), v.literal("Other")),
+          brand: v.string(),
           model: v.string(),
         }),
       ),
@@ -758,7 +768,15 @@ export const updateProfile = mutation({
     putters: v.optional(
       v.array(
         v.object({
-          brand: v.union(v.literal("Titleist"), v.literal("Other")),
+          brand: v.string(),
+          model: v.string(),
+        }),
+      ),
+    ),
+    golfBalls: v.optional(
+      v.array(
+        v.object({
+          brand: v.string(),
           model: v.string(),
         }),
       ),
@@ -778,6 +796,7 @@ export const updateProfile = mutation({
     if (updates.name !== undefined) updateData.name = updates.name;
     if (updates.phone !== undefined) updateData.phone = updates.phone;
     if (updates.nickname !== undefined) updateData.nickname = updates.nickname;
+    if (updates.dateOfBirth !== undefined) updateData.dateOfBirth = updates.dateOfBirth;
     if (updates.handicap !== undefined) updateData.handicap = updates.handicap;
     if (updates.gender !== undefined) updateData.gender = updates.gender;
     if (updates.workLocation !== undefined)
@@ -789,16 +808,17 @@ export const updateProfile = mutation({
     if (updates.drivers !== undefined) updateData.drivers = updates.drivers;
     if (updates.fairways !== undefined) updateData.fairways = updates.fairways;
     if (updates.hybrids !== undefined) updateData.hybrids = updates.hybrids;
-
     if (updates.irons !== undefined) updateData.irons = updates.irons;
     if (updates.wedges !== undefined) updateData.wedges = updates.wedges;
     if (updates.putters !== undefined) updateData.putters = updates.putters;
+    if (updates.golfBalls !== undefined) updateData.golfBalls = updates.golfBalls;
 
     await ctx.db.patch(userId, updateData);
 
     return { success: true, message: "Profile updated successfully" };
   },
 });
+
 
 // Get player statistics
 export const getPlayerStatistics = query({
@@ -1039,3 +1059,26 @@ export const validateEmailForReset = mutation({
   },
 });
 
+
+// Get user by ID
+export const getUser = query({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      return null;
+    }
+
+    // Return user without password
+    return {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      handicap: user.handicap,
+      nickname: user.nickname,
+    };
+  },
+});

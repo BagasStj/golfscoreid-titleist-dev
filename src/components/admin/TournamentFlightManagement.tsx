@@ -46,7 +46,7 @@ export default function TournamentFlightManagement({
         userId: user._id,
       });
       
-      showSuccess('Flight created successfully!');
+      showSuccess('Flight berhasil dibuat!');
       
       // Reset form
       setFlightName('');
@@ -55,29 +55,29 @@ export default function TournamentFlightManagement({
       setStartHole('1');
       setShowAddFlight(false);
     } catch (error) {
-      showError(error instanceof Error ? error.message : 'Failed to create flight');
+      showError(error instanceof Error ? error.message : 'Gagal membuat flight');
     }
   };
 
   const handleDeleteFlight = async (flightId: Id<'tournament_flights'>) => {
     if (!user) return;
-    if (!confirm('Are you sure you want to delete this flight?')) return;
+    if (!confirm('Apakah Anda yakin ingin menghapus flight ini?')) return;
 
     try {
       await deleteFlight({ flightId, userId: user._id });
-      showSuccess('Flight deleted successfully!');
+      showSuccess('Flight berhasil dihapus!');
       if (selectedFlightId === flightId) {
         setSelectedFlightId(null);
       }
     } catch (error) {
-      showError(error instanceof Error ? error.message : 'Failed to delete flight');
+      showError(error instanceof Error ? error.message : 'Gagal menghapus flight');
     }
   };
 
   if (!tournament || !flights) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-pulse text-secondary-500">Loading tournament...</div>
+        <div className="animate-pulse text-secondary-500">Memuat tournament...</div>
       </div>
     );
   }
@@ -97,38 +97,38 @@ export default function TournamentFlightManagement({
           )}
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-secondary-900">{tournament.name}</h2>
-            <p className="text-secondary-600 mt-1">Manage flights and assign players</p>
+            <p className="text-secondary-600 mt-1">Kelola flight dan assign pemain</p>
           </div>
           <button
             onClick={() => setShowAddFlight(!showAddFlight)}
             className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
           >
             <Plus size={20} />
-            Add Flight
+            Tambah Flight
           </button>
         </div>
 
         {/* Add Flight Form */}
         {showAddFlight && (
           <form onSubmit={handleCreateFlight} className="mt-6 p-4 bg-secondary-50 rounded-lg border border-secondary-200">
-            <h3 className="font-semibold text-secondary-900 mb-4">Create New Flight</h3>
+            <h3 className="font-semibold text-secondary-900 mb-4">Buat Flight Baru</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-secondary-700 mb-2">
-                  Flight Name *
+                  Nama Flight *
                 </label>
                 <input
                   type="text"
                   value={flightName}
                   onChange={(e) => setFlightName(e.target.value)}
-                  placeholder="e.g., Flight A"
+                  placeholder="contoh: Flight A"
                   required
                   className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-secondary-700 mb-2">
-                  Flight Number *
+                  Nomor Flight *
                 </label>
                 <input
                   type="number"
@@ -142,7 +142,7 @@ export default function TournamentFlightManagement({
               </div>
               <div>
                 <label className="block text-sm font-medium text-secondary-700 mb-2">
-                  Start Time (Optional)
+                  Waktu Mulai (Opsional)
                 </label>
                 <input
                   type="time"
@@ -153,7 +153,7 @@ export default function TournamentFlightManagement({
               </div>
               <div>
                 <label className="block text-sm font-medium text-secondary-700 mb-2">
-                  Start Hole *
+                  Hole Awal *
                 </label>
                 <input
                   type="number"
@@ -171,14 +171,14 @@ export default function TournamentFlightManagement({
                 type="submit"
                 className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
               >
-                Create Flight
+                Buat Flight
               </button>
               <button
                 type="button"
                 onClick={() => setShowAddFlight(false)}
                 className="px-6 py-2 bg-secondary-200 text-secondary-700 rounded-lg hover:bg-secondary-300 transition-colors font-medium"
               >
-                Cancel
+                Batal
               </button>
             </div>
           </form>
@@ -189,12 +189,12 @@ export default function TournamentFlightManagement({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Flights List */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-secondary-900">Flights ({flights.length})</h3>
+          <h3 className="text-lg font-semibold text-secondary-900">Flight ({flights.length})</h3>
           
           {flights.length === 0 ? (
             <div className="bg-white rounded-xl border-2 border-dashed border-secondary-300 p-8 text-center">
-              <p className="text-secondary-600 mb-2">No flights created yet</p>
-              <p className="text-sm text-secondary-500">Click "Add Flight" to create one</p>
+              <p className="text-secondary-600 mb-2">Belum ada flight yang dibuat</p>
+              <p className="text-sm text-secondary-500">Klik "Tambah Flight" untuk membuat</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -228,7 +228,7 @@ export default function TournamentFlightManagement({
                       </div>
                       <div className="mt-2">
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                          {flight.participantCount} player{flight.participantCount !== 1 ? 's' : ''}
+                          {flight.participantCount} pemain
                         </span>
                       </div>
                     </div>
@@ -238,7 +238,7 @@ export default function TournamentFlightManagement({
                         handleDeleteFlight(flight._id);
                       }}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Delete flight"
+                      title="Hapus flight"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -264,8 +264,8 @@ export default function TournamentFlightManagement({
                 <div className="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MapPin className="w-8 h-8 text-secondary-400" />
                 </div>
-                <p className="text-secondary-600 mb-1">Select a flight</p>
-                <p className="text-sm text-secondary-500">Click on a flight to manage its players</p>
+                <p className="text-secondary-600 mb-1">Pilih flight</p>
+                <p className="text-sm text-secondary-500">Klik pada flight untuk mengelola pemainnya</p>
               </div>
             </div>
           )}

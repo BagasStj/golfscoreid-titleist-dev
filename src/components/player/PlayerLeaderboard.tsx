@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { api } from '../../../convex/_generated/api';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Id } from '../../../convex/_generated/dataModel';
+import { ChevronLeft } from 'lucide-react';
 
 export default function PlayerLeaderboard() {
   const { tournamentId } = useParams<{ tournamentId: string }>();
@@ -66,22 +67,17 @@ export default function PlayerLeaderboard() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] via-[#0f0f0f] to-black page-transition" style={{ backgroundColor: '#0f0f0f' }}>
       <div className="container mx-auto px-4 py-6 max-w-4xl">
-        {/* Header with Navigation */}
-        {/* <div className="flex items-center justify-between mb-6">
+        {/* Back Button */}
+        <div className="mb-4">
           <button
             onClick={() => navigate(`/player/tournament/${tournamentId}`)}
-            className="flex items-center gap-2 text-white hover:text-red-500 font-medium transition-colors min-h-[44px]"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/8 text-gray-400 hover:text-white transition-colors active:scale-95"
+            style={{ background: "rgba(255,255,255,0.04)" }}
           >
-            <span className="text-xl">←</span>
-            <span>Back to Scoring</span>
+            <ChevronLeft className="w-4 h-4" />
+            <span className="text-xs font-semibold">Kembali ke Detail Tournament</span>
           </button>
-          <button
-            onClick={() => navigate(`/player/tournament/${tournamentId}/scorecard`)}
-            className="px-4 py-2 bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black border border-gray-800 text-white rounded-lg font-medium hover:border-gray-700 transition-colors min-h-[44px]"
-          >
-            Scorecard
-          </button>
-        </div> */}
+        </div>
 
         <div className="space-y-6 animate-fade-in">
           {/* Tournament Header */}
