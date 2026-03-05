@@ -259,7 +259,7 @@ export const updateTournament = mutation({
     tournamentId: v.id("tournaments"), name: v.optional(v.string()), description: v.optional(v.string()),
     date: v.optional(v.number()), location: v.optional(v.string()), startHole: v.optional(v.number()),
     courseType: v.optional(v.union(v.literal("18holes"), v.literal("F9"), v.literal("B9"))),
-    gameMode: v.optional(v.union(v.literal("strokePlay"), v.literal("system36"), v.literal("stableford"))),
+    gameMode: v.optional(v.union(v.literal("strokePlay"), v.literal("system36"), v.literal("stableford"), v.literal("peoria"))),
     scoringDisplay: v.optional(v.union(v.literal("over"), v.literal("stroke"))),
     specialScoringHoles: v.optional(v.array(v.number())),
     schedule: v.optional(v.string()),

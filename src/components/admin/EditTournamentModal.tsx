@@ -31,7 +31,7 @@ export default function EditTournamentModal({
     description: '',
     date: '',
     courseType: '18holes' as '18holes' | 'F9' | 'B9',
-    gameMode: 'strokePlay' as 'strokePlay' | 'system36' | 'stableford',
+    gameMode: 'strokePlay' as 'strokePlay' | 'system36' | 'stableford' |  "peoria",
     scoringDisplay: 'over' as 'over' | 'stroke',
     specialScoringHoles: [] as number[],
     schedule: '',

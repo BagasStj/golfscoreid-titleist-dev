@@ -8,11 +8,7 @@ import {
   Calendar,
   MapPin,
   Target,
-  Play,
-  ClipboardList,
-  Award,
   Users,
-  Table,
   ChevronLeft,
   UserPlus,
 } from "lucide-react";
@@ -107,7 +103,7 @@ export default function TournamentDetail() {
     return null;
   }
 
-  const tournamentId = id;
+  // const tournamentId = id;
 
   // Show loading only if tournament details is still loading
   // Don't wait for playerScores if user is not registered
@@ -137,25 +133,22 @@ export default function TournamentDetail() {
   const tournament = tournamentDetails;
   const holesConfig = tournament.holesConfig;
   const totalHoles = holesConfig.length;
-  const holesCompleted = playerScores?.length || 0;
-  const progress = totalHoles > 0 ? (holesCompleted / totalHoles) * 100 : 0;
+  // const holesCompleted = playerScores?.length || 0;
 
   // Calculate total score - only if playerScores exists
-  const totalStrokes =
-    playerScores?.reduce((sum, score) => sum + score.strokes, 0) || 0;
-  const totalPar =
-    playerScores?.reduce((sum, score) => {
-      const hole = holesConfig.find((h) => h.holeNumber === score.holeNumber);
-      return sum + (hole?.par || 0);
-    }, 0) || 0;
-  const scoreToPar = totalStrokes - totalPar;
+  // const totalStrokes =
+  //   playerScores?.reduce((sum, score) => sum + score.strokes, 0) || 0;
+  // const totalPar =
+  //   playerScores?.reduce((sum, score) => {
+  //     const hole = holesConfig.find((h) => h.holeNumber === score.holeNumber);
+  //     return sum + (hole?.par || 0);
+  //   }, 0) || 0;
 
   const tournamentDate = new Date(tournament.date);
 
   // Determine if tournament is upcoming, active, or completed
   const isUpcoming = tournament.status === "upcoming";
   const isActive = tournament.status === "active";
-  const isCompleted = tournament.status === "completed";
   const st = statusConfig(tournament.status);
 
   // Handle Join Tournament button click

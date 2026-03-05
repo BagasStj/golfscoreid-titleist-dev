@@ -13,7 +13,6 @@ import {
   TrendingUp,
   Menu,
   ChevronRight,
-  Newspaper,
   Plane,
   MapPin,
   Info

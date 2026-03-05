@@ -375,7 +375,7 @@ const ScorecardTable: React.FC<{
   setScoringMode: (mode: 'stroke' | 'over') => void;
   currentHole: number;
   setCurrentHole: (hole: number) => void;
-}> = ({ tournament, flightParticipants, holesConfig, currentUserId, scoringMode, setScoringMode, currentHole, setCurrentHole }) => {
+}> = ({ tournament, flightParticipants, holesConfig, currentUserId, scoringMode, setScoringMode, currentHole }) => {
   // Fetch scores for all participants
   const participantScores = flightParticipants.map((participant) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -527,7 +527,7 @@ const ScorecardTable: React.FC<{
                   // Sort by total strokes (ascending - lowest score first)
                   return a.totalStrokes - b.totalStrokes;
                 })
-                .map(({ participant, scoresMap, totalStrokes, scoreToPar, holesPlayed, isCurrentUser }, index) => {
+                .map(({ participant, scoresMap, totalStrokes, scoreToPar, isCurrentUser }, index) => {
                 return (
                   <tr
                     key={participant._id}
