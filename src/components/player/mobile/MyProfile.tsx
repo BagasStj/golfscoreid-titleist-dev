@@ -7,8 +7,6 @@ import {
   User,
   FileText,
   BarChart3,
-  Settings,
-  HelpCircle,
   LogOut,
   Trophy,
   Star,

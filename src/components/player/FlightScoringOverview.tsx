@@ -87,7 +87,6 @@ const FlightScoringOverview: React.FC = () => {
   }
 
   const holesConfig = tournament.holesConfig || [];
-  const courseName = course?.name || tournament.location || "Lapangan Golf";
 
   const handleFinishTournament = () => {
     // Check if all scores are complete by checking participantScores in ScorecardTable
