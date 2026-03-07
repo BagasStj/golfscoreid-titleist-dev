@@ -449,6 +449,8 @@ export const getTournamentFlightsWithParticipants = query({
                   startHole: p.startHole,
                   registeredAt: p.registeredAt,
                   participationId: p._id,
+                  paymentStatus: player.paymentStatus,
+                  paidAt: player.paidAt,
                 }
               : null;
           })

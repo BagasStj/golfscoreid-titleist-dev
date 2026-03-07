@@ -429,6 +429,8 @@ export const listAllPlayers = query({
         wedges: player.wedges,
         putters: player.putters,
         golfBalls: player.golfBalls,
+        paymentStatus: player.paymentStatus,
+        paidAt: player.paidAt,
       }));
   },
 });
@@ -1079,6 +1081,45 @@ export const getUser = query({
       role: user.role,
       handicap: user.handicap,
       nickname: user.nickname,
+    };
+  },
+});
+
+
+// Update payment status for multiple players
+export const updatePaymentStatus = mutation({
+  args: {
+    playerIds: v.array(v.id("users")),
+    paymentStatus: v.union(v.literal("paid"), v.literal("unpaid")),
+  },
+  handler: async (ctx, args) => {
+    const { playerIds, paymentStatus } = args;
+
+    // Update each player's payment status
+    for (const playerId of playerIds) {
+      const player = await ctx.db.get(playerId);
+      if (!player) {
+        continue; // Skip if player not found
+      }
+
+      const updateData: any = {
+        paymentStatus,
+      };
+
+      // Set paidAt timestamp if marking as paid
+      if (paymentStatus === "paid") {
+        updateData.paidAt = Date.now();
+      } else {
+        // Clear paidAt if marking as unpaid
+        updateData.paidAt = undefined;
+      }
+
+      await ctx.db.patch(playerId, updateData);
+    }
+
+    return {
+      success: true,
+      message: `${playerIds.length} pemain berhasil diupdate`,
     };
   },
 });

@@ -3,12 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useAuth } from "../../../contexts/AuthContext";
-import { 
-  User, 
-  FileText, 
-  BarChart3, 
-  Settings, 
-  HelpCircle, 
+import {
+  User,
+  FileText,
+  BarChart3,
   LogOut,
   Trophy,
   Star,
@@ -17,7 +15,7 @@ import {
   MapPin,
   Shirt,
   Hand,
-  Zap
+  Zap,
 } from "lucide-react";
 
 const MyProfile: React.FC = () => {
@@ -47,7 +45,11 @@ const MyProfile: React.FC = () => {
   const avgScore = playerStats?.averageScore || 0;
 
   const stats = [
-    { label: "Turnamen", value: totalTournaments.toString(), icon: <Trophy className="w-6 h-6 text-yellow-500" /> },
+    {
+      label: "Turnamen",
+      value: totalTournaments.toString(),
+      icon: <Trophy className="w-6 h-6 text-yellow-500" />,
+    },
     {
       label: "Skor Terbaik",
       value: bestScore > 0 ? bestScore.toString() : "-",
@@ -76,16 +78,16 @@ const MyProfile: React.FC = () => {
       label: "Statistik Saya",
       action: () => navigate("/player/profile/statistics"),
     },
-    {
-      icon: <Settings className="w-6 h-6" />,
-      label: "Pengaturan",
-      action: () => navigate("/player/profile/settings"),
-    },
-    {
-      icon: <HelpCircle className="w-6 h-6" />,
-      label: "Bantuan & FAQ",
-      action: () => navigate("/player/profile/faq"),
-    },
+    // {
+    //   icon: <Settings className="w-6 h-6" />,
+    //   label: "Pengaturan",
+    //   action: () => navigate("/player/profile/settings"),
+    // },
+    // {
+    //   icon: <HelpCircle className="w-6 h-6" />,
+    //   label: "Bantuan & FAQ",
+    //   action: () => navigate("/player/profile/faq"),
+    // },
   ];
 
   // Get initials from name (first letter of first 2 words)
@@ -122,13 +124,13 @@ const MyProfile: React.FC = () => {
   return (
     <div className="px-4 py-4 space-y-5 relative">
       {/* Background Image - Responsive & More Visible */}
-      <div 
+      <div
         className="fixed inset-0 z-0 opacity-20 pointer-events-none"
         style={{
-          backgroundImage: 'url(/background-player.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
+          backgroundImage: "url(/background-player.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
         }}
       />
 
@@ -158,25 +160,40 @@ const MyProfile: React.FC = () => {
               </p>
             )}
             <div className="flex items-center mt-2 space-x-2">
-              
               {(user as any)?.gender && (
                 <span className="bg-gray-700 text-white text-xs px-3 py-1 rounded-full font-semibold flex items-center gap-1.5">
                   {(user as any).gender === "male" ? (
                     <>
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="10" cy="14" r="6"/>
-                        <line x1="16" y1="8" x2="22" y2="2"/>
-                        <line x1="22" y1="8" x2="16" y2="8"/>
-                        <line x1="22" y1="2" x2="22" y2="8"/>
+                      <svg
+                        className="w-3.5 h-3.5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="10" cy="14" r="6" />
+                        <line x1="16" y1="8" x2="22" y2="2" />
+                        <line x1="22" y1="8" x2="16" y2="8" />
+                        <line x1="22" y1="2" x2="22" y2="8" />
                       </svg>
                       Pria
                     </>
                   ) : (
                     <>
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="8" r="6"/>
-                        <line x1="12" y1="14" x2="12" y2="22"/>
-                        <line x1="8" y1="18" x2="16" y2="18"/>
+                      <svg
+                        className="w-3.5 h-3.5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="12" cy="8" r="6" />
+                        <line x1="12" y1="14" x2="12" y2="22" />
+                        <line x1="8" y1="18" x2="16" y2="18" />
                       </svg>
                       Wanita
                     </>
@@ -223,25 +240,39 @@ const MyProfile: React.FC = () => {
           <div className="space-y-3 mb-5 pt-4 border-t border-gray-800">
             <div className="flex items-center space-x-2 mb-3">
               <Zap className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-400 text-sm font-semibold">Club Sets</span>
+              <span className="text-gray-400 text-sm font-semibold">
+                Club Sets
+              </span>
             </div>
 
             <div className="bg-black/20 rounded-xl overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-900/50">
-                    <th className="text-left text-gray-400 font-semibold px-3 py-2 text-xs">Kategori</th>
-                    <th className="text-left text-gray-400 font-semibold px-3 py-2 text-xs">Brand</th>
-                    <th className="text-left text-gray-400 font-semibold px-3 py-2 text-xs">Model</th>
+                    <th className="text-left text-gray-400 font-semibold px-3 py-2 text-xs">
+                      Kategori
+                    </th>
+                    <th className="text-left text-gray-400 font-semibold px-3 py-2 text-xs">
+                      Brand
+                    </th>
+                    <th className="text-left text-gray-400 font-semibold px-3 py-2 text-xs">
+                      Model
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {/* Drivers */}
-                  {(user as any)?.drivers && (user as any).drivers.length > 0 && 
+                  {(user as any)?.drivers &&
+                    (user as any).drivers.length > 0 &&
                     (user as any).drivers
-                      .filter((club: any) => club.model && club.model.trim() !== "")
+                      .filter(
+                        (club: any) => club.model && club.model.trim() !== "",
+                      )
                       .map((club: any, idx: number) => (
-                        <tr key={`driver-${idx}`} className="border-t border-gray-800/50">
+                        <tr
+                          key={`driver-${idx}`}
+                          className="border-t border-gray-800/50"
+                        >
                           <td className="px-3 py-2 text-gray-400 text-xs">
                             {idx === 0 ? "Driver" : ""}
                           </td>
@@ -256,16 +287,24 @@ const MyProfile: React.FC = () => {
                               {club.brand}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-gray-300 text-xs">{club.model}</td>
+                          <td className="px-3 py-2 text-gray-300 text-xs">
+                            {club.model}
+                          </td>
                         </tr>
                       ))}
 
                   {/* Fairways */}
-                  {(user as any)?.fairways && (user as any).fairways.length > 0 && 
+                  {(user as any)?.fairways &&
+                    (user as any).fairways.length > 0 &&
                     (user as any).fairways
-                      .filter((club: any) => club.model && club.model.trim() !== "")
+                      .filter(
+                        (club: any) => club.model && club.model.trim() !== "",
+                      )
                       .map((club: any, idx: number) => (
-                        <tr key={`fairway-${idx}`} className="border-t border-gray-800/50">
+                        <tr
+                          key={`fairway-${idx}`}
+                          className="border-t border-gray-800/50"
+                        >
                           <td className="px-3 py-2 text-gray-400 text-xs">
                             {idx === 0 ? "Fairway" : ""}
                           </td>
@@ -280,16 +319,24 @@ const MyProfile: React.FC = () => {
                               {club.brand}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-gray-300 text-xs">{club.model}</td>
+                          <td className="px-3 py-2 text-gray-300 text-xs">
+                            {club.model}
+                          </td>
                         </tr>
                       ))}
 
                   {/* Hybrids */}
-                  {(user as any)?.hybrids && (user as any).hybrids.length > 0 && 
+                  {(user as any)?.hybrids &&
+                    (user as any).hybrids.length > 0 &&
                     (user as any).hybrids
-                      .filter((club: any) => club.model && club.model.trim() !== "")
+                      .filter(
+                        (club: any) => club.model && club.model.trim() !== "",
+                      )
                       .map((club: any, idx: number) => (
-                        <tr key={`hybrid-${idx}`} className="border-t border-gray-800/50">
+                        <tr
+                          key={`hybrid-${idx}`}
+                          className="border-t border-gray-800/50"
+                        >
                           <td className="px-3 py-2 text-gray-400 text-xs">
                             {idx === 0 ? "Hybrid" : ""}
                           </td>
@@ -304,16 +351,24 @@ const MyProfile: React.FC = () => {
                               {club.brand}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-gray-300 text-xs">{club.model}</td>
+                          <td className="px-3 py-2 text-gray-300 text-xs">
+                            {club.model}
+                          </td>
                         </tr>
                       ))}
 
                   {/* Utility Irons */}
-                  {(user as any)?.utilityIrons && (user as any).utilityIrons.length > 0 && 
+                  {(user as any)?.utilityIrons &&
+                    (user as any).utilityIrons.length > 0 &&
                     (user as any).utilityIrons
-                      .filter((club: any) => club.model && club.model.trim() !== "")
+                      .filter(
+                        (club: any) => club.model && club.model.trim() !== "",
+                      )
                       .map((club: any, idx: number) => (
-                        <tr key={`utility-${idx}`} className="border-t border-gray-800/50">
+                        <tr
+                          key={`utility-${idx}`}
+                          className="border-t border-gray-800/50"
+                        >
                           <td className="px-3 py-2 text-gray-400 text-xs">
                             {idx === 0 ? "Utility Iron" : ""}
                           </td>
@@ -328,16 +383,24 @@ const MyProfile: React.FC = () => {
                               {club.brand}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-gray-300 text-xs">{club.model}</td>
+                          <td className="px-3 py-2 text-gray-300 text-xs">
+                            {club.model}
+                          </td>
                         </tr>
                       ))}
 
                   {/* Irons */}
-                  {(user as any)?.irons && (user as any).irons.length > 0 && 
+                  {(user as any)?.irons &&
+                    (user as any).irons.length > 0 &&
                     (user as any).irons
-                      .filter((club: any) => club.model && club.model.trim() !== "")
+                      .filter(
+                        (club: any) => club.model && club.model.trim() !== "",
+                      )
                       .map((club: any, idx: number) => (
-                        <tr key={`iron-${idx}`} className="border-t border-gray-800/50">
+                        <tr
+                          key={`iron-${idx}`}
+                          className="border-t border-gray-800/50"
+                        >
                           <td className="px-3 py-2 text-gray-400 text-xs">
                             {idx === 0 ? "Iron" : ""}
                           </td>
@@ -352,16 +415,24 @@ const MyProfile: React.FC = () => {
                               {club.brand}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-gray-300 text-xs">{club.model}</td>
+                          <td className="px-3 py-2 text-gray-300 text-xs">
+                            {club.model}
+                          </td>
                         </tr>
                       ))}
 
                   {/* Wedges */}
-                  {(user as any)?.wedges && (user as any).wedges.length > 0 && 
+                  {(user as any)?.wedges &&
+                    (user as any).wedges.length > 0 &&
                     (user as any).wedges
-                      .filter((club: any) => club.model && club.model.trim() !== "")
+                      .filter(
+                        (club: any) => club.model && club.model.trim() !== "",
+                      )
                       .map((club: any, idx: number) => (
-                        <tr key={`wedge-${idx}`} className="border-t border-gray-800/50">
+                        <tr
+                          key={`wedge-${idx}`}
+                          className="border-t border-gray-800/50"
+                        >
                           <td className="px-3 py-2 text-gray-400 text-xs">
                             {idx === 0 ? "Wedge" : ""}
                           </td>
@@ -376,16 +447,24 @@ const MyProfile: React.FC = () => {
                               {club.brand}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-gray-300 text-xs">{club.model}</td>
+                          <td className="px-3 py-2 text-gray-300 text-xs">
+                            {club.model}
+                          </td>
                         </tr>
                       ))}
 
                   {/* Putters */}
-                  {(user as any)?.putters && (user as any).putters.length > 0 && 
+                  {(user as any)?.putters &&
+                    (user as any).putters.length > 0 &&
                     (user as any).putters
-                      .filter((club: any) => club.model && club.model.trim() !== "")
+                      .filter(
+                        (club: any) => club.model && club.model.trim() !== "",
+                      )
                       .map((club: any, idx: number) => (
-                        <tr key={`putter-${idx}`} className="border-t border-gray-800/50">
+                        <tr
+                          key={`putter-${idx}`}
+                          className="border-t border-gray-800/50"
+                        >
                           <td className="px-3 py-2 text-gray-400 text-xs">
                             {idx === 0 ? "Putter" : ""}
                           </td>
@@ -400,16 +479,24 @@ const MyProfile: React.FC = () => {
                               {club.brand}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-gray-300 text-xs">{club.model}</td>
+                          <td className="px-3 py-2 text-gray-300 text-xs">
+                            {club.model}
+                          </td>
                         </tr>
                       ))}
 
                   {/* Golf Balls */}
-                  {(user as any)?.golfBalls && (user as any).golfBalls.length > 0 && 
+                  {(user as any)?.golfBalls &&
+                    (user as any).golfBalls.length > 0 &&
                     (user as any).golfBalls
-                      .filter((club: any) => club.model && club.model.trim() !== "")
+                      .filter(
+                        (club: any) => club.model && club.model.trim() !== "",
+                      )
                       .map((club: any, idx: number) => (
-                        <tr key={`ball-${idx}`} className="border-t border-gray-800/50">
+                        <tr
+                          key={`ball-${idx}`}
+                          className="border-t border-gray-800/50"
+                        >
                           <td className="px-3 py-2 text-gray-400 text-xs">
                             {idx === 0 ? "Golf Ball" : ""}
                           </td>
@@ -424,7 +511,9 @@ const MyProfile: React.FC = () => {
                               {club.brand}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-gray-300 text-xs">{club.model}</td>
+                          <td className="px-3 py-2 text-gray-300 text-xs">
+                            {club.model}
+                          </td>
                         </tr>
                       ))}
                 </tbody>

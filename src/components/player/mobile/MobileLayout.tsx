@@ -64,7 +64,13 @@ const MobileLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#000000] via-[#171718] to-black pb-20 relative overflow-hidden">
+    <div
+      className="flex flex-col bg-gradient-to-b from-[#000000] via-[#171718] to-black relative overflow-hidden"
+      style={{
+        height: "100dvh",
+        // fallback untuk browser lama yang belum support dvh
+      }}
+    >
       {/* Elegant background decorations - matching login page */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Dark red gradient orbs */}
@@ -72,8 +78,11 @@ const MobileLayout: React.FC = () => {
         <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-gradient-to-tr from-red-950/30 to-black/20 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-[#000000]/95 via-[#151515f2] to-black/95 backdrop-blur-xl shadow-2xl border-b border-red-900/40">
+      {/* Fixed Header — tinggi adaptif dengan safe-area-inset-top */}
+      <header
+        className="shrink-0 relative z-50 bg-gradient-to-b from-[#000000]/95 via-[#151515f2] to-black/95 backdrop-blur-xl shadow-2xl border-b border-red-900/40"
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      >
         <div className="h-1 bg-gradient-to-r from-red-900 via-red-700 to-red-900"></div>
         <div className="flex items-center justify-between px-4 py-2">
           {/* Logo */}
@@ -92,7 +101,7 @@ const MobileLayout: React.FC = () => {
                 "linear-gradient(rgb(33 32 32), rgb(26 26 26), rgb(2 2 2))",
             }}
             onClick={() => handleTabChange("profile")}
-            className="flex items-center space-x-2  hover:bg-gray-800/50 rounded-full px-3 py-2 transition-all border border-gray-800/50"
+            className="flex items-center space-x-2 hover:bg-gray-800/50 rounded-full px-3 py-2 transition-all border border-gray-800/50"
           >
             <div className="w-7 h-7 bg-gradient-to-br from-red-600 to-red-700 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
               {getInitials(user?.name || "")}
@@ -101,11 +110,16 @@ const MobileLayout: React.FC = () => {
         </div>
       </header>
 
-      {/* Content Area */}
-      <main className="pt-20 relative z-10">{renderContent()}</main>
+      {/* Content Area — flex-1 + min-h-0 agar mengisi sisa ruang secara tepat */}
+      <main className="flex-1 min-h-0 overflow-y-auto relative z-10">
+        {renderContent()}
+      </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-b from-[#2e2e2e]/95 via-[#212121] to-black/95 backdrop-blur-xl shadow-2xl border-t border-red-900/40 z-50">
+      {/* Bottom Navigation — tinggi adaptif dengan safe-area-inset-bottom */}
+      <nav
+        className="shrink-0 relative z-50 bg-gradient-to-b from-[#2e2e2e]/95 via-[#212121] to-black/95 backdrop-blur-xl shadow-2xl border-t border-red-900/40"
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      >
         <div className="h-1 bg-gradient-to-r from-red-900 via-red-700 to-red-900"></div>
         <div className="flex items-center justify-around py-3 px-2">
           <button
@@ -132,13 +146,9 @@ const MobileLayout: React.FC = () => {
             <span className="text-xs font-semibold">Beranda</span>
           </button>
 
-          <button
-            onClick={() => handleTabChange("my-tournaments")}
-            className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all ${
-              activeTab === "my-tournaments"
-                ? "text-white bg-gradient-to-br from-red-600 to-red-700 shadow-lg shadow-red-900/50"
-                : "text-gray-500 hover:text-white hover:bg-gray-900/50"
-            }`}
+         <button
+            disabled
+            className="flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all text-gray-500 opacity-30 cursor-not-allowed"
           >
             <svg
               className="w-6 h-6"

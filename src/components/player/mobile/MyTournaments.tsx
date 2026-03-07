@@ -290,30 +290,37 @@ const TournamentCard: React.FC<{
         <div className="p-4 border-b border-gray-800">
           <h4 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
             <Users className="w-4 h-4 text-green-500" />
-            Semua Peserta Tournament
+            Semua Peserta Tournament 
           </h4>
 
-          <div className="space-y-3">
-            {allFlights.map((flight) => (
-              <div key={flight._id} className="bg-gray-900/40 rounded-lg p-3 border border-gray-800/60">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <h5 className="text-white font-bold text-xs">
-                      {flight.flightName}
-                    </h5>
-                    <p className="text-gray-400 text-[10px]">
-                      {flight.participants?.length || 0} pemain
-                    </p>
-                  </div>
-                  <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                    {flight.flightNumber}
-                  </div>
-                </div>
+          {/* Scrollable container with max height */}
+          <div className="max-h-[400px] overflow-y-auto space-y-3 pr-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
+            {allFlights.map((flight) => {
+              // Filter only paid participants
+              const paidParticipants = flight.participants?.filter((p: any) => p.paymentStatus === 'paid') || [];
+              
+              // Skip flight if no paid participants
+              if (paidParticipants.length === 0) return null;
 
-                {/* Flight Participants */}
-                <div className="space-y-1 mt-2">
-                  {flight.participants && flight.participants.length > 0 ? (
-                    flight.participants.map((participant: any) => (
+              return (
+                <div key={flight._id} className="bg-gray-900/40 rounded-lg p-3 border border-gray-800/60">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <h5 className="text-white font-bold text-xs">
+                        {flight.flightName}
+                      </h5>
+                      <p className="text-gray-400 text-[10px]">
+                        {paidParticipants.length} pemain 
+                      </p>
+                    </div>
+                    <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center text-white font-bold text-xs">
+                      {flight.flightNumber}
+                    </div>
+                  </div>
+
+                  {/* Flight Participants - Only Paid */}
+                  <div className="space-y-1 mt-2">
+                    {paidParticipants.map((participant: any) => (
                       <div
                         key={participant._id}
                         className={`flex items-center gap-2 p-1.5 rounded ${
@@ -340,25 +347,24 @@ const TournamentCard: React.FC<{
                           )}
                         </p>
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-[10px] text-center py-1">
-                      Belum ada peserta
-                    </p>
-                  )}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            }).filter(Boolean)}
           </div>
 
-          {/* Total Participants Summary */}
+          {/* Total Participants Summary - Only Paid */}
           <div className="mt-3 bg-gradient-to-r from-green-900/40 to-green-950/40 rounded-lg p-2 border border-green-800/40">
             <div className="flex items-center justify-between">
               <span className="text-gray-300 text-xs font-semibold">
-                Total Peserta
+                Total Peserta 
               </span>
               <span className="text-green-400 text-sm font-bold">
-                {allFlights.reduce((total, flight) => total + (flight.participants?.length || 0), 0)} pemain
+                {allFlights.reduce((total, flight) => {
+                  const paidCount = flight.participants?.filter((p: any) => p.paymentStatus === 'paid').length || 0;
+                  return total + paidCount;
+                }, 0)} pemain
               </span>
             </div>
           </div>

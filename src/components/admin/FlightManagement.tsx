@@ -156,19 +156,22 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
     if (!user || !selectedFlight || selectedPlayerIds.size === 0) return;
 
     try {
-      // Add all selected players
+      // Get the flight details to use its startHole
+      const flight = flights?.find(f => f._id === selectedFlight);
+      const flightStartHole = flight?.startHole || 1;
+
+      // Add all selected players with flight's start hole
       for (const playerId of selectedPlayerIds) {
         await addPlayerToFlight({
           flightId: selectedFlight,
           playerId: playerId,
-          startHole: parseInt(playerStartHole),
+          startHole: flightStartHole,
           userId: user._id,
         });
       }
       
       // Reset form
       setSelectedPlayerIds(new Set());
-      setPlayerStartHole('1');
       setSearchPlayerQuery('');
       setShowAddPlayer(false);
     } catch (error) {
@@ -255,7 +258,10 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
   const registeredPlayerIds = new Set(
     tournamentParticipants?.map((p: any) => p._id) || []
   );
-  const availablePlayers = allPlayers?.filter(p => !registeredPlayerIds.has(p._id));
+  // Filter only paid players
+  const availablePlayers = allPlayers?.filter(p => 
+    !registeredPlayerIds.has(p._id) && (p as any).paymentStatus === 'paid'
+  );
 
   // Filter available players by search query
   const filteredAvailablePlayers = availablePlayers?.filter(player => 
@@ -785,26 +791,6 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
             {/* Modal Body */}
             <form onSubmit={handleAddPlayer} className="flex flex-col flex-1 min-h-0">
               <div className="p-6 space-y-4 flex-1 overflow-y-auto">
-                {/* Start Hole Input */}
-                <div className="bg-blue-900/20 border border-blue-800/40 rounded-xl p-4">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Hole Awal untuk Semua Pemain Terpilih *
-                  </label>
-                  <input
-                    type="number"
-                    value={playerStartHole}
-                    onChange={(e) => setPlayerStartHole(e.target.value)}
-                    required
-                    min="1"
-                    max="18"
-                    className="w-full px-4 py-3 bg-gray-900/60 border-2 border-gray-700/60 text-white rounded-xl focus:ring-2 focus:ring-green-900/50 focus:border-green-800 transition-all"
-                    placeholder="Contoh: 1"
-                  />
-                  <p className="text-xs text-gray-400 mt-2">
-                    Semua pemain yang dipilih akan dimulai dari hole yang sama
-                  </p>
-                </div>
-
                 {/* Search Bar */}
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -870,7 +856,12 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                               {player.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-1">
-                              <h4 className="text-sm font-semibold text-white">{player.name}</h4>
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-sm font-semibold text-white">{player.name}</h4>
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-950/40 text-green-400 border border-green-900/30">
+                                  PAID
+                                </span>
+                              </div>
                               <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
                                 <span>{player.email}</span>
                                 {player.handicap !== undefined && (
@@ -895,7 +886,7 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                     <p className="text-xs text-gray-400">
                       {searchPlayerQuery 
                         ? 'Coba ubah kata kunci pencarian Anda' 
-                        : 'Semua pemain sudah terdaftar di flight lain'}
+                        : 'Semua pemain yang sudah paid telah terdaftar di flight'}
                     </p>
                   </div>
                 )}

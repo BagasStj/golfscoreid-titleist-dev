@@ -70,7 +70,15 @@ export default defineSchema({
       brand: v.string(),
       model: v.string(),
     }))),
-  }).index("by_email", ["email"]),
+    // Payment status
+    paymentStatus: v.optional(v.union(
+      v.literal("unpaid"),
+      v.literal("paid")
+    )),
+    paidAt: v.optional(v.number()),
+  })
+    .index("by_email", ["email"])
+    .index("by_payment_status", ["paymentStatus"]),
 
   // Tournaments table
   tournaments: defineTable({
