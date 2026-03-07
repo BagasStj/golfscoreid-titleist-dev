@@ -23,12 +23,6 @@ const FlightScoringOverview: React.FC = () => {
     id ? { tournamentId: id as Id<"tournaments"> } : "skip",
   );
 
-  // Fetch course details if courseId exists
-  const course = useQuery(
-    api.courses.getCourse,
-    tournament?.courseId ? { courseId: tournament.courseId } : "skip",
-  );
-
   // Fetch player's flight
   const playerFlight = useQuery(
     api.flights.getPlayerFlight,
