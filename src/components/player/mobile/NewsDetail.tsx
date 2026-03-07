@@ -4,12 +4,14 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
 import { useAuth } from '../../../contexts/AuthContext';
+import { X, Download, Image as ImageIcon } from 'lucide-react';
 
 const NewsDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // Fetch news details
   const news = useQuery(
@@ -120,13 +122,24 @@ const NewsDetail: React.FC = () => {
       <div className="pt-16 pb-6">
         {/* News Image */}
         {news.imageUrl ? (
-          <div className="relative h-64 overflow-hidden">
+          <div 
+            className="relative h-64 overflow-hidden cursor-pointer group"
+            onClick={() => setPreviewImage(news.imageUrl!)}
+          >
             <img
               src={news.imageUrl}
               alt={news.title}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-active:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="bg-red-900/90 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                </svg>
+                Tap untuk memperbesar
+              </div>
+            </div>
             <div className={`absolute top-4 left-4 ${getCategoryColor(news.category)} text-white text-sm font-semibold px-4 py-2 rounded-full shadow-lg flex items-center`}>
               {getCategoryIcon(news.category)}
               <span className="ml-2">{news.category}</span>
@@ -431,6 +444,83 @@ const NewsDetail: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Image Preview Modal - Dialog Style */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-[200] flex flex-col bg-black/80 backdrop-blur-sm py-2"
+          onClick={() => setPreviewImage(null)}
+        >
+          {/* Area transparan di atas (klik untuk tutup) */}
+          <div className="shrink-0 h-[calc(env(safe-area-inset-top,0px)+60px)]" />
+
+          {/* Dialog Card — mengisi sisa ruang di antara header dan bottom nav */}
+          <div
+            className="flex flex-col flex-1 min-h-0 mx-3 rounded-2xl bg-gradient-to-b from-[#2e2e2e] via-[#1a1a1b] to-[#111112] border border-gray-700 shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Dialog Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700 shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 bg-red-900/50 rounded-lg flex items-center justify-center border border-red-800/40 shrink-0">
+                  <ImageIcon className="w-4 h-4 text-red-400" />
+                </div>
+                <h3 className="text-white font-semibold text-sm truncate">
+                  {news.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setPreviewImage(null)}
+                className="ml-3 shrink-0 w-8 h-8 bg-gray-700 hover:bg-gray-600 active:bg-gray-500 rounded-full flex items-center justify-center transition-colors"
+                aria-label="Tutup"
+                style={{ touchAction: "manipulation" }}
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
+            </div>
+
+            {/* Dialog Content — flex-1 + min-h-0 mengisi seluruh sisa ruang */}
+            <div className="flex-1 min-h-0 overflow-auto bg-black/60">
+              <div className="flex items-center justify-center w-full h-full p-4">
+                <img
+                  src={previewImage}
+                  alt={news.title}
+                  className="max-w-full max-h-full object-contain rounded-lg"
+                />
+              </div>
+            </div>
+
+            {/* Dialog Footer */}
+            <div
+              className="flex items-center gap-3 px-4 py-3 border-t border-gray-700 shrink-0"
+              style={{
+                paddingBottom:
+                  "calc(0.75rem + env(safe-area-inset-bottom, 0px))",
+              }}
+            >
+              <button
+                onClick={() => setPreviewImage(null)}
+                className="flex-1 bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white py-2.5 rounded-xl font-semibold transition-all text-sm flex items-center justify-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Tutup
+              </button>
+              <a
+                href={previewImage}
+                download
+                className="flex-1 bg-gradient-to-r from-red-900 via-red-800 to-red-900 hover:from-red-800 hover:via-red-700 hover:to-red-800 active:scale-95 text-white py-2.5 rounded-xl font-semibold transition-all text-sm flex items-center justify-center gap-2 border border-red-900/40 shadow-lg"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Download className="w-4 h-4" />
+                Download
+              </a>
+            </div>
+          </div>
+
+          {/* Area transparan di bawah (klik untuk tutup) */}
+          <div className="shrink-0 h-[calc(env(safe-area-inset-bottom,0px)+72px)]" />
         </div>
       )}
     </div>

@@ -17,11 +17,15 @@ import {
   Download,
   Phone,
   Calendar,
-  Shirt
+  Shirt,
+  DollarSign,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import { Button } from '../ui';
 import { ConfirmDialog } from '../shared';
 import ClubSetsSelector from '../shared/ClubSetsSelector';
+import { useToast } from '../shared/ToastContainer';
 import * as XLSX from 'xlsx';
 
 interface ClubEntry {
@@ -56,8 +60,12 @@ export default function PlayerManagement() {
   const registerUser = useMutation(api.users.register);
   const updatePlayer = useMutation(api.users.updatePlayer);
   const deletePlayer = useMutation(api.users.deletePlayer);
+  const updatePaymentStatus = useMutation(api.users.updatePaymentStatus);
+  const { showToast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'paid' | 'unpaid'>('all');
+  const [selectedPlayerIds, setSelectedPlayerIds] = useState<Set<Id<'users'>>>(new Set());
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'detail'>('create');
   const [selectedPlayerId, setSelectedPlayerId] = useState<Id<'users'> | null>(null);
@@ -90,14 +98,27 @@ export default function PlayerManagement() {
     golfBalls: [],
   });
 
-  const filteredPlayers = players?.filter(player => 
-    player.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    player.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    player.username?.toLowerCase().includes(searchQuery.toLowerCase())
-  ).sort((a, b) => {
+  const filteredPlayers = players?.filter(player => {
+    // Search filter
+    const matchesSearch = player.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      player.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      player.username?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Payment filter
+    const matchesPayment = paymentFilter === 'all' || 
+      (paymentFilter === 'paid' && (player as any).paymentStatus === 'paid') ||
+      (paymentFilter === 'unpaid' && ((player as any).paymentStatus === 'unpaid' || !(player as any).paymentStatus));
+    
+    return matchesSearch && matchesPayment;
+  }).sort((a, b) => {
     // Sort by _creationTime descending (newest first)
     return (b._creationTime || 0) - (a._creationTime || 0);
   });
+
+  // Calculate payment statistics
+  const totalPlayers = players?.length || 0;
+  const paidPlayers = players?.filter(p => (p as any).paymentStatus === 'paid').length || 0;
+  const unpaidPlayers = players?.filter(p => (p as any).paymentStatus === 'unpaid' || !(p as any).paymentStatus).length || 0;
 
   // Pagination calculations
   const totalPages = Math.ceil((filteredPlayers?.length || 0) / itemsPerPage);
@@ -109,6 +130,72 @@ export default function PlayerManagement() {
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     setCurrentPage(1);
+  };
+
+  // Handle payment filter change
+  const handlePaymentFilterChange = (filter: 'all' | 'paid' | 'unpaid') => {
+    setPaymentFilter(filter);
+    setCurrentPage(1);
+    setSelectedPlayerIds(new Set()); // Clear selection when filter changes
+  };
+
+  // Handle checkbox toggle
+  const handleCheckboxToggle = (playerId: Id<'users'>) => {
+    const newSelection = new Set(selectedPlayerIds);
+    if (newSelection.has(playerId)) {
+      newSelection.delete(playerId);
+    } else {
+      newSelection.add(playerId);
+    }
+    setSelectedPlayerIds(newSelection);
+  };
+
+  // Handle select all checkbox
+  const handleSelectAll = () => {
+    if (selectedPlayerIds.size === paginatedPlayers?.length) {
+      setSelectedPlayerIds(new Set());
+    } else {
+      const allIds = new Set(paginatedPlayers?.map(p => p._id) || []);
+      setSelectedPlayerIds(allIds);
+    }
+  };
+
+  // Handle mark as paid
+  const handleMarkAsPaid = async () => {
+    if (selectedPlayerIds.size === 0) {
+      showToast('Pilih minimal satu pemain', 'warning');
+      return;
+    }
+
+    try {
+      await updatePaymentStatus({
+        playerIds: Array.from(selectedPlayerIds),
+        paymentStatus: 'paid',
+      });
+      setSelectedPlayerIds(new Set());
+      showToast(`${selectedPlayerIds.size} pemain berhasil ditandai sebagai PAID`, 'success');
+    } catch (err) {
+      showToast((err as Error).message, 'error');
+    }
+  };
+
+  // Handle mark as unpaid
+  const handleMarkAsUnpaid = async () => {
+    if (selectedPlayerIds.size === 0) {
+      showToast('Pilih minimal satu pemain', 'warning');
+      return;
+    }
+
+    try {
+      await updatePaymentStatus({
+        playerIds: Array.from(selectedPlayerIds),
+        paymentStatus: 'unpaid',
+      });
+      setSelectedPlayerIds(new Set());
+      showToast(`${selectedPlayerIds.size} pemain berhasil ditandai sebagai UNPAID`, 'success');
+    } catch (err) {
+      showToast((err as Error).message, 'error');
+    }
   };
 
   const handleOpenCreateModal = () => {
@@ -266,14 +353,15 @@ export default function PlayerManagement() {
       await deletePlayer({ playerId: playerToDelete.id });
       setShowDeleteDialog(false);
       setPlayerToDelete(null);
+      showToast('Pemain berhasil dihapus', 'success');
     } catch (err) {
-      alert((err as Error).message);
+      showToast((err as Error).message, 'error');
     }
   };
 
   const handleExportExcel = () => {
     if (!players || players.length === 0) {
-      alert('Tidak ada data pemain untuk diekspor');
+      showToast('Tidak ada data pemain untuk diekspor', 'warning');
       return;
     }
 
@@ -292,6 +380,8 @@ export default function PlayerManagement() {
       'Jenis Kelamin': player.gender === 'male' ? 'Pria' : player.gender === 'female' ? 'Wanita' : '',
       'Ukuran Baju': player.shirtSize || '',
       'Ukuran Sarung Tangan': player.gloveSize || '',
+      'Status Pembayaran': (player as any).paymentStatus === 'paid' ? 'PAID' : 'UNPAID',
+      'Tanggal Bayar': (player as any).paidAt ? new Date((player as any).paidAt).toLocaleDateString('id-ID') : '',
       'Driver Brand': player.drivers?.[0]?.brand || '',
       'Driver Model': player.drivers?.[0]?.model || '',
       'Fairway Brand': player.fairways?.[0]?.brand || '',
@@ -321,10 +411,10 @@ export default function PlayerManagement() {
       { wch: 20 }, // Nama Alias
       { wch: 15 }, // Tanggal Lahir
       { wch: 15 }, // Jenis Kelamin
-      { wch: 10 }, // Handicap
-      { wch: 20 }, // Lokasi Kerja
       { wch: 12 }, // Ukuran Baju
       { wch: 20 }, // Ukuran Sarung Tangan
+      { wch: 18 }, // Status Pembayaran
+      { wch: 15 }, // Tanggal Bayar
       { wch: 15 }, // Driver Brand
       { wch: 20 }, // Driver Model
       { wch: 15 }, // Fairway Brand
@@ -352,6 +442,9 @@ export default function PlayerManagement() {
 
     // Save file
     XLSX.writeFile(wb, filename);
+    
+    // Show success toast
+    showToast(`Data ${playersToExport.length} pemain berhasil diekspor ke ${filename}`, 'success');
   };
 
   return (
@@ -369,13 +462,44 @@ export default function PlayerManagement() {
       <div className="bg-gradient-to-br from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 p-4">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4">
           {/* Stats Summary - Left */}
-          <div className="flex items-center gap-4 lg:min-w-[200px] lg:pr-4 lg:border-r lg:border-gray-700/60">
-            <div className="w-14 h-14 bg-gradient-to-br from-red-900/60 to-red-950/60 rounded-xl flex items-center justify-center border border-red-900/40 shadow-lg flex-shrink-0">
-              <Users className="w-7 h-7 text-red-400" />
+          <div className="grid grid-cols-3 gap-3 lg:flex lg:items-center lg:gap-3 lg:min-w-[600px] lg:pr-4 lg:border-r lg:border-gray-700/60">
+            {/* Total Players */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 flex-1 bg-gray-900/40 lg:bg-transparent p-3 lg:p-0 rounded-xl lg:rounded-none">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-red-900/60 to-red-950/60 rounded-xl flex items-center justify-center border border-red-900/40 shadow-lg flex-shrink-0">
+                <Users className="w-6 h-6 sm:w-7 sm:h-7 text-red-400" />
+              </div>
+              <div className="text-center sm:text-left">
+                <div className="text-2xl sm:text-3xl font-bold text-white">{totalPlayers}</div>
+                <div className="text-xs text-gray-400 whitespace-nowrap">Total Pemain</div>
+              </div>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-white">{players?.length || 0}</div>
-              <div className="text-xs text-gray-400">Total Pemain</div>
+
+            {/* Divider - Hidden on mobile */}
+            <div className="hidden lg:block w-px h-12 bg-gray-700/60"></div>
+
+            {/* Paid Players */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 flex-1 bg-gray-900/40 lg:bg-transparent p-3 lg:p-0 rounded-xl lg:rounded-none">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-green-900/60 to-green-950/60 rounded-xl flex items-center justify-center border border-green-900/40 shadow-lg flex-shrink-0">
+                <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7 text-green-400" />
+              </div>
+              <div className="text-center sm:text-left">
+                <div className="text-2xl sm:text-3xl font-bold text-green-400">{paidPlayers}</div>
+                <div className="text-xs text-gray-400 whitespace-nowrap">Sudah Bayar</div>
+              </div>
+            </div>
+
+            {/* Divider - Hidden on mobile */}
+            <div className="hidden lg:block w-px h-12 bg-gray-700/60"></div>
+
+            {/* Unpaid Players */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 flex-1 bg-gray-900/40 lg:bg-transparent p-3 lg:p-0 rounded-xl lg:rounded-none">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-orange-900/60 to-orange-950/60 rounded-xl flex items-center justify-center border border-orange-900/40 shadow-lg flex-shrink-0">
+                <XCircle className="w-6 h-6 sm:w-7 sm:h-7 text-orange-400" />
+              </div>
+              <div className="text-center sm:text-left">
+                <div className="text-2xl sm:text-3xl font-bold text-orange-400">{unpaidPlayers}</div>
+                <div className="text-xs text-gray-400 whitespace-nowrap">Belum Bayar</div>
+              </div>
             </div>
           </div>
 
@@ -412,6 +536,48 @@ export default function PlayerManagement() {
           </Button>
         </div>
 
+        {/* Payment Filter Tabs */}
+        <div className="mt-4 pt-4 border-t border-gray-700/60">
+          <div className="flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-gray-400" />
+            <span className="text-sm font-semibold text-gray-400 mr-2">Filter Status Pembayaran:</span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handlePaymentFilterChange('all')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  paymentFilter === 'all'
+                    ? 'bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700'
+                    : 'bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600'
+                }`}
+              >
+                Semua ({totalPlayers})
+              </button>
+              <button
+                onClick={() => handlePaymentFilterChange('paid')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                  paymentFilter === 'paid'
+                    ? 'bg-gradient-to-r from-green-900 to-green-800 text-white border-2 border-green-700'
+                    : 'bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600'
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                Paid ({paidPlayers})
+              </button>
+              <button
+                onClick={() => handlePaymentFilterChange('unpaid')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                  paymentFilter === 'unpaid'
+                    ? 'bg-gradient-to-r from-orange-900 to-orange-800 text-white border-2 border-orange-700'
+                    : 'bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600'
+                }`}
+              >
+                <XCircle className="w-4 h-4" />
+                Unpaid ({unpaidPlayers})
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Search Results Info */}
         {searchQuery && filteredPlayers && (
           <div className="mt-3 pt-3 border-t border-gray-700/60">
@@ -420,6 +586,73 @@ export default function PlayerManagement() {
             </p>
           </div>
         )}
+      </div>
+
+      {/* Payment Action Bar - Always Visible */}
+      <div className={`backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border p-4 transition-all ${
+        selectedPlayerIds.size > 0 
+          ? 'bg-gradient-to-r from-blue-900/60 to-blue-800/60 border-blue-900/40' 
+          : 'bg-gradient-to-r from-gray-900/60 to-gray-800/60 border-gray-800/40'
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+              selectedPlayerIds.size > 0 ? 'bg-white/20' : 'bg-gray-700/40'
+            }`}>
+              <UserCheck className={`w-5 h-5 ${selectedPlayerIds.size > 0 ? 'text-white' : 'text-gray-400'}`} />
+            </div>
+            <div>
+              {selectedPlayerIds.size > 0 ? (
+                <>
+                  <div className="text-white font-semibold">{selectedPlayerIds.size} Pemain Dipilih</div>
+                  <div className="text-xs text-blue-200">Pilih aksi untuk pemain yang dipilih</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-gray-300 font-semibold">Payment Action Bar</div>
+                  <div className="text-xs text-gray-400">Pilih pemain terlebih dahulu untuk mengubah status pembayaran</div>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {selectedPlayerIds.size > 0 ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={() => setSelectedPlayerIds(new Set())}
+                  className="border-white/30 text-white hover:bg-white/10"
+                >
+                  Batal
+                </Button>
+                <Button
+                  variant="outline"
+                  size="md"
+                  icon={CheckCircle2}
+                  onClick={handleMarkAsPaid}
+                  className="!bg-green-600 hover:!bg-green-700 !border-green-700 !text-white shadow-[0_4px_12px_rgba(34,197,94,0.4)]"
+                >
+                  Status PAID
+                </Button>
+                <Button
+                  variant="outline"
+                  size="md"
+                  icon={XCircle}
+                  onClick={handleMarkAsUnpaid}
+                  className="!bg-red-600 hover:!bg-orange-700 !border-orange-700 !text-white shadow-[0_4px_12px_rgba(249,115,22,0.4)]"
+                >
+                  Status UNPAID
+                </Button>
+              </>
+            ) : (
+              <div className="flex items-center gap-2 text-gray-500 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                <span>Tidak ada pemain yang dipilih</span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Players Table */}
@@ -461,6 +694,14 @@ export default function PlayerManagement() {
             <table className="w-full">
               <thead className="bg-gradient-to-r from-red-900/60 to-red-800/60 text-white border-b border-red-900/40">
                 <tr>
+                  <th className="px-4 py-4 text-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedPlayerIds.size === paginatedPlayers?.length && paginatedPlayers?.length > 0}
+                      onChange={handleSelectAll}
+                      className="w-5 h-5 rounded border-2 border-gray-300 text-red-600 focus:ring-2 focus:ring-red-500 cursor-pointer"
+                    />
+                  </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Pemain</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Email</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Telepon</th>
@@ -468,6 +709,7 @@ export default function PlayerManagement() {
                   <th className="px-6 py-4 text-left text-sm font-semibold">Tanggal Lahir</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold">Gender</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold">Ukuran</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold">Status Bayar</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold">Aksi</th>
                 </tr>
               </thead>
@@ -475,10 +717,23 @@ export default function PlayerManagement() {
                 {paginatedPlayers?.map((player, index) => (
                   <tr 
                     key={player._id}
-                    className={`hover:bg-red-900/20 transition-colors ${
+                    onClick={() => handleCheckboxToggle(player._id)}
+                    className={`transition-colors cursor-pointer ${
                       index % 2 === 0 ? 'bg-gray-900/40' : 'bg-gray-800/40'
+                    } ${
+                      selectedPlayerIds.has(player._id) 
+                        ? 'bg-blue-900/30 hover:bg-blue-900/40' 
+                        : 'hover:bg-red-900/20'
                     }`}
                   >
+                    <td className="px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedPlayerIds.has(player._id)}
+                        onChange={() => handleCheckboxToggle(player._id)}
+                        className="w-5 h-5 rounded border-2 border-gray-300 text-red-600 focus:ring-2 focus:ring-red-500 cursor-pointer"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-red-900/60 to-red-950/60 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md flex-shrink-0 border border-red-900/30">
@@ -534,8 +789,28 @@ export default function PlayerManagement() {
                         </div>
                       </div>
                     </td>
+                    <td className="px-6 py-4 text-center">
+                      {(player as any).paymentStatus === 'paid' ? (
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-green-950/40 text-green-400 border border-green-900/30">
+                            <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                            PAID
+                          </span>
+                          {(player as any).paidAt && (
+                            <span className="text-xs text-gray-500">
+                              {new Date((player as any).paidAt).toLocaleDateString('id-ID')}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-950/40 text-orange-400 border border-orange-900/30">
+                          <XCircle className="w-3.5 h-3.5 mr-1" />
+                          UNPAID
+                        </span>
+                      )}
+                    </td>
                     
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleOpenDetailModal(player)}

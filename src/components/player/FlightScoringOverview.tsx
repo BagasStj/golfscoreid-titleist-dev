@@ -1,42 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { useAuth } from '../../contexts/AuthContext';
-import type { Id } from '../../../convex/_generated/dataModel';
-import { ChevronLeft } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { useAuth } from "../../contexts/AuthContext";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { ChevronLeft } from "lucide-react";
 
 const FlightScoringOverview: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'scorecard' | 'leaderboard'>('scorecard');
-  const [scoringMode, setScoringMode] = useState<'stroke' | 'over'>('stroke');
+  const [activeTab, setActiveTab] = useState<"scorecard" | "leaderboard">(
+    "scorecard",
+  );
+  const [scoringMode, setScoringMode] = useState<"stroke" | "over">("stroke");
   const [showIncompleteAlert, setShowIncompleteAlert] = useState(false);
   const [currentHole, setCurrentHole] = useState<number>(1);
 
   // Fetch tournament details
   const tournament = useQuery(
     api.tournaments.getTournamentDetails,
-    id ? { tournamentId: id as Id<'tournaments'> } : 'skip'
+    id ? { tournamentId: id as Id<"tournaments"> } : "skip",
   );
 
   // Fetch course details if courseId exists
   const course = useQuery(
     api.courses.getCourse,
-    tournament?.courseId ? { courseId: tournament.courseId } : 'skip'
+    tournament?.courseId ? { courseId: tournament.courseId } : "skip",
   );
 
   // Fetch player's flight
   const playerFlight = useQuery(
     api.flights.getPlayerFlight,
-    id && user ? { tournamentId: id as Id<'tournaments'>, playerId: user._id } : 'skip'
+    id && user
+      ? { tournamentId: id as Id<"tournaments">, playerId: user._id }
+      : "skip",
   );
 
   // Fetch flight details with participants
   const flightDetails = useQuery(
     api.flights.getFlightDetails,
-    playerFlight ? { flightId: playerFlight._id } : 'skip'
+    playerFlight ? { flightId: playerFlight._id } : "skip",
   );
 
   // Fetch scores for all players in flight
@@ -45,10 +49,12 @@ const FlightScoringOverview: React.FC = () => {
   // Get current hole based on flight (first hole where not all players scored)
   const currentHoleFromFlight = useQuery(
     api.scores.getCurrentHoleForFlight,
-    flightParticipants.length > 0 && id ? {
-      tournamentId: id as Id<'tournaments'>,
-      playerIds: flightParticipants.map(p => p._id)
-    } : 'skip'
+    flightParticipants.length > 0 && id
+      ? {
+          tournamentId: id as Id<"tournaments">,
+          playerIds: flightParticipants.map((p) => p._id),
+        }
+      : "skip",
   );
 
   // Update current hole when flight data changes, but only if not manually set
@@ -61,7 +67,10 @@ const FlightScoringOverview: React.FC = () => {
       } else {
         // First time, use the calculated current hole
         setCurrentHole(currentHoleFromFlight);
-        localStorage.setItem(`currentHole_${id}`, currentHoleFromFlight.toString());
+        localStorage.setItem(
+          `currentHole_${id}`,
+          currentHoleFromFlight.toString(),
+        );
       }
     }
   }, [currentHoleFromFlight, id]);
@@ -78,7 +87,7 @@ const FlightScoringOverview: React.FC = () => {
   }
 
   const holesConfig = tournament.holesConfig || [];
-  const courseName = course?.name || tournament.location || 'Lapangan Golf';
+  const courseName = course?.name || tournament.location || "Lapangan Golf";
 
   const handleFinishTournament = () => {
     // Check if all scores are complete by checking participantScores in ScorecardTable
@@ -95,83 +104,136 @@ const FlightScoringOverview: React.FC = () => {
             {/* Back Button */}
             <div className="mb-3">
               <button
-                onClick={() => navigate('/player/my-tournaments')}
+                onClick={() => navigate("/player/my-tournaments")}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/8 text-gray-400 hover:text-white transition-colors active:scale-95"
                 style={{ background: "rgba(255,255,255,0.04)" }}
               >
                 <ChevronLeft className="w-4 h-4" />
-                <span className="text-xs font-semibold">Kembali ke My Tournament</span>
+                <span className="text-xs font-semibold">
+                  Kembali ke My Tournament
+                </span>
               </button>
             </div>
-            
-            <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl border border-gray-800 p-4" style={{ backgroundColor: '#1a1a1a' }}>
-              <h1 className="text-white font-bold text-lg">{tournament.name}</h1>
-              <p className="text-gray-400 text-sm">{flightDetails.flightName}</p>
-            </div>
+
+            {/*<div
+              className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl border border-gray-800 p-4"
+              style={{ backgroundColor: "#1a1a1a" }}
+            >
+              <h1 className="text-white font-bold text-lg">
+                {tournament.name}
+              </h1>
+              <p className="text-gray-400 text-sm">
+                {flightDetails.flightName}
+              </p>
+            </div>*/}
           </div>
         </div>
       </div>
 
       {/* Course Information */}
-      <div className="max-w-7xl mx-auto px-4 pt-3 pb-2">
+      {/*<div className="max-w-7xl mx-auto px-4 pt-3 pb-2">
         <div className="bg-gradient-to-br from-[#2e2e2e] via-[#171718] to-black rounded-xl border border-gray-800 p-4 shadow-lg">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-700 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              <svg
+                className="w-7 h-7 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-white font-bold text-base truncate " style={{"textAlign":"left"}}>{courseName}</h3>
+              <h3
+                className="text-white font-bold text-base truncate "
+                style={{ textAlign: "left" }}
+              >
+                {courseName}
+              </h3>
               <div className="flex items-center space-x-3 mt-1">
                 <div className="flex items-center space-x-1.5">
-                  <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  <svg
+                    className="w-4 h-4 text-red-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                    />
                   </svg>
-                  <span className="text-gray-300 text-sm font-medium">{holesConfig.length} Hole</span>
+                  <span className="text-gray-300 text-sm font-medium">
+                    {holesConfig.length} Hole
+                  </span>
                 </div>
                 <div className="flex items-center space-x-1.5">
-                  <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  <svg
+                    className="w-4 h-4 text-red-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                    />
                   </svg>
-                  <span className="text-gray-300 text-sm font-medium">Par {holesConfig.reduce((sum, hole) => sum + hole.par, 0)}</span>
+                  <span className="text-gray-300 text-sm font-medium">
+                    Par {holesConfig.reduce((sum, hole) => sum + hole.par, 0)}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </div>*/}
 
       {/* Tabs */}
       <div className="max-w-7xl mx-auto px-4 py-2">
         <div className="flex space-x-2 bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg p-1.5 border border-gray-800">
           <button
-            onClick={() => setActiveTab('scorecard')}
+            onClick={() => setActiveTab("scorecard")}
             className={`flex-1 py-2.5 rounded-md font-semibold text-sm transition-all ${
-              activeTab === 'scorecard'
-                ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg'
-                : 'text-gray-400 hover:text-white'
+              activeTab === "scorecard"
+                ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
+                : "text-gray-400 hover:text-white"
             }`}
           >
-            Kartu Skor
+            Scorecard
           </button>
           <button
-            onClick={() => setActiveTab('leaderboard')}
+            onClick={() => setActiveTab("leaderboard")}
             className={`flex-1 py-2.5 rounded-md font-semibold text-sm transition-all ${
-              activeTab === 'leaderboard'
-                ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg'
-                : 'text-gray-400 hover:text-white'
+              activeTab === "leaderboard"
+                ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
+                : "text-gray-400 hover:text-white"
             }`}
           >
-            Papan Peringkat
+            Leaderboard
           </button>
         </div>
       </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 pb-4 space-y-3">
-        {activeTab === 'scorecard' ? (
+        {activeTab === "scorecard" ? (
           <>
             <ScorecardTable
               tournament={tournament}
@@ -184,17 +246,19 @@ const FlightScoringOverview: React.FC = () => {
               setCurrentHole={setCurrentHole}
             />
             {/* Action Buttons - Outside Table - Only show for active tournaments */}
-            {user && flightParticipants.some(p => p._id === user._id) && tournament.status === 'active' && (
-              <ActionButtons
-                tournament={tournament}
-                flightParticipants={flightParticipants}
-                currentHole={currentHole}
-                userId={user._id}
-                tournamentId={id as Id<'tournaments'>}
-                navigate={navigate}
-                handleFinishTournament={handleFinishTournament}
-              />
-            )}
+            {user &&
+              flightParticipants.some((p) => p._id === user._id) &&
+              tournament.status === "active" && (
+                <ActionButtons
+                  tournament={tournament}
+                  flightParticipants={flightParticipants}
+                  currentHole={currentHole}
+                  userId={user._id}
+                  tournamentId={id as Id<"tournaments">}
+                  navigate={navigate}
+                  handleFinishTournament={handleFinishTournament}
+                />
+              )}
           </>
         ) : (
           <LeaderboardView
@@ -234,7 +298,8 @@ const FlightScoringOverview: React.FC = () => {
 
               {/* Message */}
               <p className="text-gray-400 text-sm leading-relaxed">
-                Silakan selesaikan terlebih dahulu proses pengisian skor sebelum menyelesaikan pertandingan.
+                Silakan selesaikan terlebih dahulu proses pengisian skor sebelum
+                menyelesaikan pertandingan.
               </p>
 
               {/* Button */}
@@ -257,54 +322,85 @@ const ActionButtons: React.FC<{
   tournament: any;
   flightParticipants: any[];
   currentHole: number;
-  userId: Id<'users'>;
-  tournamentId: Id<'tournaments'>;
+  userId: Id<"users">;
+  tournamentId: Id<"tournaments">;
   navigate: any;
   handleFinishTournament: () => void;
-}> = ({ tournament, flightParticipants, currentHole, userId, tournamentId, navigate, handleFinishTournament }) => {
+}> = ({
+  tournament,
+  flightParticipants,
+  currentHole,
+  userId,
+  tournamentId,
+  navigate,
+  handleFinishTournament,
+}) => {
   // Use getFlightScores to fetch all scores at once
   const flightScoresData = useQuery(
     api.scores.getFlightScores,
-    flightParticipants.length > 0 ? {
-      tournamentId: tournament._id,
-      playerIds: flightParticipants.map(p => p._id)
-    } : 'skip'
+    flightParticipants.length > 0
+      ? {
+          tournamentId: tournament._id,
+          playerIds: flightParticipants.map((p) => p._id),
+        }
+      : "skip",
   );
 
   // Transform the data to match our expected format
-  const participantScores = flightParticipants.map(participant => {
-    const playerData = flightScoresData?.find(ps => ps.playerId === participant._id);
+  const participantScores = flightParticipants.map((participant) => {
+    const playerData = flightScoresData?.find(
+      (ps) => ps.playerId === participant._id,
+    );
     return {
       participant,
-      scores: playerData?.scores || []
+      scores: playerData?.scores || [],
     };
   });
 
   // Check if current user has scored current hole
-  const userScoresData = participantScores.find(ps => ps.participant._id === userId);
-  const userHasScored = userScoresData?.scores?.some(s => s.holeNumber === currentHole) || false;
+  const userScoresData = participantScores.find(
+    (ps) => ps.participant._id === userId,
+  );
+  const userHasScored =
+    userScoresData?.scores?.some((s) => s.holeNumber === currentHole) || false;
 
   // Check if all players have scored current hole
-  const playersWhoScored = participantScores.filter(ps => 
-    ps.scores?.some(s => s.holeNumber === currentHole)
+  const playersWhoScored = participantScores.filter((ps) =>
+    ps.scores?.some((s) => s.holeNumber === currentHole),
   );
-  const allPlayersScored = playersWhoScored.length === flightParticipants.length;
+  const allPlayersScored =
+    playersWhoScored.length === flightParticipants.length;
   const waitingCount = flightParticipants.length - playersWhoScored.length;
 
   // Check if all holes are completed by current user
   const holesConfig = tournament.holesConfig || [];
-  const allHolesCompleted = userScoresData?.scores?.length === holesConfig.length;
+  const allHolesCompleted =
+    userScoresData?.scores?.length === holesConfig.length;
 
   return (
     <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg border border-gray-800 p-3 space-y-2">
       {userHasScored ? (
         <>
           <button
-            onClick={() => navigate(`/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`)}
+            onClick={() =>
+              navigate(
+                `/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`,
+              )
+            }
             className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3.5 rounded-lg transition-all shadow-lg flex items-center justify-center space-x-2"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
             </svg>
             <span className="text-base">Edit Score</span>
           </button>
@@ -312,10 +408,15 @@ const ActionButtons: React.FC<{
             onClick={() => {
               if (allPlayersScored) {
                 // Update localStorage to next hole
-                const currentHoleIndex = holesConfig.findIndex((h: any) => h.holeNumber === currentHole);
+                const currentHoleIndex = holesConfig.findIndex(
+                  (h: any) => h.holeNumber === currentHole,
+                );
                 if (currentHoleIndex < holesConfig.length - 1) {
                   const nextHole = holesConfig[currentHoleIndex + 1];
-                  localStorage.setItem(`currentHole_${tournamentId}`, nextHole.holeNumber.toString());
+                  localStorage.setItem(
+                    `currentHole_${tournamentId}`,
+                    nextHole.holeNumber.toString(),
+                  );
                 }
                 // Reload page to update current hole
                 window.location.reload();
@@ -324,39 +425,73 @@ const ActionButtons: React.FC<{
             disabled={!allPlayersScored}
             className={`w-full font-semibold py-3 px-4 rounded-lg border transition-all flex items-center justify-center gap-2 ${
               allPlayersScored
-                ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-green-600 shadow-lg cursor-pointer'
-                : 'bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed'
+                ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-green-600 shadow-lg cursor-pointer"
+                : "bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed"
             }`}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
             <span>
-              {allPlayersScored 
-                ? 'Simpan & Lanjut ke Hole Berikutnya' 
+              {allPlayersScored
+                ? "Simpan & Lanjut ke Hole Berikutnya"
                 : `Menunggu ${waitingCount} pemain lainnya`}
             </span>
           </button>
         </>
       ) : (
         <button
-          onClick={() => navigate(`/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`)}
+          onClick={() =>
+            navigate(
+              `/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`,
+            )
+          }
           className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3.5 rounded-lg transition-all shadow-lg flex items-center justify-center space-x-2"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+            />
           </svg>
           <span className="text-base">Input Skor</span>
         </button>
       )}
-      
+
       {allHolesCompleted && (
         <button
           onClick={handleFinishTournament}
           className="w-full bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black hover:from-gray-800 hover:via-[#171718] hover:to-black text-white font-semibold py-3 px-4 rounded-lg border border-gray-800 hover:border-gray-700 transition-all flex items-center justify-center gap-2"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <span>Selesaikan Pertandingan</span>
         </button>
@@ -370,20 +505,36 @@ const ScorecardTable: React.FC<{
   tournament: any;
   flightParticipants: any[];
   holesConfig: any[];
-  currentUserId?: Id<'users'>;
-  scoringMode: 'stroke' | 'over';
-  setScoringMode: (mode: 'stroke' | 'over') => void;
+  currentUserId?: Id<"users">;
+  scoringMode: "stroke" | "over";
+  setScoringMode: (mode: "stroke" | "over") => void;
   currentHole: number;
   setCurrentHole: (hole: number) => void;
-}> = ({ tournament, flightParticipants, holesConfig, currentUserId, scoringMode, setScoringMode, currentHole }) => {
-  // Fetch scores for all participants
+}> = ({
+  tournament,
+  flightParticipants,
+  holesConfig,
+  currentUserId,
+  scoringMode,
+  setScoringMode,
+  currentHole,
+}) => {
+  // Fetch scores for ALL participants sekaligus — tidak pakai hook di dalam .map()
+  const flightScoresData = useQuery(
+    api.scores.getFlightScores,
+    flightParticipants.length > 0
+      ? {
+          tournamentId: tournament._id,
+          playerIds: flightParticipants.map((p) => p._id),
+        }
+      : "skip",
+  );
+
   const participantScores = flightParticipants.map((participant) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const scores = useQuery(
-      api.scores.getPlayerScores,
-      { tournamentId: tournament._id, playerId: participant._id }
+    const playerData = flightScoresData?.find(
+      (ps) => ps.playerId === participant._id,
     );
-    return { participant, scores };
+    return { participant, scores: playerData?.scores || [] };
   });
 
   const totalPar = holesConfig.reduce((sum, hole) => sum + hole.par, 0);
@@ -393,27 +544,29 @@ const ScorecardTable: React.FC<{
       {/* Scoring Mode Toggle */}
       <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg border border-gray-800 p-2.5">
         <div className="flex items-center justify-between">
-          <span className="text-gray-300 font-semibold text-sm">Sistem Penilaian:</span>
+          <span className="text-gray-300 font-semibold text-sm">
+            Sistem Penilaian:
+          </span>
           <div className="flex space-x-1.5 bg-gray-900/50 rounded-lg p-0.5">
             <button
-              onClick={() => setScoringMode('stroke')}
+              onClick={() => setScoringMode("stroke")}
               className={`px-3 py-1 rounded-md font-semibold text-xs transition-all ${
-                scoringMode === 'stroke'
-                  ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white'
+                scoringMode === "stroke"
+                  ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
+                  : "text-gray-400 hover:text-white"
               }`}
             >
-              Pukulan
+              Stroke
             </button>
             <button
-              onClick={() => setScoringMode('over')}
+              onClick={() => setScoringMode("over")}
               className={`px-3 py-1 rounded-md font-semibold text-xs transition-all ${
-                scoringMode === 'over'
-                  ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white'
+                scoringMode === "over"
+                  ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
+                  : "text-gray-400 hover:text-white"
               }`}
             >
-              Over/Under
+              Over
             </button>
           </div>
         </div>
@@ -446,7 +599,8 @@ const ScorecardTable: React.FC<{
           </div>
           <div className="text-center">
             <span className="text-[10px] text-gray-400">
-              Hole saat ini: <span className="text-red-500 font-bold">#{currentHole}</span>
+              Hole saat ini:{" "}
+              <span className="text-red-500 font-bold">#{currentHole}</span>
             </span>
           </div>
         </div>
@@ -463,10 +617,12 @@ const ScorecardTable: React.FC<{
                   Pemain
                 </th>
                 {holesConfig.map((hole) => (
-                  <th 
-                    key={hole.holeNumber} 
+                  <th
+                    key={hole.holeNumber}
                     className={`text-center text-white font-bold py-2 px-1.5 min-w-[32px] ${
-                      hole.holeNumber === currentHole ? 'bg-red-600/30 ring-2 ring-red-500' : ''
+                      hole.holeNumber === currentHole
+                        ? "bg-red-600/30 ring-2 ring-red-500"
+                        : ""
                     }`}
                   >
                     {hole.holeNumber}
@@ -485,7 +641,10 @@ const ScorecardTable: React.FC<{
                   Par
                 </td>
                 {holesConfig.map((hole) => (
-                  <td key={hole.holeNumber} className="text-center text-gray-300 font-semibold py-1.5 px-1.5">
+                  <td
+                    key={hole.holeNumber}
+                    className="text-center text-gray-300 font-semibold py-1.5 px-1.5"
+                  >
                     {hole.par}
                   </td>
                 ))}
@@ -501,10 +660,13 @@ const ScorecardTable: React.FC<{
               {participantScores
                 .map(({ participant, scores }) => {
                   const scoresMap = new Map(
-                    (scores || []).map((score) => [score.holeNumber, score])
+                    (scores || []).map((score) => [score.holeNumber, score]),
                   );
-                  
-                  const totalStrokes = (scores || []).reduce((sum, score) => sum + score.strokes, 0);
+
+                  const totalStrokes = (scores || []).reduce(
+                    (sum, score) => sum + score.strokes,
+                    0,
+                  );
                   const scoreToPar = totalStrokes - totalPar;
                   const holesPlayed = (scores || []).length;
                   const isCurrentUser = participant._id === currentUserId;
@@ -516,7 +678,7 @@ const ScorecardTable: React.FC<{
                     totalStrokes,
                     scoreToPar,
                     holesPlayed,
-                    isCurrentUser
+                    isCurrentUser,
                   };
                 })
                 .sort((a, b) => {
@@ -527,122 +689,159 @@ const ScorecardTable: React.FC<{
                   // Sort by total strokes (ascending - lowest score first)
                   return a.totalStrokes - b.totalStrokes;
                 })
-                .map(({ participant, scoresMap, totalStrokes, scoreToPar, isCurrentUser }, index) => {
-                return (
-                  <tr
-                    key={participant._id}
-                    className={`border-b border-gray-800 hover:bg-gray-900/50 transition-colors ${
-                      isCurrentUser ? 'bg-red-900/10' : ''
-                    }`}
-                  >
-                    {/* Player Name with Number */}
-                    <td className={`sticky left-0 z-20 ${
-                      isCurrentUser ? 'bg-red-900' : 'bg-gradient-to-r from-[#2e2e2e] to-gray-900'
-                    } py-2 px-2 border-r border-gray-800`}>
-                      <div className="flex items-center space-x-2">
-                        <div className={`w-6 h-6 rounded-full ${
-                          isCurrentUser ? 'bg-gradient-to-br from-red-600 to-red-700' : 'bg-gradient-to-br from-gray-700 to-gray-800'
-                        } flex items-center justify-center flex-shrink-0`}>
-                          <span className="text-white font-bold text-[10px]">
-                            {index + 1}
-                          </span>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-white font-semibold text-xs truncate">
-                            {participant.name}
-                            {isCurrentUser && <span className="ml-1 text-red-500 text-[10px]">(kamu)</span>}
-                          </div>
-                          {/* <div className="text-gray-400 text-[10px]">
+                .map(
+                  (
+                    {
+                      participant,
+                      scoresMap,
+                      totalStrokes,
+                      scoreToPar,
+                      isCurrentUser,
+                    },
+                    index,
+                  ) => {
+                    return (
+                      <tr
+                        key={participant._id}
+                        className={`border-b border-gray-800 hover:bg-gray-900/50 transition-colors ${
+                          isCurrentUser ? "bg-red-900/10" : ""
+                        }`}
+                      >
+                        {/* Player Name with Number */}
+                        <td
+                          className={`sticky left-0 z-20 ${
+                            isCurrentUser
+                              ? "bg-red-900"
+                              : "bg-gradient-to-r from-[#2e2e2e] to-gray-900"
+                          } py-2 px-2 border-r border-gray-800`}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <div
+                              className={`w-6 h-6 rounded-full ${
+                                isCurrentUser
+                                  ? "bg-gradient-to-br from-red-600 to-red-700"
+                                  : "bg-gradient-to-br from-gray-700 to-gray-800"
+                              } flex items-center justify-center flex-shrink-0`}
+                            >
+                              <span className="text-white font-bold text-[10px]">
+                                {index + 1}
+                              </span>
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-white font-semibold text-xs truncate">
+                                {participant.name}
+                                {isCurrentUser && (
+                                  <span className="ml-1 text-red-500 text-[10px]">
+                                    (kamu)
+                                  </span>
+                                )}
+                              </div>
+                              {/* <div className="text-gray-400 text-[10px]">
                             HCP {participant.handicap || 0} • {holesPlayed}/{holesConfig.length}
                           </div> */}
-                        </div>
-                      </div>
-                    </td>
-                    
-                    {/* Score Cells */}
-                    {holesConfig.map((hole) => {
-                      const score = scoresMap.get(hole.holeNumber);
-                      const strokes = score?.strokes;
-                      const par = hole.par;
-                      const isCurrentHole = hole.holeNumber === currentHole;
-                      
-                      let bgColor = 'bg-gray-800/50';
-                      let textColor = 'text-gray-500';
-                      let borderColor = '';
-                      let displayValue = '-';
-                      
-                      if (strokes) {
-                        const diff = strokes - par;
-                        
-                        // Display value based on mode
-                        if (scoringMode === 'over') {
-                          if (diff === 0) {
-                            displayValue = '0';
-                          } else if (diff > 0) {
-                            displayValue = `+${diff}`;
-                          } else {
-                            displayValue = `${diff}`;
-                          }
-                        } else {
-                          displayValue = strokes.toString();
-                        }
-                        
-                        // Color coding
-                        if (strokes === par - 2) {
-                          // Eagle
-                          bgColor = 'bg-yellow-500';
-                          textColor = 'text-black';
-                          borderColor = 'ring-1 ring-yellow-400';
-                        } else if (strokes === par - 1) {
-                          // Birdie
-                          bgColor = 'bg-red-500';
-                          textColor = 'text-white';
-                          borderColor = 'ring-1 ring-red-400';
-                        } else if (strokes === par) {
-                          // Par
-                          bgColor = 'bg-blue-500';
-                          textColor = 'text-white';
-                        } else if (strokes === par + 1) {
-                          // Bogey
-                          bgColor = 'bg-gray-600';
-                          textColor = 'text-white';
-                        } else if (strokes >= par + 2) {
-                          // Double Bogey+
-                          bgColor = 'bg-gray-700';
-                          textColor = 'text-white';
-                        }
-                      }
-                      
-                      return (
-                        <td 
-                          key={hole.holeNumber} 
-                          className={`text-center py-2 px-1.5 ${
-                            isCurrentHole ? 'bg-red-600/10' : ''
-                          }`}
-                        >
-                          <div className={`w-7 h-7 rounded-full ${bgColor} ${textColor} ${borderColor} flex items-center justify-center mx-auto font-bold text-xs`}>
-                            {displayValue}
+                            </div>
                           </div>
                         </td>
-                      );
-                    })}
-                    
-                    {/* Total */}
-                    <td className="text-center py-2 px-2 border-l-2 border-red-600">
-                      <div className="text-white font-bold text-sm">{totalStrokes || 0}</div>
-                    </td>
-                    
-                    {/* Score to Par */}
-                    <td className="text-center py-2 px-2 border-l border-gray-800">
-                      <div className={`font-bold text-sm ${
-                        scoreToPar > 0 ? 'text-red-400' : scoreToPar < 0 ? 'text-green-400' : 'text-gray-400'
-                      }`}>
-                        {scoreToPar > 0 ? `+${scoreToPar}` : scoreToPar === 0 ? '0' : scoreToPar}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+
+                        {/* Score Cells */}
+                        {holesConfig.map((hole) => {
+                          const score = scoresMap.get(hole.holeNumber);
+                          const strokes = score?.strokes;
+                          const par = hole.par;
+                          const isCurrentHole = hole.holeNumber === currentHole;
+
+                          let bgColor = "bg-gray-800/50";
+                          let textColor = "text-gray-500";
+                          let borderColor = "";
+                          let displayValue = "-";
+
+                          if (strokes) {
+                            const diff = strokes - par;
+
+                            // Display value based on mode
+                            if (scoringMode === "over") {
+                              if (diff === 0) {
+                                displayValue = "0";
+                              } else if (diff > 0) {
+                                displayValue = `+${diff}`;
+                              } else {
+                                displayValue = `${diff}`;
+                              }
+                            } else {
+                              displayValue = strokes.toString();
+                            }
+
+                            // Color coding
+                            if (strokes === par - 2) {
+                              // Eagle
+                              bgColor = "bg-yellow-500";
+                              textColor = "text-black";
+                              borderColor = "ring-1 ring-yellow-400";
+                            } else if (strokes === par - 1) {
+                              // Birdie
+                              bgColor = "bg-red-500";
+                              textColor = "text-white";
+                              borderColor = "ring-1 ring-red-400";
+                            } else if (strokes === par) {
+                              // Par
+                              bgColor = "bg-blue-500";
+                              textColor = "text-white";
+                            } else if (strokes === par + 1) {
+                              // Bogey
+                              bgColor = "bg-gray-600";
+                              textColor = "text-white";
+                            } else if (strokes >= par + 2) {
+                              // Double Bogey+
+                              bgColor = "bg-gray-700";
+                              textColor = "text-white";
+                            }
+                          }
+
+                          return (
+                            <td
+                              key={hole.holeNumber}
+                              className={`text-center py-2 px-1.5 ${
+                                isCurrentHole ? "bg-red-600/10" : ""
+                              }`}
+                            >
+                              <div
+                                className={`w-7 h-7 rounded-full ${bgColor} ${textColor} ${borderColor} flex items-center justify-center mx-auto font-bold text-xs`}
+                              >
+                                {displayValue}
+                              </div>
+                            </td>
+                          );
+                        })}
+
+                        {/* Total */}
+                        <td className="text-center py-2 px-2 border-l-2 border-red-600">
+                          <div className="text-white font-bold text-sm">
+                            {totalStrokes || 0}
+                          </div>
+                        </td>
+
+                        {/* Score to Par */}
+                        <td className="text-center py-2 px-2 border-l border-gray-800">
+                          <div
+                            className={`font-bold text-sm ${
+                              scoreToPar > 0
+                                ? "text-red-400"
+                                : scoreToPar < 0
+                                  ? "text-green-400"
+                                  : "text-gray-400"
+                            }`}
+                          >
+                            {scoreToPar > 0
+                              ? `+${scoreToPar}`
+                              : scoreToPar === 0
+                                ? "0"
+                                : scoreToPar}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  },
+                )}
             </tbody>
           </table>
         </div>
@@ -651,78 +850,222 @@ const ScorecardTable: React.FC<{
   );
 };
 
-// Leaderboard View Component
+// Leaderboard View Component - Shows ALL participants from ALL flights in tournament
 const LeaderboardView: React.FC<{
   tournament: any;
   flightParticipants: any[];
   holesConfig: any[];
-}> = ({ tournament, flightParticipants, holesConfig }) => {
-  // Fetch scores for all participants using individual queries
-  const participantScores = flightParticipants.map((participant) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const scores = useQuery(
-      api.scores.getPlayerScores,
-      { tournamentId: tournament._id, playerId: participant._id }
+}> = ({ tournament, holesConfig }) => {
+  // Fetch ALL flights with participants for this tournament
+  const allFlights = useQuery(
+    api.flights.getTournamentFlightsWithParticipants,
+    tournament ? { tournamentId: tournament._id } : "skip",
+  );
+
+  // Collect all participants from all flights
+  const allParticipants = React.useMemo(() => {
+    if (!allFlights) return [];
+
+    const participants: any[] = [];
+    allFlights.forEach((flight) => {
+      if (flight.participants) {
+        flight.participants.forEach((participant) => {
+          // Add flight info to participant
+          participants.push({
+            ...participant,
+            flightName: flight.flightName,
+            flightNumber: flight.flightNumber,
+          });
+        });
+      }
+    });
+
+    return participants;
+  }, [allFlights]);
+
+  // Fetch scores untuk semua participant sekaligus — tidak pakai hook di dalam .map()
+  const allParticipantIds = React.useMemo(
+    () => allParticipants.map((p) => p._id),
+    [allParticipants],
+  );
+
+  const allFlightScoresData = useQuery(
+    api.scores.getFlightScores,
+    allParticipantIds.length > 0
+      ? { tournamentId: tournament._id, playerIds: allParticipantIds }
+      : "skip",
+  );
+
+  const participantScores = allParticipants.map((participant) => {
+    const playerData = allFlightScoresData?.find(
+      (ps) => ps.playerId === participant._id,
     );
-    return { participant, scores };
+    return { participant, scores: playerData?.scores || [] };
   });
 
   // Calculate standings
-  const participantsWithScores = participantScores.map(({ participant, scores }) => {
-    const totalStrokes = (scores || []).reduce((sum, score) => sum + score.strokes, 0);
-    const totalPar = holesConfig.reduce((sum, hole) => sum + hole.par, 0);
-    const scoreToPar = totalStrokes - totalPar;
-    const holesPlayed = (scores || []).length;
+  const participantsWithScores = participantScores.map(
+    ({ participant, scores }) => {
+      const totalStrokes = (scores || []).reduce(
+        (sum, score) => sum + score.strokes,
+        0,
+      );
+      const totalPar = holesConfig.reduce((sum, hole) => sum + hole.par, 0);
+      const holesPlayed = (scores || []).length;
 
-    return {
-      ...participant,
-      totalStrokes,
-      scoreToPar,
-      holesPlayed,
-    };
-  });
+      // Calculate scoreToPar only if player has played at least one hole
+      const scoreToPar = holesPlayed > 0 ? totalStrokes - totalPar : 0;
 
-  // Sort by total strokes (ascending)
+      return {
+        ...participant,
+        totalStrokes,
+        scoreToPar,
+        holesPlayed,
+      };
+    },
+  );
+
+  // Sort by name alphabetically (A-Z)
   const sortedParticipants = [...participantsWithScores].sort((a, b) => {
-    if (a.holesPlayed === 0 && b.holesPlayed === 0) return 0;
-    if (a.holesPlayed === 0) return 1;
-    if (b.holesPlayed === 0) return -1;
-    return a.totalStrokes - b.totalStrokes;
+    return a.name.localeCompare(b.name, "id", { sensitivity: "base" });
   });
+
+  const totalHoles = holesConfig.length;
 
   return (
     <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg border border-gray-800 overflow-hidden shadow-xl">
-      <div className="p-3 border-b border-gray-800">
-        <h2 className="text-white font-bold text-base">Papan Peringkat Flight</h2>
-        <p className="text-gray-400 text-sm mt-1">Posisi saat ini</p>
+      {/* Table Header */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead className="bg-gray-900/50 border-b-2 border-gray-700">
+            <tr>
+              <th className="text-left text-gray-300 font-semibold py-2 px-3 min-w-[140px]">
+                Nama Pemain
+              </th>
+              <th className="text-center text-gray-300 font-semibold py-2 px-2 min-w-[60px]">
+                Total
+                <br />
+                Stroke
+              </th>
+              <th className="text-center text-gray-300 font-semibold py-2 px-2 min-w-[60px]">
+                Over/
+                <br />
+                Under
+              </th>
+              <th className="text-center text-gray-300 font-semibold py-2 px-2 min-w-[70px]">
+                Hole
+                <br />
+                Selesai
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-800">
+            {sortedParticipants.map((participant) => (
+              <tr
+                key={participant._id}
+                className="hover:bg-gray-900/50 transition-colors"
+              >
+                {/* Player Name */}
+                <td className="py-3 px-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white font-bold text-xs">
+                        {participant.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-white font-semibold text-sm truncate">
+                        {participant.name}
+                      </div>
+                      <div className="text-gray-400 text-[10px] flex items-center gap-1">
+                        <span className="text-blue-400">
+                          {participant.flightName}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                {/* Total Strokes */}
+                <td className="text-center py-3 px-2">
+                  <div
+                    className={`font-bold text-lg ${
+                      participant.holesPlayed === 0
+                        ? "text-gray-500"
+                        : "text-white"
+                    }`}
+                  >
+                    {participant.holesPlayed === 0
+                      ? "-"
+                      : participant.totalStrokes}
+                  </div>
+                </td>
+
+                {/* Score to Par (Over/Under) */}
+                <td className="text-center py-3 px-2">
+                  {participant.holesPlayed === 0 ? (
+                    <div className="text-gray-500 font-bold text-base">-</div>
+                  ) : (
+                    <div
+                      className={`font-bold text-base ${
+                        participant.scoreToPar > 0
+                          ? "text-red-400"
+                          : participant.scoreToPar < 0
+                            ? "text-green-400"
+                            : "text-gray-400"
+                      }`}
+                    >
+                      {participant.scoreToPar > 0
+                        ? `+${participant.scoreToPar}`
+                        : participant.scoreToPar === 0
+                          ? "E"
+                          : participant.scoreToPar}
+                    </div>
+                  )}
+                </td>
+
+                {/* Holes Completed */}
+                <td className="text-center py-3 px-2">
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`font-bold text-base ${
+                        participant.holesPlayed === 0
+                          ? "text-gray-500"
+                          : "text-white"
+                      }`}
+                    >
+                      {participant.holesPlayed}/{totalHoles}
+                    </div>
+                    {/* Progress Bar */}
+                    <div className="w-full max-w-[50px] h-1.5 bg-gray-700 rounded-full mt-1 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          participant.holesPlayed === 0
+                            ? "bg-gray-600"
+                            : "bg-gradient-to-r from-green-500 to-green-600"
+                        }`}
+                        style={{
+                          width: `${participant.holesPlayed === 0 ? 0 : (participant.holesPlayed / totalHoles) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      <div className="divide-y divide-gray-800">
-        {sortedParticipants.map((participant, index) => (
-          <div key={participant._id} className="p-3 hover:bg-gray-900/50 transition-colors">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 text-center">
-                <div className={`text-xl font-bold ${
-                  index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : index === 2 ? 'text-orange-600' : 'text-gray-500'
-                }`}>
-                  {index + 1}
-                </div>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-white font-semibold text-base">{participant.name}</h3>
-                <p className="text-gray-400 text-sm">HCP: {participant.handicap || 0}</p>
-              </div>
-              <div className="text-right">
-                <div className="text-xl font-bold text-white">{participant.totalStrokes || 0}</div>
-                <div className={`text-sm font-semibold ${
-                  participant.scoreToPar > 0 ? 'text-red-400' : participant.scoreToPar < 0 ? 'text-green-400' : 'text-gray-400'
-                }`}>
-                  {participant.scoreToPar > 0 ? `+${participant.scoreToPar}` : participant.scoreToPar === 0 ? '0' : participant.scoreToPar}
-                </div>
-                <div className="text-xs text-gray-500">{participant.holesPlayed}/{holesConfig.length} hole</div>
-              </div>
-            </div>
-          </div>
-        ))}
+
+      {/* Summary Footer */}
+      <div className="bg-gray-900/50 border-t-2 border-gray-700 p-3">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-gray-400">Total Peserta:</span>
+          <span className="text-white font-bold">
+            {sortedParticipants.length} pemain dari {allFlights?.length || 0}{" "}
+            flight
+          </span>
+        </div>
       </div>
     </div>
   );

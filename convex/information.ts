@@ -18,7 +18,7 @@ export const createInformation = mutation({
       v.literal("factsheet"),
       v.literal("teesheet"),
       v.literal("activity"),
-      v.literal("contact")
+      v.literal("contact"),
     ),
     fileStorageId: v.optional(v.id("_storage")),
     fileType: v.optional(v.string()),
@@ -39,7 +39,7 @@ export const createInformation = mutation({
 
     let fileUrl: string | undefined;
     if (args.fileStorageId) {
-      fileUrl = await ctx.storage.getUrl(args.fileStorageId) || undefined;
+      fileUrl = (await ctx.storage.getUrl(args.fileStorageId)) || undefined;
     }
 
     const informationId = await ctx.db.insert("information", {
@@ -94,7 +94,19 @@ export const updateInformation = mutation({
 
     let fileUrl = existing.fileUrl;
     if (args.fileStorageId) {
-      fileUrl = await ctx.storage.getUrl(args.fileStorageId) || undefined;
+      // Hapus file lama dari storage jika ada file baru yang diupload
+      if (
+        existing.fileStorageId &&
+        existing.fileStorageId !== args.fileStorageId
+      ) {
+        try {
+          await ctx.storage.delete(existing.fileStorageId);
+        } catch (e) {
+          // File mungkin sudah tidak ada, lanjut saja
+          console.warn("Could not delete old file from storage:", e);
+        }
+      }
+      fileUrl = (await ctx.storage.getUrl(args.fileStorageId)) || undefined;
     }
 
     await ctx.db.patch(args.informationId, {
@@ -192,7 +204,7 @@ export const getAllInformation = query({
     const informationWithCreator = await Promise.all(
       information.map(async (info) => {
         const creator = await ctx.db.get(info.createdBy);
-        
+
         // Refresh file URL if storage ID exists
         let fileUrl = info.fileUrl;
         if (info.fileStorageId) {
@@ -205,7 +217,7 @@ export const getAllInformation = query({
           fileUrl,
           creatorName: creator?.name || "Unknown",
         };
-      })
+      }),
     );
 
     return informationWithCreator;
@@ -235,7 +247,7 @@ export const getPublishedInformation = query({
           ...info,
           fileUrl,
         };
-      })
+      }),
     );
 
     // Sort by order if specified, otherwise by createdAt
@@ -255,13 +267,15 @@ export const getInformationByType = query({
       v.literal("factsheet"),
       v.literal("teesheet"),
       v.literal("activity"),
-      v.literal("contact")
+      v.literal("contact"),
     ),
   },
   handler: async (ctx, args) => {
     const information = await ctx.db
       .query("information")
-      .withIndex("by_type", (q) => q.eq("type", args.type).eq("isPublished", true))
+      .withIndex("by_type", (q) =>
+        q.eq("type", args.type).eq("isPublished", true),
+      )
       .order("desc")
       .collect();
 
@@ -278,7 +292,7 @@ export const getInformationByType = query({
           ...info,
           fileUrl,
         };
-      })
+      }),
     );
 
     return informationWithUrls;
