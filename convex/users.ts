@@ -430,6 +430,7 @@ export const listAllPlayers = query({
         putters: player.putters,
         golfBalls: player.golfBalls,
         paymentStatus: player.paymentStatus,
+        paidStatus: player.paidStatus,
         paidAt: player.paidAt,
       }));
   },
@@ -1090,10 +1091,11 @@ export const getUser = query({
 export const updatePaymentStatus = mutation({
   args: {
     playerIds: v.array(v.id("users")),
-    paymentStatus: v.union(v.literal("paid"), v.literal("unpaid")),
+    paymentStatus: v.optional(v.union(v.literal("invited"), v.literal("unpaid"), v.literal("paid"))),
+    paidStatus: v.optional(v.union(v.literal("unpaid"), v.literal("paid"))),
   },
   handler: async (ctx, args) => {
-    const { playerIds, paymentStatus } = args;
+    const { playerIds, paymentStatus, paidStatus } = args;
 
     // Update each player's payment status
     for (const playerId of playerIds) {
@@ -1102,16 +1104,24 @@ export const updatePaymentStatus = mutation({
         continue; // Skip if player not found
       }
 
-      const updateData: any = {
-        paymentStatus,
-      };
+      const updateData: any = {};
 
-      // Set paidAt timestamp if marking as paid
-      if (paymentStatus === "paid") {
-        updateData.paidAt = Date.now();
-      } else {
-        // Clear paidAt if marking as unpaid
-        updateData.paidAt = undefined;
+      // Update paymentStatus if provided
+      if (paymentStatus !== undefined) {
+        updateData.paymentStatus = paymentStatus;
+      }
+
+      // Update paidStatus if provided
+      if (paidStatus !== undefined) {
+        updateData.paidStatus = paidStatus;
+        
+        // Set paidAt timestamp if marking as paid
+        if (paidStatus === "paid") {
+          updateData.paidAt = Date.now();
+        } else {
+          // Clear paidAt if marking as unpaid
+          updateData.paidAt = undefined;
+        }
       }
 
       await ctx.db.patch(playerId, updateData);

@@ -459,7 +459,7 @@ export default function AdminDashboard() {
                 <item.icon
                   className={`w-5 h-5 ${isActive ? "text-red-400" : "text-gray-500 group-hover:text-red-400"}`}
                 />
-                <span className="font-medium">{item.label}</span>
+                <span className="font-medium text-left">{item.label}</span>
                 {isActive && (
                   <ChevronRight className="w-4 h-4 ml-auto text-red-400" />
                 )}

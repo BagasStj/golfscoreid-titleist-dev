@@ -1,11 +1,11 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from 'convex/react';
-import { api } from '../../../../convex/_generated/api';
-import { useAuth } from '../../../contexts/AuthContext';
-import { Calendar, MapPin, Target, Users, Play } from 'lucide-react';
-import { statusConfig } from '@/lib/utils';
-import type { Id } from '../../../../convex/_generated/dataModel';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
+import { useAuth } from "../../../contexts/AuthContext";
+import { Calendar, MapPin, Target, Users, Play } from "lucide-react";
+import { statusConfig } from "@/lib/utils";
+import type { Id } from "../../../../convex/_generated/dataModel";
 
 const MyTournaments: React.FC = () => {
   const navigate = useNavigate();
@@ -13,8 +13,8 @@ const MyTournaments: React.FC = () => {
 
   // Fetch player's tournaments
   const myTournaments = useQuery(
-    api.tournaments.getTournaments, 
-    user ? { userId: user._id } : 'skip'
+    api.tournaments.getTournaments,
+    user ? { userId: user._id } : "skip",
   );
 
   // Loading state
@@ -34,9 +34,9 @@ const MyTournaments: React.FC = () => {
       {/* Tournament List */}
       {myTournaments.map((tournament) => {
         return (
-          <TournamentCard 
-            key={tournament._id} 
-            tournament={tournament} 
+          <TournamentCard
+            key={tournament._id}
+            tournament={tournament}
             userId={user?._id}
             navigate={navigate}
           />
@@ -46,8 +46,12 @@ const MyTournaments: React.FC = () => {
       {myTournaments.length === 0 && (
         <div className="text-center py-16">
           <div className="text-6xl mb-4">🏌️</div>
-          <div className="text-gray-400 text-lg font-semibold">Belum ada turnamen</div>
-          <div className="text-gray-500 text-sm mt-2">Daftar turnamen untuk mulai bermain</div>
+          <div className="text-gray-400 text-lg font-semibold">
+            Belum ada turnamen
+          </div>
+          <div className="text-gray-500 text-sm mt-2">
+            Daftar turnamen untuk mulai bermain
+          </div>
         </div>
       )}
     </div>
@@ -55,39 +59,43 @@ const MyTournaments: React.FC = () => {
 };
 
 // Separate component for each tournament card
-const TournamentCard: React.FC<{ 
-  tournament: any; 
+const TournamentCard: React.FC<{
+  tournament: any;
   userId?: Id<"users">;
   navigate: any;
 }> = ({ tournament, userId, navigate }) => {
   // Fetch tournament details including holesConfig
-  const tournamentDetails = useQuery(
-    api.tournaments.getTournamentDetails,
-    { tournamentId: tournament._id, userId }
-  );
+  const tournamentDetails = useQuery(api.tournaments.getTournamentDetails, {
+    tournamentId: tournament._id,
+    userId,
+  });
 
   // Fetch player scores
   const playerScores = useQuery(
     api.scores.getPlayerScores,
-    userId ? {
-      tournamentId: tournament._id,
-      playerId: userId,
-    } : 'skip'
+    userId
+      ? {
+          tournamentId: tournament._id,
+          playerId: userId,
+        }
+      : "skip",
   );
 
   // Fetch player's flight info
   const playerFlight = useQuery(
     api.flights.getPlayerFlight,
-    userId ? {
-      tournamentId: tournament._id,
-      playerId: userId,
-    } : 'skip'
+    userId
+      ? {
+          tournamentId: tournament._id,
+          playerId: userId,
+        }
+      : "skip",
   );
 
   // Fetch all flights in tournament to show all participants
   const allFlights = useQuery(
     api.flights.getTournamentFlightsWithParticipants,
-    { tournamentId: tournament._id }
+    { tournamentId: tournament._id },
   );
 
   if (!tournamentDetails) {
@@ -113,7 +121,9 @@ const TournamentCard: React.FC<{
       {/* Header */}
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-start justify-between mb-2">
-          <h3 className="text-white font-bold text-lg flex-1">{tournament.name}</h3>
+          <h3 className="text-white font-bold text-lg flex-1">
+            {tournament.name}
+          </h3>
           <div
             className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ml-2"
             style={{
@@ -171,7 +181,6 @@ const TournamentCard: React.FC<{
             <span className="text-gray-400">Total Hole</span>
             <span className="text-white font-semibold">{totalHoles}</span>
           </div>
-          
         </div>
       </div>
 
@@ -209,8 +218,18 @@ const TournamentCard: React.FC<{
                 </div>
               )}
               <div className="flex items-center text-gray-300 text-xs">
-                <svg className="w-3 h-3 mr-1.5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                <svg
+                  className="w-3 h-3 mr-1.5 text-blue-500 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
+                  />
                 </svg>
                 <div>
                   <p className="text-[10px] text-gray-500">Start Hole</p>
@@ -255,10 +274,8 @@ const TournamentCard: React.FC<{
                             </span>
                           )}
                         </p>
-                        
                       </div>
                     </div>
-                   
                   </div>
                 ))
               ) : (
@@ -290,81 +307,96 @@ const TournamentCard: React.FC<{
         <div className="p-4 border-b border-gray-800">
           <h4 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
             <Users className="w-4 h-4 text-green-500" />
-            Semua Peserta Tournament 
+            Semua Peserta Tournament
           </h4>
 
           {/* Scrollable container with max height */}
           <div className="max-h-[400px] overflow-y-auto space-y-3 pr-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
-            {allFlights.map((flight) => {
-              // Filter only paid participants
-              const paidParticipants = flight.participants?.filter((p: any) => p.paymentStatus === 'paid') || [];
-              
-              // Skip flight if no paid participants
-              if (paidParticipants.length === 0) return null;
+            {allFlights
+              .map((flight) => {
+                // Filter only paid participants
+                const paidParticipants =
+                  flight.participants?.filter(
+                    (p: any) =>
+                      p.paymentStatus === "invited" && p.paidStatus === "paid",
+                  ) || [];
 
-              return (
-                <div key={flight._id} className="bg-gray-900/40 rounded-lg p-3 border border-gray-800/60">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <h5 className="text-white font-bold text-xs">
-                        {flight.flightName}
-                      </h5>
-                      <p className="text-gray-400 text-[10px]">
-                        {paidParticipants.length} pemain 
-                      </p>
-                    </div>
-                    <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                      {flight.flightNumber}
-                    </div>
-                  </div>
+                // Skip flight if no paid participants
+                if (paidParticipants.length === 0) return null;
 
-                  {/* Flight Participants - Only Paid */}
-                  <div className="space-y-1 mt-2">
-                    {paidParticipants.map((participant: any) => (
-                      <div
-                        key={participant._id}
-                        className={`flex items-center gap-2 p-1.5 rounded ${
-                          participant._id === userId
-                            ? "bg-green-900/40 border border-green-700/60"
-                            : "bg-gray-800/40"
-                        }`}
-                      >
-                        <div
-                          className={`w-6 h-6 rounded flex items-center justify-center text-white font-bold text-[10px] ${
-                            participant._id === userId
-                              ? "bg-gradient-to-br from-green-600 to-green-700"
-                              : "bg-gradient-to-br from-gray-600 to-gray-700"
-                          }`}
-                        >
-                          {participant.name.charAt(0).toUpperCase()}
-                        </div>
-                        <p className="text-white text-[11px] font-semibold flex items-center gap-1 flex-1">
-                          {participant.name}
-                          {participant._id === userId && (
-                            <span className="text-[9px] bg-green-600 text-white px-1 py-0.5 rounded-full font-semibold">
-                              Anda
-                            </span>
-                          )}
+                return (
+                  <div
+                    key={flight._id}
+                    className="bg-gray-900/40 rounded-lg p-3 border border-gray-800/60"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <h5 className="text-white font-bold text-xs">
+                          {flight.flightName}
+                        </h5>
+                        <p className="text-gray-400 text-[10px]">
+                          {paidParticipants.length} pemain
                         </p>
                       </div>
-                    ))}
+                      <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center text-white font-bold text-xs">
+                        {flight.flightNumber}
+                      </div>
+                    </div>
+
+                    {/* Flight Participants - Only Paid */}
+                    <div className="space-y-1 mt-2">
+                      {paidParticipants.map((participant: any) => (
+                        <div
+                          key={participant._id}
+                          className={`flex items-center gap-2 p-1.5 rounded ${
+                            participant._id === userId
+                              ? "bg-green-900/40 border border-green-700/60"
+                              : "bg-gray-800/40"
+                          }`}
+                        >
+                          <div
+                            className={`w-6 h-6 rounded flex items-center justify-center text-white font-bold text-[10px] ${
+                              participant._id === userId
+                                ? "bg-gradient-to-br from-green-600 to-green-700"
+                                : "bg-gradient-to-br from-gray-600 to-gray-700"
+                            }`}
+                          >
+                            {participant.name.charAt(0).toUpperCase()}
+                          </div>
+                          <p className="text-white text-[11px] font-semibold flex items-center gap-1 flex-1">
+                            {participant.name}
+                            {participant._id === userId && (
+                              <span className="text-[9px] bg-green-600 text-white px-1 py-0.5 rounded-full font-semibold">
+                                Anda
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              );
-            }).filter(Boolean)}
+                );
+              })
+              .filter(Boolean)}
           </div>
 
           {/* Total Participants Summary - Only Paid */}
           <div className="mt-3 bg-gradient-to-r from-green-900/40 to-green-950/40 rounded-lg p-2 border border-green-800/40">
             <div className="flex items-center justify-between">
               <span className="text-gray-300 text-xs font-semibold">
-                Total Peserta 
+                Total Peserta
               </span>
               <span className="text-green-400 text-sm font-bold">
                 {allFlights.reduce((total, flight) => {
-                  const paidCount = flight.participants?.filter((p: any) => p.paymentStatus === 'paid').length || 0;
+                  const paidCount =
+                    flight.participants?.filter(
+                      (p: any) =>
+                        p.paymentStatus === "invited" &&
+                        p.paidStatus === "paid",
+                    ).length || 0;
                   return total + paidCount;
-                }, 0)} pemain
+                }, 0)}{" "}
+                pemain
               </span>
             </div>
           </div>
@@ -380,7 +412,9 @@ const TournamentCard: React.FC<{
             className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-4 rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
           >
             <Play className="w-5 h-5" />
-            <span>{hasStartedScoring ? "Lanjutkan Scoring" : "Mulai Scoring"}</span>
+            <span>
+              {hasStartedScoring ? "Lanjutkan Scoring" : "Mulai Scoring"}
+            </span>
           </button>
         )}
 

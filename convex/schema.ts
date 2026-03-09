@@ -72,6 +72,11 @@ export default defineSchema({
     }))),
     // Payment status
     paymentStatus: v.optional(v.union(
+      v.literal("invited"),
+      v.literal("unpaid"),
+      v.literal("paid")
+    )),
+    paidStatus: v.optional(v.union(
       v.literal("unpaid"),
       v.literal("paid")
     )),
@@ -284,25 +289,20 @@ export default defineSchema({
     .index("by_news", ["newsId"])
     .index("by_sent_by", ["sentBy"]),
 
-  // Information Management table (Fact Sheet, Tee Sheet, Activity, Contact)
+  // Information Management table (Documents and files for tournaments)
   information: defineTable({
     title: v.string(),
     description: v.optional(v.string()),
-    type: v.union(
-      v.literal("factsheet"),
-      v.literal("teesheet"),
-      v.literal("activity"),
-      v.literal("contact")
+    // Category: general or tournament-specific
+    category: v.union(
+      v.literal("general"),
+      v.literal("tournament")
     ),
+    tournamentId: v.optional(v.id("tournaments")), // Required when category is "tournament"
     // File storage
     fileUrl: v.optional(v.string()),
     fileStorageId: v.optional(v.id("_storage")),
     fileType: v.optional(v.string()), // "pdf", "jpg", "png"
-    // Contact specific fields
-    contactName: v.optional(v.string()),
-    contactPhone: v.optional(v.string()),
-    contactEmail: v.optional(v.string()),
-    contactPosition: v.optional(v.string()),
     // Metadata
     createdBy: v.id("users"),
     createdAt: v.number(),
@@ -310,7 +310,8 @@ export default defineSchema({
     isPublished: v.boolean(),
     order: v.optional(v.number()), // For sorting
   })
-    .index("by_type", ["type", "isPublished"])
     .index("by_created_by", ["createdBy"])
-    .index("by_published", ["isPublished", "createdAt"]),
+    .index("by_published", ["isPublished", "createdAt"])
+    .index("by_category", ["category", "isPublished"])
+    .index("by_tournament", ["tournamentId", "isPublished"]),
 });
