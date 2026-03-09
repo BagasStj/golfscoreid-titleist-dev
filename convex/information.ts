@@ -14,18 +14,10 @@ export const createInformation = mutation({
   args: {
     title: v.string(),
     description: v.optional(v.string()),
-    type: v.union(
-      v.literal("factsheet"),
-      v.literal("teesheet"),
-      v.literal("activity"),
-      v.literal("contact"),
-    ),
+    category: v.union(v.literal("general"), v.literal("tournament")),
+    tournamentId: v.optional(v.id("tournaments")),
     fileStorageId: v.optional(v.id("_storage")),
     fileType: v.optional(v.string()),
-    contactName: v.optional(v.string()),
-    contactPhone: v.optional(v.string()),
-    contactEmail: v.optional(v.string()),
-    contactPosition: v.optional(v.string()),
     isPublished: v.boolean(),
     order: v.optional(v.number()),
     userId: v.id("users"),
@@ -37,6 +29,11 @@ export const createInformation = mutation({
       throw new Error("Unauthorized: Only admins can create information");
     }
 
+    // Validate tournament category
+    if (args.category === "tournament" && !args.tournamentId) {
+      throw new Error("Tournament ID is required for tournament category");
+    }
+
     let fileUrl: string | undefined;
     if (args.fileStorageId) {
       fileUrl = (await ctx.storage.getUrl(args.fileStorageId)) || undefined;
@@ -45,14 +42,11 @@ export const createInformation = mutation({
     const informationId = await ctx.db.insert("information", {
       title: args.title,
       description: args.description,
-      type: args.type,
+      category: args.category,
+      tournamentId: args.tournamentId,
       fileUrl,
       fileStorageId: args.fileStorageId,
       fileType: args.fileType,
-      contactName: args.contactName,
-      contactPhone: args.contactPhone,
-      contactEmail: args.contactEmail,
-      contactPosition: args.contactPosition,
       createdBy: args.userId,
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -70,12 +64,10 @@ export const updateInformation = mutation({
     informationId: v.id("information"),
     title: v.string(),
     description: v.optional(v.string()),
+    category: v.optional(v.union(v.literal("general"), v.literal("tournament"))),
+    tournamentId: v.optional(v.id("tournaments")),
     fileStorageId: v.optional(v.id("_storage")),
     fileType: v.optional(v.string()),
-    contactName: v.optional(v.string()),
-    contactPhone: v.optional(v.string()),
-    contactEmail: v.optional(v.string()),
-    contactPosition: v.optional(v.string()),
     isPublished: v.boolean(),
     order: v.optional(v.number()),
     userId: v.id("users"),
@@ -90,6 +82,11 @@ export const updateInformation = mutation({
     const existing = await ctx.db.get(args.informationId);
     if (!existing) {
       throw new Error("Information not found");
+    }
+
+    // Validate tournament category
+    if (args.category === "tournament" && !args.tournamentId) {
+      throw new Error("Tournament ID is required for tournament category");
     }
 
     let fileUrl = existing.fileUrl;
@@ -112,13 +109,11 @@ export const updateInformation = mutation({
     await ctx.db.patch(args.informationId, {
       title: args.title,
       description: args.description,
+      category: args.category || existing.category,
+      tournamentId: args.tournamentId !== undefined ? args.tournamentId : existing.tournamentId,
       fileUrl,
       fileStorageId: args.fileStorageId || existing.fileStorageId,
       fileType: args.fileType || existing.fileType,
-      contactName: args.contactName,
-      contactPhone: args.contactPhone,
-      contactEmail: args.contactEmail,
-      contactPosition: args.contactPosition,
       updatedAt: Date.now(),
       isPublished: args.isPublished,
       order: args.order,
@@ -200,8 +195,8 @@ export const getAllInformation = query({
       .order("desc")
       .collect();
 
-    // Get creator names
-    const informationWithCreator = await Promise.all(
+    // Get creator names and tournament names
+    const informationWithDetails = await Promise.all(
       information.map(async (info) => {
         const creator = await ctx.db.get(info.createdBy);
 
@@ -212,15 +207,23 @@ export const getAllInformation = query({
           if (url) fileUrl = url;
         }
 
+        // Get tournament name if tournamentId exists
+        let tournamentName: string | undefined;
+        if (info.tournamentId) {
+          const tournament = await ctx.db.get(info.tournamentId);
+          tournamentName = tournament?.name;
+        }
+
         return {
           ...info,
           fileUrl,
           creatorName: creator?.name || "Unknown",
+          tournamentName,
         };
       }),
     );
 
-    return informationWithCreator;
+    return informationWithDetails;
   },
 });
 
@@ -260,24 +263,101 @@ export const getPublishedInformation = query({
   },
 });
 
-// Get Information by Type
-export const getInformationByType = query({
+// Get Published Information for Player (filtered by category and player's tournaments)
+export const getPublishedInformationForPlayer = query({
   args: {
-    type: v.union(
-      v.literal("factsheet"),
-      v.literal("teesheet"),
-      v.literal("activity"),
-      v.literal("contact"),
-    ),
+    playerId: v.id("users"),
   },
   handler: async (ctx, args) => {
-    const information = await ctx.db
+    // Get all published information
+    const allInformation = await ctx.db
       .query("information")
-      .withIndex("by_type", (q) =>
-        q.eq("type", args.type).eq("isPublished", true),
-      )
+      .withIndex("by_published", (q) => q.eq("isPublished", true))
       .order("desc")
       .collect();
+
+    // Get player's tournaments
+    const playerTournaments = await ctx.db
+      .query("tournament_participants")
+      .withIndex("by_player", (q) => q.eq("playerId", args.playerId))
+      .collect();
+
+    const playerTournamentIds = new Set(
+      playerTournaments.map((p) => p.tournamentId)
+    );
+
+    // Filter information based on category
+    const filteredInformation = allInformation.filter((info) => {
+      // Show all general information
+      if (info.category === "general") {
+        return true;
+      }
+      // Show tournament information only if player is registered in that tournament
+      if (info.category === "tournament" && info.tournamentId) {
+        return playerTournamentIds.has(info.tournamentId);
+      }
+      return false;
+    });
+
+    // Refresh file URLs and add tournament name
+    const informationWithDetails = await Promise.all(
+      filteredInformation.map(async (info) => {
+        let fileUrl = info.fileUrl;
+        if (info.fileStorageId) {
+          const url = await ctx.storage.getUrl(info.fileStorageId);
+          if (url) fileUrl = url;
+        }
+
+        let tournamentName: string | undefined;
+        if (info.tournamentId) {
+          const tournament = await ctx.db.get(info.tournamentId);
+          tournamentName = tournament?.name;
+        }
+
+        return {
+          ...info,
+          fileUrl,
+          tournamentName,
+        };
+      }),
+    );
+
+    // Sort by order if specified, otherwise by createdAt
+    return informationWithDetails.sort((a, b) => {
+      if (a.order !== undefined && b.order !== undefined) {
+        return a.order - b.order;
+      }
+      return b.createdAt - a.createdAt;
+    });
+  },
+});
+
+// Get Information by Category
+export const getInformationByCategory = query({
+  args: {
+    category: v.union(v.literal("general"), v.literal("tournament")),
+    tournamentId: v.optional(v.id("tournaments")),
+  },
+  handler: async (ctx, args) => {
+    let information;
+    
+    if (args.category === "tournament" && args.tournamentId) {
+      information = await ctx.db
+        .query("information")
+        .withIndex("by_tournament", (q) =>
+          q.eq("tournamentId", args.tournamentId).eq("isPublished", true),
+        )
+        .order("desc")
+        .collect();
+    } else {
+      information = await ctx.db
+        .query("information")
+        .withIndex("by_category", (q) =>
+          q.eq("category", args.category).eq("isPublished", true),
+        )
+        .order("desc")
+        .collect();
+    }
 
     // Refresh file URLs
     const informationWithUrls = await Promise.all(
@@ -296,5 +376,23 @@ export const getInformationByType = query({
     );
 
     return informationWithUrls;
+  },
+});
+
+// Get All Tournaments (for dropdown selection)
+export const getAllTournaments = query({
+  args: {},
+  handler: async (ctx) => {
+    const tournaments = await ctx.db
+      .query("tournaments")
+      .order("desc")
+      .collect();
+
+    return tournaments.map((t) => ({
+      _id: t._id,
+      name: t.name,
+      date: t.date,
+      status: t.status,
+    }));
   },
 });

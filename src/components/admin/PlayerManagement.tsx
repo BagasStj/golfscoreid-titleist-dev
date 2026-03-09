@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import type { Id } from '../../../convex/_generated/dataModel';
-import { 
-  Users, 
-  Plus, 
-  Eye, 
-  Trash2, 
+import { useState } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
+import {
+  Users,
+  Plus,
+  Eye,
+  Trash2,
   Search,
   Mail,
   Award,
@@ -20,16 +20,16 @@ import {
   Shirt,
   DollarSign,
   CheckCircle2,
-  XCircle
-} from 'lucide-react';
-import { Button } from '../ui';
-import { ConfirmDialog } from '../shared';
-import ClubSetsSelector from '../shared/ClubSetsSelector';
-import { useToast } from '../shared/ToastContainer';
-import * as XLSX from 'xlsx';
+  XCircle,
+} from "lucide-react";
+import { Button } from "../ui";
+import { ConfirmDialog } from "../shared";
+import ClubSetsSelector from "../shared/ClubSetsSelector";
+import { useToast } from "../shared/ToastContainer";
+import * as XLSX from "xlsx";
 
 interface ClubEntry {
-  brand: 'Titleist' | 'Other';
+  brand: "Titleist" | "Other";
   model: string;
 }
 
@@ -41,10 +41,10 @@ interface PlayerFormData {
   handicap: number;
   phone: string;
   nickname: string;
-  gender: 'male' | 'female' | '';
+  gender: "male" | "female" | "";
   workLocation: string;
-  shirtSize: 'S' | 'M' | 'L' | 'XL' | '';
-  gloveSize: 'S' | 'M' | 'L' | 'XL' | '';
+  shirtSize: "S" | "M" | "L" | "XL" | "";
+  gloveSize: "S" | "M" | "L" | "XL" | "";
   drivers: ClubEntry[];
   fairways: ClubEntry[];
   hybrids: ClubEntry[];
@@ -63,31 +63,41 @@ export default function PlayerManagement() {
   const updatePaymentStatus = useMutation(api.users.updatePaymentStatus);
   const { showToast } = useToast();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [paymentFilter, setPaymentFilter] = useState<'all' | 'paid' | 'unpaid'>('all');
-  const [selectedPlayerIds, setSelectedPlayerIds] = useState<Set<Id<'users'>>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState<"all" | "accepted">("all");
+  const [subPaymentFilter, setSubPaymentFilter] = useState<
+    "all" | "unpaid" | "paid"
+  >("all"); // Sub-filter for accepted tab
+  const [selectedPlayerIds, setSelectedPlayerIds] = useState<Set<Id<"users">>>(
+    new Set(),
+  );
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState<'create' | 'detail'>('create');
-  const [selectedPlayerId, setSelectedPlayerId] = useState<Id<'users'> | null>(null);
+  const [modalMode, setModalMode] = useState<"create" | "detail">("create");
+  const [selectedPlayerId, setSelectedPlayerId] = useState<Id<"users"> | null>(
+    null,
+  );
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [playerToDelete, setPlayerToDelete] = useState<{ id: Id<'users'>; name: string } | null>(null);
+  const [playerToDelete, setPlayerToDelete] = useState<{
+    id: Id<"users">;
+    name: string;
+  } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const [formData, setFormData] = useState<PlayerFormData>({
-    name: '',
-    email: '',
-    username: '',
-    password: '',
+    name: "",
+    email: "",
+    username: "",
+    password: "",
     handicap: 0,
-    phone: '',
-    nickname: '',
-    gender: '',
-    workLocation: '',
-    shirtSize: '',
-    gloveSize: '',
+    phone: "",
+    nickname: "",
+    gender: "",
+    workLocation: "",
+    shirtSize: "",
+    gloveSize: "",
     drivers: [],
     fairways: [],
     hybrids: [],
@@ -98,27 +108,64 @@ export default function PlayerManagement() {
     golfBalls: [],
   });
 
-  const filteredPlayers = players?.filter(player => {
-    // Search filter
-    const matchesSearch = player.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      player.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      player.username?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Payment filter
-    const matchesPayment = paymentFilter === 'all' || 
-      (paymentFilter === 'paid' && (player as any).paymentStatus === 'paid') ||
-      (paymentFilter === 'unpaid' && ((player as any).paymentStatus === 'unpaid' || !(player as any).paymentStatus));
-    
-    return matchesSearch && matchesPayment;
-  }).sort((a, b) => {
-    // Sort by _creationTime descending (newest first)
-    return (b._creationTime || 0) - (a._creationTime || 0);
-  });
+  const filteredPlayers = players
+    ?.filter((player) => {
+      // Search filter
+      const matchesSearch =
+        player.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        player.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        player.username?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Payment filter
+      let matchesPayment = true;
+
+      if (paymentFilter === "all") {
+        // Show only registered players (NOT accepted)
+        matchesPayment = (player as any).paymentStatus !== "invited";
+      } else if (paymentFilter === "accepted") {
+        // Show only accepted players
+        matchesPayment = (player as any).paymentStatus === "invited";
+
+        // Apply sub-filter for accepted tab
+        if (matchesPayment && subPaymentFilter !== "all") {
+          if (subPaymentFilter === "paid") {
+            matchesPayment =
+              (player as any).paymentStatus === "invited" &&
+              (player as any).paidStatus === "paid";
+          } else if (subPaymentFilter === "unpaid") {
+            matchesPayment =
+              (player as any).paymentStatus === "invited" &&
+              ((player as any).paidStatus === "unpaid" ||
+                !(player as any).paidStatus);
+          }
+        }
+      }
+
+      return matchesSearch && matchesPayment;
+    })
+    .sort((a, b) => {
+      // Sort by _creationTime descending (newest first)
+      return (b._creationTime || 0) - (a._creationTime || 0);
+    });
 
   // Calculate payment statistics
   const totalPlayers = players?.length || 0;
-  const paidPlayers = players?.filter(p => (p as any).paymentStatus === 'paid').length || 0;
-  const unpaidPlayers = players?.filter(p => (p as any).paymentStatus === 'unpaid' || !(p as any).paymentStatus).length || 0;
+  const registeredPlayers =
+    players?.filter((p) => (p as any).paymentStatus !== "invited").length || 0;
+  const acceptedPlayers =
+    players?.filter((p) => (p as any).paymentStatus === "invited").length || 0;
+  const unpaidPlayers =
+    players?.filter(
+      (p) =>
+        (p as any).paymentStatus === "invited" &&
+        ((p as any).paidStatus === "unpaid" || !(p as any).paidStatus),
+    ).length || 0;
+  const paidPlayers =
+    players?.filter(
+      (p) =>
+        (p as any).paymentStatus === "invited" &&
+        (p as any).paidStatus === "paid",
+    ).length || 0;
 
   // Pagination calculations
   const totalPages = Math.ceil((filteredPlayers?.length || 0) / itemsPerPage);
@@ -133,14 +180,21 @@ export default function PlayerManagement() {
   };
 
   // Handle payment filter change
-  const handlePaymentFilterChange = (filter: 'all' | 'paid' | 'unpaid') => {
+  const handlePaymentFilterChange = (filter: "all" | "accepted") => {
     setPaymentFilter(filter);
     setCurrentPage(1);
     setSelectedPlayerIds(new Set()); // Clear selection when filter changes
+    setSubPaymentFilter("all"); // Reset sub-filter
+  };
+
+  // Handle sub-payment filter change (for accepted tab)
+  const handleSubPaymentFilterChange = (filter: "all" | "unpaid" | "paid") => {
+    setSubPaymentFilter(filter);
+    setCurrentPage(1);
   };
 
   // Handle checkbox toggle
-  const handleCheckboxToggle = (playerId: Id<'users'>) => {
+  const handleCheckboxToggle = (playerId: Id<"users">) => {
     const newSelection = new Set(selectedPlayerIds);
     if (newSelection.has(playerId)) {
       newSelection.delete(playerId);
@@ -155,63 +209,113 @@ export default function PlayerManagement() {
     if (selectedPlayerIds.size === paginatedPlayers?.length) {
       setSelectedPlayerIds(new Set());
     } else {
-      const allIds = new Set(paginatedPlayers?.map(p => p._id) || []);
+      const allIds = new Set(paginatedPlayers?.map((p) => p._id) || []);
       setSelectedPlayerIds(allIds);
     }
   };
 
-  // Handle mark as paid
-  const handleMarkAsPaid = async () => {
+  // Handle mark as accepted (invited)
+  const handleMarkAsAccepted = async () => {
     if (selectedPlayerIds.size === 0) {
-      showToast('Pilih minimal satu pemain', 'warning');
+      showToast("Pilih minimal satu pemain", "warning");
       return;
     }
 
     try {
       await updatePaymentStatus({
         playerIds: Array.from(selectedPlayerIds),
-        paymentStatus: 'paid',
+        paymentStatus: "invited",
       });
       setSelectedPlayerIds(new Set());
-      showToast(`${selectedPlayerIds.size} pemain berhasil ditandai sebagai PAID`, 'success');
+      showToast(
+        `${selectedPlayerIds.size} pemain berhasil ditandai sebagai ACCEPTED`,
+        "success",
+      );
     } catch (err) {
-      showToast((err as Error).message, 'error');
+      showToast((err as Error).message, "error");
+    }
+  };
+
+  // Handle mark as registered (remove from accepted)
+  const handleMarkAsRegistered = async () => {
+    if (selectedPlayerIds.size === 0) {
+      showToast("Pilih minimal satu pemain", "warning");
+      return;
+    }
+
+    try {
+      await updatePaymentStatus({
+        playerIds: Array.from(selectedPlayerIds),
+        paymentStatus: "unpaid", // Back to registered status
+      });
+      setSelectedPlayerIds(new Set());
+      showToast(
+        `${selectedPlayerIds.size} pemain berhasil dikembalikan ke REGISTERED`,
+        "success",
+      );
+    } catch (err) {
+      showToast((err as Error).message, "error");
     }
   };
 
   // Handle mark as unpaid
   const handleMarkAsUnpaid = async () => {
     if (selectedPlayerIds.size === 0) {
-      showToast('Pilih minimal satu pemain', 'warning');
+      showToast("Pilih minimal satu pemain", "warning");
       return;
     }
 
     try {
       await updatePaymentStatus({
         playerIds: Array.from(selectedPlayerIds),
-        paymentStatus: 'unpaid',
+        paidStatus: "unpaid",
       });
       setSelectedPlayerIds(new Set());
-      showToast(`${selectedPlayerIds.size} pemain berhasil ditandai sebagai UNPAID`, 'success');
+      showToast(
+        `${selectedPlayerIds.size} pemain berhasil ditandai sebagai UNPAID`,
+        "success",
+      );
     } catch (err) {
-      showToast((err as Error).message, 'error');
+      showToast((err as Error).message, "error");
+    }
+  };
+
+  // Handle mark as paid
+  const handleMarkAsPaid = async () => {
+    if (selectedPlayerIds.size === 0) {
+      showToast("Pilih minimal satu pemain", "warning");
+      return;
+    }
+
+    try {
+      await updatePaymentStatus({
+        playerIds: Array.from(selectedPlayerIds),
+        paidStatus: "paid",
+      });
+      setSelectedPlayerIds(new Set());
+      showToast(
+        `${selectedPlayerIds.size} pemain berhasil ditandai sebagai PAID`,
+        "success",
+      );
+    } catch (err) {
+      showToast((err as Error).message, "error");
     }
   };
 
   const handleOpenCreateModal = () => {
-    setModalMode('create');
-    setFormData({ 
-      name: '', 
-      email: '', 
-      username: '', 
-      password: '', 
+    setModalMode("create");
+    setFormData({
+      name: "",
+      email: "",
+      username: "",
+      password: "",
       handicap: 0,
-      phone: '',
-      nickname: '',
-      gender: '',
-      workLocation: '',
-      shirtSize: '',
-      gloveSize: '',
+      phone: "",
+      nickname: "",
+      gender: "",
+      workLocation: "",
+      shirtSize: "",
+      gloveSize: "",
       drivers: [],
       fairways: [],
       hybrids: [],
@@ -226,25 +330,27 @@ export default function PlayerManagement() {
   };
 
   const handleOpenDetailModal = (player: any) => {
-    setModalMode('detail');
+    setModalMode("detail");
     setSelectedPlayerId(player._id);
-    
+
     setFormData({
       name: player.name,
       email: player.email,
-      username: player.username || '',
-      password: '',
+      username: player.username || "",
+      password: "",
       handicap: player.handicap || 0,
-      phone: player.phone || '',
-      nickname: player.nickname || '',
-      gender: player.gender || '',
-      workLocation: player.workLocation || '',
-      shirtSize: player.shirtSize || '',
-      gloveSize: player.gloveSize || '',
+      phone: player.phone || "",
+      nickname: player.nickname || "",
+      gender: player.gender || "",
+      workLocation: player.workLocation || "",
+      shirtSize: player.shirtSize || "",
+      gloveSize: player.gloveSize || "",
       drivers: Array.isArray(player.drivers) ? player.drivers : [],
       fairways: Array.isArray(player.fairways) ? player.fairways : [],
       hybrids: Array.isArray(player.hybrids) ? player.hybrids : [],
-      utilityIrons: Array.isArray(player.utilityIrons) ? player.utilityIrons : [],
+      utilityIrons: Array.isArray(player.utilityIrons)
+        ? player.utilityIrons
+        : [],
       irons: Array.isArray(player.irons) ? player.irons : [],
       wedges: Array.isArray(player.wedges) ? player.wedges : [],
       putters: Array.isArray(player.putters) ? player.putters : [],
@@ -257,18 +363,18 @@ export default function PlayerManagement() {
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedPlayerId(null);
-    setFormData({ 
-      name: '', 
-      email: '', 
-      username: '', 
-      password: '', 
+    setFormData({
+      name: "",
+      email: "",
+      username: "",
+      password: "",
       handicap: 0,
-      phone: '',
-      nickname: '',
-      gender: '',
-      workLocation: '',
-      shirtSize: '',
-      gloveSize: '',
+      phone: "",
+      nickname: "",
+      gender: "",
+      workLocation: "",
+      shirtSize: "",
+      gloveSize: "",
       drivers: [],
       fairways: [],
       hybrids: [],
@@ -287,10 +393,10 @@ export default function PlayerManagement() {
     setError(null);
 
     try {
-      if (modalMode === 'create') {
+      if (modalMode === "create") {
         await registerUser({
           ...formData,
-          role: 'player',
+          role: "player",
           phone: formData.phone || undefined,
           nickname: formData.nickname || undefined,
           gender: formData.gender || undefined,
@@ -298,12 +404,14 @@ export default function PlayerManagement() {
           shirtSize: formData.shirtSize || undefined,
           gloveSize: formData.gloveSize || undefined,
           drivers: formData.drivers.length > 0 ? formData.drivers : undefined,
-          fairways: formData.fairways.length > 0 ? formData.fairways : undefined,
+          fairways:
+            formData.fairways.length > 0 ? formData.fairways : undefined,
           hybrids: formData.hybrids.length > 0 ? formData.hybrids : undefined,
           irons: formData.irons.length > 0 ? formData.irons : undefined,
           wedges: formData.wedges.length > 0 ? formData.wedges : undefined,
           putters: formData.putters.length > 0 ? formData.putters : undefined,
-          golfBalls: formData.golfBalls.length > 0 ? formData.golfBalls : undefined,
+          golfBalls:
+            formData.golfBalls.length > 0 ? formData.golfBalls : undefined,
         } as any);
       } else if (selectedPlayerId) {
         const updateData: any = {
@@ -319,13 +427,14 @@ export default function PlayerManagement() {
           shirtSize: formData.shirtSize || undefined,
           gloveSize: formData.gloveSize || undefined,
           drivers: formData.drivers.length > 0 ? formData.drivers : undefined,
-          fairways: formData.fairways.length > 0 ? formData.fairways : undefined,
+          fairways:
+            formData.fairways.length > 0 ? formData.fairways : undefined,
           hybrids: formData.hybrids.length > 0 ? formData.hybrids : undefined,
           irons: formData.irons.length > 0 ? formData.irons : undefined,
           wedges: formData.wedges.length > 0 ? formData.wedges : undefined,
           putters: formData.putters.length > 0 ? formData.putters : undefined,
         };
-        
+
         // Only include password if it's been changed
         if (formData.password) {
           updateData.password = formData.password;
@@ -353,67 +462,74 @@ export default function PlayerManagement() {
       await deletePlayer({ playerId: playerToDelete.id });
       setShowDeleteDialog(false);
       setPlayerToDelete(null);
-      showToast('Pemain berhasil dihapus', 'success');
+      showToast("Pemain berhasil dihapus", "success");
     } catch (err) {
-      showToast((err as Error).message, 'error');
+      showToast((err as Error).message, "error");
     }
   };
 
   const handleExportExcel = () => {
     if (!players || players.length === 0) {
-      showToast('Tidak ada data pemain untuk diekspor', 'warning');
+      showToast("Tidak ada data pemain untuk diekspor", "warning");
       return;
     }
 
     // Use filtered and sorted players for export
     const playersToExport = filteredPlayers || players;
 
-    // Prepare data for export
+    // Prepare data for export — columns match the data table exactly
     const exportData = playersToExport.map((player, index) => ({
-      'No': index + 1,
-      'Nama Lengkap': player.name || '',
-      'Email': player.email || '',
-      'Username': player.username || '',
-      'Nomor Telepon': player.phone || '',
-      'Nama Alias': player.nickname || '',
-      'Tanggal Lahir': (player as any).dateOfBirth || '',
-      'Jenis Kelamin': player.gender === 'male' ? 'Pria' : player.gender === 'female' ? 'Wanita' : '',
-      'Ukuran Baju': player.shirtSize || '',
-      'Ukuran Sarung Tangan': player.gloveSize || '',
-      'Status Pembayaran': (player as any).paymentStatus === 'paid' ? 'PAID' : 'UNPAID',
-      'Tanggal Bayar': (player as any).paidAt ? new Date((player as any).paidAt).toLocaleDateString('id-ID') : '',
-      'Driver Brand': player.drivers?.[0]?.brand || '',
-      'Driver Model': player.drivers?.[0]?.model || '',
-      'Fairway Brand': player.fairways?.[0]?.brand || '',
-      'Fairway Model': player.fairways?.[0]?.model || '',
-      'Hybrid Brand': player.hybrids?.[0]?.brand || '',
-      'Hybrid Model': player.hybrids?.[0]?.model || '',
-      'Iron Brand': player.irons?.[0]?.brand || '',
-      'Iron Model': player.irons?.[0]?.model || '',
-      'Wedge Brand': player.wedges?.[0]?.brand || '',
-      'Wedge Model': player.wedges?.[0]?.model || '',
-      'Putter Brand': player.putters?.[0]?.brand || '',
-      'Putter Model': player.putters?.[0]?.model || '',
-      'Golf Ball Brand': (player as any).golfBalls?.[0]?.brand || '',
-      'Golf Ball Model': (player as any).golfBalls?.[0]?.model || '',
+      No: index + 1,
+      "Nama Lengkap": player.name || "",
+      Username: player.username || "",
+      Email: player.email || "",
+      Telepon: player.phone || "",
+      "Nama Alias": player.nickname || "",
+      "Tanggal Lahir": (player as any).dateOfBirth || "",
+      Gender:
+        player.gender === "male"
+          ? "Pria"
+          : player.gender === "female"
+            ? "Wanita"
+            : "",
+      "Ukuran Baju": player.shirtSize || "",
+      "Ukuran Sarung Tangan": player.gloveSize || "",
+      "Status Bayar": (player as any).paidStatus === "paid" ? "PAID" : "UNPAID",
+      "Tanggal Bayar": (player as any).paidAt
+        ? new Date((player as any).paidAt).toLocaleDateString("id-ID")
+        : "",
+      "Driver Brand": player.drivers?.[0]?.brand || "",
+      "Driver Model": player.drivers?.[0]?.model || "",
+      "Fairway Brand": player.fairways?.[0]?.brand || "",
+      "Fairway Model": player.fairways?.[0]?.model || "",
+      "Hybrid Brand": player.hybrids?.[0]?.brand || "",
+      "Hybrid Model": player.hybrids?.[0]?.model || "",
+      "Iron Brand": player.irons?.[0]?.brand || "",
+      "Iron Model": player.irons?.[0]?.model || "",
+      "Wedge Brand": player.wedges?.[0]?.brand || "",
+      "Wedge Model": player.wedges?.[0]?.model || "",
+      "Putter Brand": player.putters?.[0]?.brand || "",
+      "Putter Model": player.putters?.[0]?.model || "",
+      "Golf Ball Brand": (player as any).golfBalls?.[0]?.brand || "",
+      "Golf Ball Model": (player as any).golfBalls?.[0]?.model || "",
     }));
 
     // Create worksheet
     const ws = XLSX.utils.json_to_sheet(exportData);
-    
-    // Set column widths
+
+    // Set column widths — matches exported columns
     const colWidths = [
-      { wch: 5 },  // No
+      { wch: 5 }, // No
       { wch: 25 }, // Nama Lengkap
+      { wch: 18 }, // Username
       { wch: 30 }, // Email
-      { wch: 15 }, // Username
-      { wch: 15 }, // Nomor Telepon
+      { wch: 15 }, // Telepon
       { wch: 20 }, // Nama Alias
       { wch: 15 }, // Tanggal Lahir
-      { wch: 15 }, // Jenis Kelamin
-      { wch: 12 }, // Ukuran Baju
-      { wch: 20 }, // Ukuran Sarung Tangan
-      { wch: 18 }, // Status Pembayaran
+      { wch: 12 }, // Gender
+      { wch: 14 }, // Ukuran Baju
+      { wch: 22 }, // Ukuran Sarung Tangan
+      { wch: 14 }, // Status Bayar
       { wch: 15 }, // Tanggal Bayar
       { wch: 15 }, // Driver Brand
       { wch: 20 }, // Driver Model
@@ -430,21 +546,24 @@ export default function PlayerManagement() {
       { wch: 15 }, // Golf Ball Brand
       { wch: 20 }, // Golf Ball Model
     ];
-    ws['!cols'] = colWidths;
+    ws["!cols"] = colWidths;
 
     // Create workbook
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Players');
+    XLSX.utils.book_append_sheet(wb, ws, "Players");
 
     // Generate filename with current date
-    const date = new Date().toISOString().split('T')[0];
+    const date = new Date().toISOString().split("T")[0];
     const filename = `Players_Data_${date}.xlsx`;
 
     // Save file
     XLSX.writeFile(wb, filename);
-    
+
     // Show success toast
-    showToast(`Data ${playersToExport.length} pemain berhasil diekspor ke ${filename}`, 'success');
+    showToast(
+      `Data ${playersToExport.length} pemain berhasil diekspor ke ${filename}`,
+      "success",
+    );
   };
 
   return (
@@ -462,29 +581,55 @@ export default function PlayerManagement() {
       <div className="bg-gradient-to-br from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 p-4">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4">
           {/* Stats Summary - Left */}
-          <div className="grid grid-cols-3 gap-3 lg:flex lg:items-center lg:gap-3 lg:min-w-[600px] lg:pr-4 lg:border-r lg:border-gray-700/60">
+          <div className="grid grid-cols-2 gap-3 lg:flex lg:items-center lg:gap-3 lg:min-w-[600px] lg:pr-4 lg:border-r lg:border-gray-700/60">
             {/* Total Players */}
             <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 flex-1 bg-gray-900/40 lg:bg-transparent p-3 lg:p-0 rounded-xl lg:rounded-none">
               <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-red-900/60 to-red-950/60 rounded-xl flex items-center justify-center border border-red-900/40 shadow-lg flex-shrink-0">
                 <Users className="w-6 h-6 sm:w-7 sm:h-7 text-red-400" />
               </div>
               <div className="text-center sm:text-left">
-                <div className="text-2xl sm:text-3xl font-bold text-white">{totalPlayers}</div>
-                <div className="text-xs text-gray-400 whitespace-nowrap">Total Pemain</div>
+                <div className="text-2xl sm:text-3xl font-bold text-white">
+                  {totalPlayers}
+                </div>
+                <div className="text-xs text-gray-400 whitespace-nowrap">
+                  Total Players
+                </div>
               </div>
             </div>
 
             {/* Divider - Hidden on mobile */}
             <div className="hidden lg:block w-px h-12 bg-gray-700/60"></div>
 
-            {/* Paid Players */}
+            {/* Registered Players */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 flex-1 bg-gray-900/40 lg:bg-transparent p-3 lg:p-0 rounded-xl lg:rounded-none">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-900/60 to-blue-950/60 rounded-xl flex items-center justify-center border border-blue-900/40 shadow-lg flex-shrink-0">
+                <UserCheck className="w-6 h-6 sm:w-7 sm:h-7 text-blue-400" />
+              </div>
+              <div className="text-center sm:text-left">
+                <div className="text-2xl sm:text-3xl font-bold text-blue-400">
+                  {registeredPlayers}
+                </div>
+                <div className="text-xs text-gray-400 whitespace-nowrap">
+                  Registered
+                </div>
+              </div>
+            </div>
+
+            {/* Divider - Hidden on mobile */}
+            <div className="hidden lg:block w-px h-12 bg-gray-700/60"></div>
+
+            {/* Accepted Players */}
             <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 flex-1 bg-gray-900/40 lg:bg-transparent p-3 lg:p-0 rounded-xl lg:rounded-none">
               <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-green-900/60 to-green-950/60 rounded-xl flex items-center justify-center border border-green-900/40 shadow-lg flex-shrink-0">
                 <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7 text-green-400" />
               </div>
               <div className="text-center sm:text-left">
-                <div className="text-2xl sm:text-3xl font-bold text-green-400">{paidPlayers}</div>
-                <div className="text-xs text-gray-400 whitespace-nowrap">Sudah Bayar</div>
+                <div className="text-2xl sm:text-3xl font-bold text-green-400">
+                  {acceptedPlayers}
+                </div>
+                <div className="text-xs text-gray-400 whitespace-nowrap">
+                  Accepted
+                </div>
               </div>
             </div>
 
@@ -497,8 +642,30 @@ export default function PlayerManagement() {
                 <XCircle className="w-6 h-6 sm:w-7 sm:h-7 text-orange-400" />
               </div>
               <div className="text-center sm:text-left">
-                <div className="text-2xl sm:text-3xl font-bold text-orange-400">{unpaidPlayers}</div>
-                <div className="text-xs text-gray-400 whitespace-nowrap">Belum Bayar</div>
+                <div className="text-2xl sm:text-3xl font-bold text-orange-400">
+                  {unpaidPlayers}
+                </div>
+                <div className="text-xs text-gray-400 whitespace-nowrap">
+                  Unpaid
+                </div>
+              </div>
+            </div>
+
+            {/* Divider - Hidden on mobile */}
+            <div className="hidden lg:block w-px h-12 bg-gray-700/60"></div>
+
+            {/* Paid Players */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 flex-1 bg-gray-900/40 lg:bg-transparent p-3 lg:p-0 rounded-xl lg:rounded-none">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-900/60 to-emerald-950/60 rounded-xl flex items-center justify-center border border-emerald-900/40 shadow-lg flex-shrink-0">
+                <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400" />
+              </div>
+              <div className="text-center sm:text-left">
+                <div className="text-2xl sm:text-3xl font-bold text-emerald-400">
+                  {paidPlayers}
+                </div>
+                <div className="text-xs text-gray-400 whitespace-nowrap">
+                  Paid
+                </div>
               </div>
             </div>
           </div>
@@ -515,7 +682,7 @@ export default function PlayerManagement() {
             />
             {searchQuery && (
               <button
-                onClick={() => handleSearchChange('')}
+                onClick={() => handleSearchChange("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-300 hover:bg-gray-800/60 rounded-lg transition-colors"
                 title="Clear search"
               >
@@ -538,43 +705,82 @@ export default function PlayerManagement() {
 
         {/* Payment Filter Tabs */}
         <div className="mt-4 pt-4 border-t border-gray-700/60">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 flex-wrap">
             <DollarSign className="w-5 h-5 text-gray-400" />
-            <span className="text-sm font-semibold text-gray-400 mr-2">Filter Status Pembayaran:</span>
-            <div className="flex gap-2">
+            <span className="text-sm font-semibold text-gray-400 mr-2">
+              Filter Status:
+            </span>
+
+            {/* Main Status Filter */}
+            <div className="flex gap-2 flex-wrap">
               <button
-                onClick={() => handlePaymentFilterChange('all')}
+                onClick={() => handlePaymentFilterChange("all")}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  paymentFilter === 'all'
-                    ? 'bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700'
-                    : 'bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600'
+                  paymentFilter === "all"
+                    ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
+                    : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
                 }`}
               >
-                Semua ({totalPlayers})
+                Registered ({registeredPlayers})
               </button>
               <button
-                onClick={() => handlePaymentFilterChange('paid')}
+                onClick={() => handlePaymentFilterChange("accepted")}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
-                  paymentFilter === 'paid'
-                    ? 'bg-gradient-to-r from-green-900 to-green-800 text-white border-2 border-green-700'
-                    : 'bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600'
+                  paymentFilter === "accepted"
+                    ? "bg-gradient-to-r from-green-900 to-green-800 text-white border-2 border-green-700"
+                    : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
                 }`}
               >
                 <CheckCircle2 className="w-4 h-4" />
-                Paid ({paidPlayers})
-              </button>
-              <button
-                onClick={() => handlePaymentFilterChange('unpaid')}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
-                  paymentFilter === 'unpaid'
-                    ? 'bg-gradient-to-r from-orange-900 to-orange-800 text-white border-2 border-orange-700'
-                    : 'bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600'
-                }`}
-              >
-                <XCircle className="w-4 h-4" />
-                Unpaid ({unpaidPlayers})
+                Accepted ({acceptedPlayers})
               </button>
             </div>
+
+            {/* Divider */}
+            {paymentFilter === "accepted" && (
+              <>
+                <div className="w-px h-8 bg-gray-700/60"></div>
+
+                {/* Payment Status Sub-filter - Only show when accepted tab is active */}
+                <span className="text-sm font-semibold text-gray-400">
+                  Status Pembayaran:
+                </span>
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => handleSubPaymentFilterChange("all")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      subPaymentFilter === "all"
+                        ? "bg-gradient-to-r from-blue-900 to-blue-800 text-white border-2 border-blue-700"
+                        : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
+                    }`}
+                  >
+                    Semua
+                  </button>
+                  <button
+                    onClick={() => handleSubPaymentFilterChange("unpaid")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                      subPaymentFilter === "unpaid"
+                        ? "bg-gradient-to-r from-orange-900 to-orange-800 text-white border-2 border-orange-700"
+                        : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
+                    }`}
+                  >
+                    <XCircle className="w-3.5 h-3.5" />
+                    Unpaid ({unpaidPlayers})
+                  </button>
+                  <button
+                    onClick={() => handleSubPaymentFilterChange("paid")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                      subPaymentFilter === "paid"
+                        ? "bg-gradient-to-r from-emerald-900 to-emerald-800 text-white border-2 border-emerald-700"
+                        : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Paid ({paidPlayers})
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -582,35 +788,54 @@ export default function PlayerManagement() {
         {searchQuery && filteredPlayers && (
           <div className="mt-3 pt-3 border-t border-gray-700/60">
             <p className="text-sm text-gray-400">
-              Ditemukan <span className="font-semibold text-red-400">{filteredPlayers.length}</span> pemain dari pencarian "<span className="text-white">{searchQuery}</span>"
+              Ditemukan{" "}
+              <span className="font-semibold text-red-400">
+                {filteredPlayers.length}
+              </span>{" "}
+              pemain dari pencarian "
+              <span className="text-white">{searchQuery}</span>"
             </p>
           </div>
         )}
       </div>
 
       {/* Payment Action Bar - Always Visible */}
-      <div className={`backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border p-4 transition-all ${
-        selectedPlayerIds.size > 0 
-          ? 'bg-gradient-to-r from-blue-900/60 to-blue-800/60 border-blue-900/40' 
-          : 'bg-gradient-to-r from-gray-900/60 to-gray-800/60 border-gray-800/40'
-      }`}>
+      <div
+        className={`backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border p-4 transition-all ${
+          selectedPlayerIds.size > 0
+            ? "bg-gradient-to-r from-blue-900/60 to-blue-800/60 border-blue-900/40"
+            : "bg-gradient-to-r from-gray-900/60 to-gray-800/60 border-gray-800/40"
+        }`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-              selectedPlayerIds.size > 0 ? 'bg-white/20' : 'bg-gray-700/40'
-            }`}>
-              <UserCheck className={`w-5 h-5 ${selectedPlayerIds.size > 0 ? 'text-white' : 'text-gray-400'}`} />
+            <div
+              className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                selectedPlayerIds.size > 0 ? "bg-white/20" : "bg-gray-700/40"
+              }`}
+            >
+              <UserCheck
+                className={`w-5 h-5 ${selectedPlayerIds.size > 0 ? "text-white" : "text-gray-400"}`}
+              />
             </div>
             <div>
               {selectedPlayerIds.size > 0 ? (
                 <>
-                  <div className="text-white font-semibold">{selectedPlayerIds.size} Pemain Dipilih</div>
-                  <div className="text-xs text-blue-200">Pilih aksi untuk pemain yang dipilih</div>
+                  <div className="text-white font-semibold">
+                    {selectedPlayerIds.size} Pemain Dipilih
+                  </div>
+                  <div className="text-xs text-blue-200">
+                    Pilih aksi untuk pemain yang dipilih
+                  </div>
                 </>
               ) : (
                 <>
-                  <div className="text-gray-300 font-semibold">Payment Action Bar</div>
-                  <div className="text-xs text-gray-400">Pilih pemain terlebih dahulu untuk mengubah status pembayaran</div>
+                  <div className="text-gray-300 font-semibold">
+                    Payment Action Bar
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    Pilih pemain terlebih dahulu untuk mengubah status
+                  </div>
                 </>
               )}
             </div>
@@ -626,24 +851,53 @@ export default function PlayerManagement() {
                 >
                   Batal
                 </Button>
-                <Button
-                  variant="outline"
-                  size="md"
-                  icon={CheckCircle2}
-                  onClick={handleMarkAsPaid}
-                  className="!bg-green-600 hover:!bg-green-700 !border-green-700 !text-white shadow-[0_4px_12px_rgba(34,197,94,0.4)]"
-                >
-                  Status PAID
-                </Button>
-                <Button
-                  variant="outline"
-                  size="md"
-                  icon={XCircle}
-                  onClick={handleMarkAsUnpaid}
-                  className="!bg-red-600 hover:!bg-orange-700 !border-orange-700 !text-white shadow-[0_4px_12px_rgba(249,115,22,0.4)]"
-                >
-                  Status UNPAID
-                </Button>
+
+                {/* Show different buttons based on active tab */}
+                {paymentFilter === "all" ? (
+                  // All tab: Only show Accept and Cancel buttons
+                  <>
+                    <Button
+                      variant="outline"
+                      size="md"
+                      icon={CheckCircle2}
+                      onClick={handleMarkAsAccepted}
+                      className="!bg-green-600 hover:!bg-green-700 !border-green-700 !text-white shadow-[0_4px_12px_rgba(34,197,94,0.4)]"
+                    >
+                      Accept
+                    </Button>
+                  </>
+                ) : (
+                  // Accepted tab: Show Back to Registered, Unpaid, Paid buttons
+                  <>
+                    <Button
+                      variant="outline"
+                      size="md"
+                      icon={XCircle}
+                      onClick={handleMarkAsRegistered}
+                      className="!bg-gray-600 hover:!bg-gray-700 !border-gray-700 !text-white shadow-[0_4px_12px_rgba(107,114,128,0.4)]"
+                    >
+                      Back to Registered
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="md"
+                      icon={XCircle}
+                      onClick={handleMarkAsUnpaid}
+                      className="!bg-orange-600 hover:!bg-orange-700 !border-orange-700 !text-white shadow-[0_4px_12px_rgba(249,115,22,0.4)]"
+                    >
+                      Mark as Unpaid
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="md"
+                      icon={CheckCircle2}
+                      onClick={handleMarkAsPaid}
+                      className="!bg-green-600 hover:!bg-green-700 !border-green-700 !text-white shadow-[0_4px_12px_rgba(34,197,94,0.4)]"
+                    >
+                      Mark as Paid
+                    </Button>
+                  </>
+                )}
               </>
             ) : (
               <div className="flex items-center gap-2 text-gray-500 text-sm">
@@ -669,12 +923,12 @@ export default function PlayerManagement() {
           <div className="py-12">
             <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-white mb-2">
-              {searchQuery ? 'Pemain tidak ditemukan' : 'Belum ada pemain'}
+              {searchQuery ? "Pemain tidak ditemukan" : "Belum ada pemain"}
             </h3>
             <p className="text-gray-400 mb-6">
-              {searchQuery 
-                ? 'Coba sesuaikan kriteria pencarian Anda'
-                : 'Mulai dengan menambahkan pemain pertama'}
+              {searchQuery
+                ? "Coba sesuaikan kriteria pencarian Anda"
+                : "Mulai dengan menambahkan pemain pertama"}
             </p>
             {!searchQuery && (
               <Button
@@ -697,36 +951,63 @@ export default function PlayerManagement() {
                   <th className="px-4 py-4 text-center">
                     <input
                       type="checkbox"
-                      checked={selectedPlayerIds.size === paginatedPlayers?.length && paginatedPlayers?.length > 0}
+                      checked={
+                        selectedPlayerIds.size === paginatedPlayers?.length &&
+                        paginatedPlayers?.length > 0
+                      }
                       onChange={handleSelectAll}
                       className="w-5 h-5 rounded border-2 border-gray-300 text-red-600 focus:ring-2 focus:ring-red-500 cursor-pointer"
                     />
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Pemain</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Email</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Telepon</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Nama Alias</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Tanggal Lahir</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold">Gender</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold">Ukuran</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold">Status Bayar</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold">Aksi</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Pemain
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Email
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Telepon
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Nama Alias
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Tanggal Lahir
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold">
+                    Gender
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold">
+                    Ukuran
+                  </th>
+                  {/* Only show Status Bayar column when in Accepted tab */}
+                  {paymentFilter === "accepted" && (
+                    <th className="px-6 py-4 text-center text-sm font-semibold">
+                      Status Bayar
+                    </th>
+                  )}
+                  <th className="px-6 py-4 text-center text-sm font-semibold">
+                    Aksi
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800/60">
                 {paginatedPlayers?.map((player, index) => (
-                  <tr 
+                  <tr
                     key={player._id}
                     onClick={() => handleCheckboxToggle(player._id)}
                     className={`transition-colors cursor-pointer ${
-                      index % 2 === 0 ? 'bg-gray-900/40' : 'bg-gray-800/40'
+                      index % 2 === 0 ? "bg-gray-900/40" : "bg-gray-800/40"
                     } ${
-                      selectedPlayerIds.has(player._id) 
-                        ? 'bg-blue-900/30 hover:bg-blue-900/40' 
-                        : 'hover:bg-red-900/20'
+                      selectedPlayerIds.has(player._id)
+                        ? "bg-blue-900/30 hover:bg-blue-900/40"
+                        : "hover:bg-red-900/20"
                     }`}
                   >
-                    <td className="px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                    <td
+                      className="px-4 py-4 text-center"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <input
                         type="checkbox"
                         checked={selectedPlayerIds.has(player._id)}
@@ -740,8 +1021,12 @@ export default function PlayerManagement() {
                           {player.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-semibold text-white">{player.name}</div>
-                          <div className="text-xs text-gray-400">@{player.username}</div>
+                          <div className="font-semibold text-white">
+                            {player.name}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            @{player.username}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -754,63 +1039,86 @@ export default function PlayerManagement() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-gray-300">
                         <Phone className="w-4 h-4 text-red-500" />
-                        <span className="text-sm">{player.phone || '-'}</span>
+                        <span className="text-sm">{player.phone || "-"}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-300">{player.nickname || '-'}</span>
+                      <span className="text-sm text-gray-300">
+                        {player.nickname || "-"}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-gray-300">
                         <Calendar className="w-4 h-4 text-red-500" />
-                        <span className="text-sm">{(player as any).dateOfBirth || '-'}</span>
+                        <span className="text-sm">
+                          {(player as any).dateOfBirth || "-"}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                        player.gender === 'male' 
-                          ? 'bg-blue-950/40 text-blue-400 border border-blue-900/30' 
-                          : player.gender === 'female'
-                          ? 'bg-pink-950/40 text-pink-400 border border-pink-900/30'
-                          : 'bg-gray-950/40 text-gray-400 border border-gray-900/30'
-                      }`}>
-                        {player.gender === 'male' ? 'Pria' : player.gender === 'female' ? 'Wanita' : '-'}
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                          player.gender === "male"
+                            ? "bg-blue-950/40 text-blue-400 border border-blue-900/30"
+                            : player.gender === "female"
+                              ? "bg-pink-950/40 text-pink-400 border border-pink-900/30"
+                              : "bg-gray-950/40 text-gray-400 border border-gray-900/30"
+                        }`}
+                      >
+                        {player.gender === "male"
+                          ? "Pria"
+                          : player.gender === "female"
+                            ? "Wanita"
+                            : "-"}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center justify-center gap-1.5">
                           <Shirt className="w-3 h-3 text-red-500" />
-                          <span className="text-xs text-gray-300">{player.shirtSize || '-'}</span>
+                          <span className="text-xs text-gray-300">
+                            {player.shirtSize || "-"}
+                          </span>
                         </div>
                         <div className="flex items-center justify-center gap-1.5">
                           <span className="text-xs text-gray-500">Glove:</span>
-                          <span className="text-xs text-gray-300">{player.gloveSize || '-'}</span>
+                          <span className="text-xs text-gray-300">
+                            {player.gloveSize || "-"}
+                          </span>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      {(player as any).paymentStatus === 'paid' ? (
-                        <div className="flex flex-col items-center gap-1">
-                          <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-green-950/40 text-green-400 border border-green-900/30">
-                            <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                            PAID
-                          </span>
-                          {(player as any).paidAt && (
-                            <span className="text-xs text-gray-500">
-                              {new Date((player as any).paidAt).toLocaleDateString('id-ID')}
+
+                    {/* Only show Status Bayar column when in Accepted tab */}
+                    {paymentFilter === "accepted" && (
+                      <td className="px-6 py-4 text-center">
+                        {(player as any).paidStatus === "paid" ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-950/40 text-emerald-400 border border-emerald-900/30">
+                              <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                              PAID
                             </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-950/40 text-orange-400 border border-orange-900/30">
-                          <XCircle className="w-3.5 h-3.5 mr-1" />
-                          UNPAID
-                        </span>
-                      )}
-                    </td>
-                    
-                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                            {(player as any).paidAt && (
+                              <span className="text-xs text-gray-500">
+                                {new Date(
+                                  (player as any).paidAt,
+                                ).toLocaleDateString("id-ID")}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-950/40 text-orange-400 border border-orange-900/30">
+                            <XCircle className="w-3.5 h-3.5 mr-1" />
+                            UNPAID
+                          </span>
+                        )}
+                      </td>
+                    )}
+
+                    <td
+                      className="px-6 py-4"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleOpenDetailModal(player)}
@@ -857,52 +1165,64 @@ export default function PlayerManagement() {
 
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-400">
-                  Menampilkan {startIndex + 1} sampai {Math.min(endIndex, filteredPlayers.length)} dari {filteredPlayers.length} pemain
+                  Menampilkan {startIndex + 1} sampai{" "}
+                  {Math.min(endIndex, filteredPlayers.length)} dari{" "}
+                  {filteredPlayers.length} pemain
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
                   disabled={currentPage === 1}
                   className="px-3 py-1.5 bg-gray-900/60 border-2 border-gray-700/60 text-white rounded-lg hover:bg-gray-800/60 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Sebelumnya
                 </button>
-                
+
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                    // Show first page, last page, current page, and pages around current
-                    if (
-                      page === 1 ||
-                      page === totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1)
-                    ) {
-                      return (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`w-9 h-9 rounded-lg font-medium transition-colors ${
-                            currentPage === page
-                              ? 'bg-red-900/60 text-white border border-red-900/40'
-                              : 'bg-gray-900/60 border-2 border-gray-700/60 text-gray-300 hover:bg-gray-800/60'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      );
-                    } else if (
-                      page === currentPage - 2 ||
-                      page === currentPage + 2
-                    ) {
-                      return <span key={page} className="px-2 text-gray-500">...</span>;
-                    }
-                    return null;
-                  })}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => {
+                      // Show first page, last page, current page, and pages around current
+                      if (
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1)
+                      ) {
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-9 h-9 rounded-lg font-medium transition-colors ${
+                              currentPage === page
+                                ? "bg-red-900/60 text-white border border-red-900/40"
+                                : "bg-gray-900/60 border-2 border-gray-700/60 text-gray-300 hover:bg-gray-800/60"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        );
+                      } else if (
+                        page === currentPage - 2 ||
+                        page === currentPage + 2
+                      ) {
+                        return (
+                          <span key={page} className="px-2 text-gray-500">
+                            ...
+                          </span>
+                        );
+                      }
+                      return null;
+                    },
+                  )}
                 </div>
 
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className="px-3 py-1.5 bg-gray-900/60 border-2 border-gray-700/60 text-white rounded-lg hover:bg-gray-800/60 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
@@ -926,12 +1246,14 @@ export default function PlayerManagement() {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold">
-                    {modalMode === 'create' ? 'Tambah Pemain Baru' : 'Detail Pemain'}
+                    {modalMode === "create"
+                      ? "Tambah Pemain Baru"
+                      : "Detail Pemain"}
                   </h3>
                   <p className="text-sm text-gray-300">
-                    {modalMode === 'create' 
-                      ? 'Buat akun pemain baru' 
-                      : 'Informasi lengkap pemain'}
+                    {modalMode === "create"
+                      ? "Buat akun pemain baru"
+                      : "Informasi lengkap pemain"}
                   </p>
                 </div>
               </div>
@@ -955,7 +1277,7 @@ export default function PlayerManagement() {
                 </div>
               )}
 
-              {modalMode === 'detail' ? (
+              {modalMode === "detail" ? (
                 // Detail View (Read-only)
                 <div className="space-y-6">
                   {/* Personal Information */}
@@ -966,33 +1288,57 @@ export default function PlayerManagement() {
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
-                        <label className="text-xs text-gray-500 mb-1 block">Nama Lengkap</label>
-                        <p className="text-white font-semibold">{formData.name}</p>
-                      </div>
-                      <div className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
-                        <label className="text-xs text-gray-500 mb-1 block">Email</label>
-                        <p className="text-white font-semibold">{formData.email}</p>
-                      </div>
-                      <div className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
-                        <label className="text-xs text-gray-500 mb-1 block">Username</label>
-                        <p className="text-white font-semibold">@{formData.username}</p>
-                      </div>
-                      <div className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
-                        <label className="text-xs text-gray-500 mb-1 block">Nomor Telepon</label>
-                        <p className="text-white font-semibold">{formData.phone || '-'}</p>
-                      </div>
-                      <div className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
-                        <label className="text-xs text-gray-500 mb-1 block">Nama Alias</label>
-                        <p className="text-white font-semibold">{formData.nickname || '-'}</p>
-                      </div>
-                      <div className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
-                        <label className="text-xs text-gray-500 mb-1 block">Jenis Kelamin</label>
+                        <label className="text-xs text-gray-500 mb-1 block">
+                          Nama Lengkap
+                        </label>
                         <p className="text-white font-semibold">
-                          {formData.gender === 'male' ? 'Pria' : formData.gender === 'female' ? 'Wanita' : '-'}
+                          {formData.name}
                         </p>
                       </div>
-                     
-                     
+                      <div className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
+                        <label className="text-xs text-gray-500 mb-1 block">
+                          Email
+                        </label>
+                        <p className="text-white font-semibold">
+                          {formData.email}
+                        </p>
+                      </div>
+                      <div className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
+                        <label className="text-xs text-gray-500 mb-1 block">
+                          Username
+                        </label>
+                        <p className="text-white font-semibold">
+                          @{formData.username}
+                        </p>
+                      </div>
+                      <div className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
+                        <label className="text-xs text-gray-500 mb-1 block">
+                          Nomor Telepon
+                        </label>
+                        <p className="text-white font-semibold">
+                          {formData.phone || "-"}
+                        </p>
+                      </div>
+                      <div className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
+                        <label className="text-xs text-gray-500 mb-1 block">
+                          Nama Alias
+                        </label>
+                        <p className="text-white font-semibold">
+                          {formData.nickname || "-"}
+                        </p>
+                      </div>
+                      <div className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
+                        <label className="text-xs text-gray-500 mb-1 block">
+                          Jenis Kelamin
+                        </label>
+                        <p className="text-white font-semibold">
+                          {formData.gender === "male"
+                            ? "Pria"
+                            : formData.gender === "female"
+                              ? "Wanita"
+                              : "-"}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
@@ -1004,12 +1350,20 @@ export default function PlayerManagement() {
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
-                        <label className="text-xs text-gray-500 mb-1 block">Ukuran Baju</label>
-                        <p className="text-white font-semibold text-2xl">{formData.shirtSize || '-'}</p>
+                        <label className="text-xs text-gray-500 mb-1 block">
+                          Ukuran Baju
+                        </label>
+                        <p className="text-white font-semibold text-2xl">
+                          {formData.shirtSize || "-"}
+                        </p>
                       </div>
                       <div className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
-                        <label className="text-xs text-gray-500 mb-1 block">Ukuran Sarung Tangan</label>
-                        <p className="text-white font-semibold text-2xl">{formData.gloveSize || '-'}</p>
+                        <label className="text-xs text-gray-500 mb-1 block">
+                          Ukuran Sarung Tangan
+                        </label>
+                        <p className="text-white font-semibold text-2xl">
+                          {formData.gloveSize || "-"}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1022,20 +1376,28 @@ export default function PlayerManagement() {
                     </h4>
                     <div className="space-y-3">
                       {[
-                        { label: 'Driver', data: formData.drivers },
-                        { label: 'Fairway', data: formData.fairways },
-                        { label: 'Hybrid', data: formData.hybrids },
-                        { label: 'Iron', data: formData.irons },
-                        { label: 'Wedge', data: formData.wedges },
-                        { label: 'Putter', data: formData.putters },
-                        { label: 'Golf Ball', data: formData.golfBalls },
+                        { label: "Driver", data: formData.drivers },
+                        { label: "Fairway", data: formData.fairways },
+                        { label: "Hybrid", data: formData.hybrids },
+                        { label: "Iron", data: formData.irons },
+                        { label: "Wedge", data: formData.wedges },
+                        { label: "Putter", data: formData.putters },
+                        { label: "Golf Ball", data: formData.golfBalls },
                       ].map(({ label, data }) => (
-                        <div key={label} className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4">
-                          <label className="text-xs text-gray-500 mb-2 block">{label}</label>
+                        <div
+                          key={label}
+                          className="bg-[#1a1a1a]/60 border-2 border-gray-800/60 rounded-xl p-4"
+                        >
+                          <label className="text-xs text-gray-500 mb-2 block">
+                            {label}
+                          </label>
                           {data && data.length > 0 ? (
                             <div className="space-y-1">
                               {data.map((club, idx) => (
-                                <p key={idx} className="text-white font-semibold">
+                                <p
+                                  key={idx}
+                                  className="text-white font-semibold"
+                                >
                                   {club.brand} - {club.model}
                                 </p>
                               ))}
@@ -1052,232 +1414,265 @@ export default function PlayerManagement() {
                 // Create Form
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="John Doe"
-                    required
-                    className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-                  />
-                </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) =>
+                          setFormData({ ...formData, name: e.target.value })
+                        }
+                        placeholder="John Doe"
+                        required
+                        className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="john@example.com"
-                    required
-                    className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
+                        placeholder="john@example.com"
+                        required
+                        className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Username *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    placeholder="johndoe"
-                    required
-                    className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
+                        Username *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.username}
+                        onChange={(e) =>
+                          setFormData({ ...formData, username: e.target.value })
+                        }
+                        placeholder="johndoe"
+                        required
+                        className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Password {modalMode === 'create' ? '*' : '(leave blank to keep current)'}
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="••••••••"
-                    required={modalMode === 'create'}
-                    className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
+                        Password{" "}
+                        {modalMode === "create"
+                          ? "*"
+                          : "(leave blank to keep current)"}
+                      </label>
+                      <input
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) =>
+                          setFormData({ ...formData, password: e.target.value })
+                        }
+                        placeholder="••••••••"
+                        required={modalMode === "create"}
+                        className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+                      />
+                    </div>
 
-              
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="08xxxxxxxxxx"
-                    className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
+                        Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) =>
+                          setFormData({ ...formData, phone: e.target.value })
+                        }
+                        placeholder="08xxxxxxxxxx"
+                        className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Nickname
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.nickname}
-                    onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
-                    placeholder="Nickname"
-                    className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
+                        Nickname
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.nickname}
+                        onChange={(e) =>
+                          setFormData({ ...formData, nickname: e.target.value })
+                        }
+                        placeholder="Nickname"
+                        className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Gender
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, gender: 'male' })}
-                      className={`py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
-                        formData.gender === 'male'
-                          ? 'bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700'
-                          : 'bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700'
-                      }`}
-                    >
-                      Male
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, gender: 'female' })}
-                      className={`py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
-                        formData.gender === 'female'
-                          ? 'bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700'
-                          : 'bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700'
-                      }`}
-                    >
-                      Female
-                    </button>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
+                        Gender
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData({ ...formData, gender: "male" })
+                          }
+                          className={`py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+                            formData.gender === "male"
+                              ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
+                              : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
+                          }`}
+                        >
+                          Male
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData({ ...formData, gender: "female" })
+                          }
+                          className={`py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+                            formData.gender === "female"
+                              ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
+                              : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
+                          }`}
+                        >
+                          Female
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
+                        Work Location
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.workLocation}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            workLocation: e.target.value,
+                          })
+                        }
+                        placeholder="City/Office"
+                        className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
+                        Shirt Size
+                      </label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {["S", "M", "L", "XL"].map((size) => (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                shirtSize: size as any,
+                              })
+                            }
+                            className={`py-3 rounded-xl text-sm font-bold transition-all ${
+                              formData.shirtSize === size
+                                ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
+                                : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
+                            }`}
+                          >
+                            {size}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
+                        Glove Size
+                      </label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {["S", "M", "L", "XL"].map((size) => (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                gloveSize: size as any,
+                              })
+                            }
+                            className={`py-3 rounded-xl text-sm font-bold transition-all ${
+                              formData.gloveSize === size
+                                ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
+                                : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
+                            }`}
+                          >
+                            {size}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Work Location
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.workLocation}
-                    onChange={(e) => setFormData({ ...formData, workLocation: e.target.value })}
-                    placeholder="City/Office"
-                    className="w-full px-4 py-3 bg-[#1a1a1a]/60 border-2 border-gray-800/60 text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-                  />
-                </div>
+                  {/* Club Sets Selector */}
+                  <div className="md:col-span-2">
+                    <ClubSetsSelector
+                      drivers={formData.drivers}
+                      fairways={formData.fairways}
+                      hybrids={formData.hybrids}
+                      utilityIrons={formData.utilityIrons}
+                      irons={formData.irons}
+                      wedges={formData.wedges}
+                      putters={formData.putters}
+                      onChange={(category, clubs) => {
+                        setFormData({
+                          ...formData,
+                          [category]: clubs,
+                        });
+                      }}
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Shirt Size
-                  </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {['S', 'M', 'L', 'XL'].map((size) => (
-                      <button
-                        key={size}
+                  {/* Modal Footer */}
+                  <div className="flex gap-3 pt-4 border-t border-gray-800/60">
+                    {modalMode === "create" ? (
+                      <>
+                        <Button
+                          type="submit"
+                          variant="primary"
+                          size="lg"
+                          icon={Save}
+                          fullWidth
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? "Menyimpan..." : "Buat Pemain"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="lg"
+                          onClick={handleCloseModal}
+                          disabled={isSubmitting}
+                        >
+                          Batal
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
                         type="button"
-                        onClick={() => setFormData({ ...formData, shirtSize: size as any })}
-                        className={`py-3 rounded-xl text-sm font-bold transition-all ${
-                          formData.shirtSize === size
-                            ? 'bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700'
-                            : 'bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700'
-                        }`}
+                        variant="outline"
+                        size="lg"
+                        onClick={handleCloseModal}
+                        fullWidth
                       >
-                        {size}
-                      </button>
-                    ))}
+                        Tutup
+                      </Button>
+                    )}
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Glove Size
-                  </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {['S', 'M', 'L', 'XL'].map((size) => (
-                      <button
-                        key={size}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, gloveSize: size as any })}
-                        className={`py-3 rounded-xl text-sm font-bold transition-all ${
-                          formData.gloveSize === size
-                            ? 'bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700'
-                            : 'bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700'
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Club Sets Selector */}
-              <div className="md:col-span-2">
-                <ClubSetsSelector
-                  drivers={formData.drivers}
-                  fairways={formData.fairways}
-                  hybrids={formData.hybrids}
-                  utilityIrons={formData.utilityIrons}
-                  irons={formData.irons}
-                  wedges={formData.wedges}
-                  putters={formData.putters}
-                  onChange={(category, clubs) => {
-                    setFormData({
-                      ...formData,
-                      [category]: clubs
-                    });
-                  }}
-                />
-              </div>
-
-              {/* Modal Footer */}
-              <div className="flex gap-3 pt-4 border-t border-gray-800/60">
-                {modalMode === 'create' ? (
-                  <>
-                    <Button 
-                      type="submit" 
-                      variant="primary" 
-                      size="lg" 
-                      icon={Save}
-                      fullWidth
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? 'Menyimpan...' : 'Buat Pemain'}
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="lg" 
-                      onClick={handleCloseModal}
-                      disabled={isSubmitting}
-                    >
-                      Batal
-                    </Button>
-                  </>
-                ) : (
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="lg" 
-                    onClick={handleCloseModal}
-                    fullWidth
-                  >
-                    Tutup
-                  </Button>
-                )}
-              </div>
                 </>
               )}
             </form>

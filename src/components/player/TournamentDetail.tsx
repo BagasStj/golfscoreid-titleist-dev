@@ -192,12 +192,12 @@ export default function TournamentDetail() {
             >
               <ChevronLeft className="w-4 h-4" />
               <span className="text-xs font-semibold">
-                {isFromHome 
-                  ? "Kembali ke Beranda" 
-                  : isFromMyTournaments 
+                {isFromHome
+                  ? "Kembali ke Beranda"
+                  : isFromMyTournaments
                     ? "Kembali ke Tournament Saya"
-                    : isRegistered 
-                      ? "Kembali ke Tournament Saya" 
+                    : isRegistered
+                      ? "Kembali ke Tournament Saya"
                       : "Kembali"}
               </span>
             </button>
@@ -479,8 +479,8 @@ export default function TournamentDetail() {
 
           {/* Right Column - Action Buttons */}
           <div className="space-y-2">
-            {/* Join Tournament Button - Only show if from home and not registered */}
-            {isFromHome && !isRegistered && (
+            {/* Join Tournament Button - Only show if from home, not registered, and tournament is not yet active */}
+            {isFromHome && !isRegistered && tournament.status !== "active" && (
               <button
                 onClick={handleJoinTournament}
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-4 rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
@@ -771,13 +771,12 @@ export default function TournamentDetail() {
               </div>
 
               {/* Title */}
-              <h3 className="text-xl font-bold text-white">
-                Belum Terdaftar
-              </h3>
+              <h3 className="text-xl font-bold text-white">Belum Terdaftar</h3>
 
               {/* Message */}
               <p className="text-gray-400 text-sm leading-relaxed">
-                Mohon maaf, saat ini Anda belum terdaftar sebagai peserta pada turnamen ini.
+                Mohon maaf, saat ini Anda belum terdaftar sebagai peserta pada
+                turnamen ini.
               </p>
 
               {/* Button */}

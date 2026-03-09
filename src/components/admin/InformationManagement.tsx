@@ -4,7 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { useAuth } from "../../contexts/AuthContext";
 
-type InformationType = "factsheet" | "teesheet" | "activity" | "contact";
+type CategoryType = "general" | "tournament";
 
 const InformationManagement: React.FC = () => {
   const { user } = useAuth();
@@ -16,17 +16,12 @@ const InformationManagement: React.FC = () => {
   // Form states
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [type, setType] = useState<InformationType>("factsheet");
+  const [category, setCategory] = useState<CategoryType>("general");
+  const [tournamentId, setTournamentId] = useState<Id<"tournaments"> | "">("");
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isPublished, setIsPublished] = useState(true);
   const [order, setOrder] = useState("");
-
-  // Contact fields
-  const [contactName, setContactName] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactPosition, setContactPosition] = useState("");
 
   const [isUploading, setIsUploading] = useState(false);
   const [previewDialog, setPreviewDialog] = useState<{
@@ -41,6 +36,8 @@ const InformationManagement: React.FC = () => {
     user ? { userId: user._id } : "skip",
   );
 
+  const allTournaments = useQuery(api.information.getAllTournaments);
+
   // Mutations
   const createInformation = useMutation(api.information.createInformation);
   const updateInformation = useMutation(api.information.updateInformation);
@@ -51,15 +48,12 @@ const InformationManagement: React.FC = () => {
   const resetForm = () => {
     setTitle("");
     setDescription("");
-    setType("factsheet");
+    setCategory("general");
+    setTournamentId("");
     setFile(null);
     setFilePreview(null);
     setIsPublished(true);
     setOrder("");
-    setContactName("");
-    setContactPhone("");
-    setContactEmail("");
-    setContactPosition("");
     setEditingInfo(null);
     setShowDialog(false);
   };
@@ -67,22 +61,18 @@ const InformationManagement: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      // Validate file type based on information type
-      const validTypes =
-        type === "activity"
-          ? ["image/png"]
-          : ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
+      const validTypes = [
+        "application/pdf",
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+      ];
 
       if (!validTypes.includes(selectedFile.type)) {
-        alert(
-          type === "activity"
-            ? "Silakan pilih file PNG untuk activity"
-            : "Silakan pilih file PDF, JPG, atau PNG",
-        );
+        alert("Silakan pilih file PDF, JPG, atau PNG");
         return;
       }
 
-      // Validate file size (max 10MB)
       if (selectedFile.size > 10 * 1024 * 1024) {
         alert("Ukuran file harus kurang dari 10MB");
         return;
@@ -90,7 +80,6 @@ const InformationManagement: React.FC = () => {
 
       setFile(selectedFile);
 
-      // Create preview for images
       if (selectedFile.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -98,7 +87,6 @@ const InformationManagement: React.FC = () => {
         };
         reader.readAsDataURL(selectedFile);
       } else if (selectedFile.type === "application/pdf") {
-        // For PDF, just set a flag that we have a PDF
         setFilePreview("PDF_FILE");
       }
     }
@@ -113,18 +101,13 @@ const InformationManagement: React.FC = () => {
     e.preventDefault();
     if (!user) return;
 
-    // Validate contact type
-    if (
-      type === "contact" &&
-      (!contactName || !contactPhone || !contactEmail)
-    ) {
-      alert("Please fill in all contact fields");
+    if (category === "tournament" && !tournamentId) {
+      alert("Silakan pilih tournament");
       return;
     }
 
-    // Validate file for non-contact types
-    if (type !== "contact" && !file && !editingInfo) {
-      alert("Please select a file");
+    if (!file && !editingInfo) {
+      alert("Silakan pilih file");
       return;
     }
 
@@ -134,7 +117,6 @@ const InformationManagement: React.FC = () => {
       let fileStorageId: Id<"_storage"> | undefined;
       let fileType: string | undefined;
 
-      // Upload file if new file is selected
       if (file) {
         const uploadUrl = await generateUploadUrl();
         const result = await fetch(uploadUrl, {
@@ -151,7 +133,6 @@ const InformationManagement: React.FC = () => {
         fileStorageId = storageId;
         fileType = file.type.includes("pdf") ? "pdf" : file.type.split("/")[1];
       } else if (editingInfo) {
-        // Keep existing file when editing
         const existingInfo = allInformation?.find((i) => i._id === editingInfo);
         if (existingInfo?.fileStorageId) {
           fileStorageId = existingInfo.fileStorageId;
@@ -164,12 +145,13 @@ const InformationManagement: React.FC = () => {
           informationId: editingInfo,
           title,
           description: description || undefined,
+          category,
+          tournamentId:
+            category === "tournament" && tournamentId
+              ? tournamentId
+              : undefined,
           fileStorageId,
           fileType,
-          contactName: type === "contact" ? contactName : undefined,
-          contactPhone: type === "contact" ? contactPhone : undefined,
-          contactEmail: type === "contact" ? contactEmail : undefined,
-          contactPosition: type === "contact" ? contactPosition : undefined,
           isPublished,
           order: order ? parseInt(order) : undefined,
           userId: user._id,
@@ -178,13 +160,13 @@ const InformationManagement: React.FC = () => {
         await createInformation({
           title,
           description: description || undefined,
-          type,
+          category,
+          tournamentId:
+            category === "tournament" && tournamentId
+              ? tournamentId
+              : undefined,
           fileStorageId,
           fileType,
-          contactName: type === "contact" ? contactName : undefined,
-          contactPhone: type === "contact" ? contactPhone : undefined,
-          contactEmail: type === "contact" ? contactEmail : undefined,
-          contactPosition: type === "contact" ? contactPosition : undefined,
           isPublished,
           order: order ? parseInt(order) : undefined,
           userId: user._id,
@@ -201,16 +183,13 @@ const InformationManagement: React.FC = () => {
     }
   };
 
-  const handleEdit = (info: any) => {
+  const handleEdit = (info: NonNullable<typeof allInformation>[number]) => {
     setTitle(info.title);
     setDescription(info.description || "");
-    setType(info.type);
+    setCategory(info.category as CategoryType);
+    setTournamentId(info.tournamentId || "");
     setIsPublished(info.isPublished);
     setOrder(info.order?.toString() || "");
-    setContactName(info.contactName || "");
-    setContactPhone(info.contactPhone || "");
-    setContactEmail(info.contactEmail || "");
-    setContactPosition(info.contactPosition || "");
     setFilePreview(info.fileUrl || null);
     setEditingInfo(info._id);
     setShowDialog(true);
@@ -240,31 +219,23 @@ const InformationManagement: React.FC = () => {
     }
   };
 
-  const getTypeLabel = (t: string) => {
-    switch (t) {
-      case "factsheet":
-        return "Fact Sheet";
-      case "teesheet":
-        return "Tee Sheet";
-      case "activity":
-        return "Activity";
-      case "contact":
-        return "Contact";
+  const getCategoryLabel = (c: string) => {
+    switch (c) {
+      case "general":
+        return "General";
+      case "tournament":
+        return "Tournament";
       default:
-        return t;
+        return c;
     }
   };
 
-  const getTypeColor = (t: string) => {
-    switch (t) {
-      case "factsheet":
-        return "bg-blue-500";
-      case "teesheet":
-        return "bg-green-500";
-      case "activity":
-        return "bg-purple-500";
-      case "contact":
-        return "bg-orange-500";
+  const getCategoryColor = (c: string) => {
+    switch (c) {
+      case "general":
+        return "bg-blue-600";
+      case "tournament":
+        return "bg-amber-600";
       default:
         return "bg-gray-500";
     }
@@ -279,7 +250,7 @@ const InformationManagement: React.FC = () => {
           Manajemen Informasi
         </h2>
         <p className="text-gray-400 mt-1">
-          Kelola Fact Sheet, Tee Sheet, Activity, dan Contact
+          Kelola informasi General dan Tournament
         </p>
       </div>
 
@@ -352,39 +323,128 @@ const InformationManagement: React.FC = () => {
             <div className="overflow-y-auto flex-1">
               <form onSubmit={handleSubmit} className="p-6">
                 <div className="space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-300 mb-2">
-                        Judul *
-                      </label>
-                      <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        required
-                        className="w-full px-4 py-3 border-2 border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all placeholder-gray-600"
-                        placeholder="Masukkan judul"
-                      />
-                    </div>
+                  {/* Title */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">
+                      Judul *
+                    </label>
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border-2 border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all placeholder-gray-600"
+                      placeholder="Masukkan judul"
+                    />
+                  </div>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-300 mb-2">
-                        Tipe *
-                      </label>
-                      <input
-                        type="text"
-                        value={type}
-                        onChange={(e) =>
-                          setType(e.target.value as InformationType)
-                        }
-                        disabled={!!editingInfo}
-                        required
-                        className="w-full px-4 py-3 border-2 border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all placeholder-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                        placeholder="factsheet / teesheet / activity / contact"
-                      />
+                  {/* Category */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">
+                      Kategori *
+                    </label>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCategory("general");
+                          setTournamentId("");
+                        }}
+                        className={`flex-1 px-4 py-3 rounded-xl text-sm font-semibold border-2 transition-all flex items-center justify-center gap-2 ${
+                          category === "general"
+                            ? "bg-gradient-to-r from-blue-900 to-blue-800 border-blue-700 text-white shadow-lg shadow-blue-900/40"
+                            : "bg-[#1a1a1a]/60 border-gray-800/60 text-gray-400 hover:border-gray-600 hover:text-white"
+                        }`}
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"
+                          />
+                        </svg>
+                        General
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCategory("tournament")}
+                        className={`flex-1 px-4 py-3 rounded-xl text-sm font-semibold border-2 transition-all flex items-center justify-center gap-2 ${
+                          category === "tournament"
+                            ? "bg-gradient-to-r from-amber-900 to-amber-800 border-amber-700 text-white shadow-lg shadow-amber-900/40"
+                            : "bg-[#1a1a1a]/60 border-gray-800/60 text-gray-400 hover:border-gray-600 hover:text-white"
+                        }`}
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                          />
+                        </svg>
+                        Tournament
+                      </button>
                     </div>
                   </div>
 
+                  {/* Tournament Dropdown — visible only when category is tournament */}
+                  {category === "tournament" && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
+                        Pilih Tournament *
+                      </label>
+                      {allTournaments && allTournaments.length > 0 ? (
+                        <select
+                          value={tournamentId}
+                          onChange={(e) =>
+                            setTournamentId(
+                              e.target.value as Id<"tournaments"> | "",
+                            )
+                          }
+                          required={category === "tournament"}
+                          className="w-full px-4 py-3 border-2 border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all"
+                        >
+                          <option
+                            value=""
+                            className="bg-[#1a1a1a] text-gray-400"
+                          >
+                            -- Pilih Tournament --
+                          </option>
+                          {allTournaments.map((t) => (
+                            <option
+                              key={t._id}
+                              value={t._id}
+                              className="bg-[#1a1a1a] text-white"
+                            >
+                              {t.name}
+                              {t.date
+                                ? ` — ${new Date(t.date).toLocaleDateString("id-ID")}`
+                                : ""}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div className="w-full px-4 py-3 border-2 border-gray-800/60 bg-[#1a1a1a]/60 text-gray-500 rounded-xl text-sm">
+                          {allTournaments === undefined
+                            ? "Memuat tournament..."
+                            : "Belum ada tournament tersedia"}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Description */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-300 mb-2">
                       Deskripsi
@@ -398,99 +458,22 @@ const InformationManagement: React.FC = () => {
                     />
                   </div>
 
-                  {/* File Upload for non-contact types */}
-                  {type !== "contact" && (
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-300 mb-2">
-                        File{" "}
-                        {type === "activity" ? "(PNG only)" : "(PDF, JPG, PNG)"}{" "}
-                        *
-                      </label>
+                  {/* File Upload */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">
+                      File (PDF, JPG, PNG) *
+                    </label>
 
-                      {filePreview || file ? (
-                        <div className="relative">
-                          {filePreview === "PDF_FILE" ||
-                          (filePreview &&
-                            (filePreview.includes(".pdf") ||
-                              file?.type === "application/pdf")) ? (
-                            <div className="w-full h-64 bg-gray-900/60 rounded-xl border-2 border-gray-800/60 flex items-center justify-center">
-                              <div className="text-center">
-                                <svg
-                                  className="w-16 h-16 text-red-500 mx-auto mb-2"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                                  />
-                                </svg>
-                                <p className="text-white font-semibold mb-1">
-                                  PDF File
-                                </p>
-                                {file && (
-                                  <p className="text-gray-400 text-sm">
-                                    {file.name}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          ) : filePreview && filePreview.startsWith("data:") ? (
-                            <img
-                              src={filePreview}
-                              alt="Preview"
-                              className="w-full h-64 object-contain rounded-xl border-2 border-gray-800/60 bg-gray-900/40"
-                            />
-                          ) : filePreview ? (
-                            <img
-                              src={filePreview}
-                              alt="Preview"
-                              className="w-full h-64 object-contain rounded-xl border-2 border-gray-800/60 bg-gray-900/40"
-                            />
-                          ) : null}
-                          <button
-                            type="button"
-                            onClick={removeFile}
-                            className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg shadow-lg transition-colors border border-red-800/40"
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="border-2 border-dashed border-gray-800/60 bg-[#1a1a1a]/40 rounded-xl p-8 text-center hover:border-red-800 transition-colors">
-                          <input
-                            type="file"
-                            accept={
-                              type === "activity"
-                                ? "image/png"
-                                : "application/pdf,image/jpeg,image/jpg,image/png"
-                            }
-                            onChange={handleFileChange}
-                            className="hidden"
-                            id="file-upload"
-                          />
-                          <label
-                            htmlFor="file-upload"
-                            className="cursor-pointer flex flex-col items-center"
-                          >
-                            <div className="w-16 h-16 bg-red-900/40 rounded-2xl flex items-center justify-center mb-3 border border-red-800/40">
+                    {filePreview || file ? (
+                      <div className="relative">
+                        {filePreview === "PDF_FILE" ||
+                        (filePreview &&
+                          (filePreview.includes(".pdf") ||
+                            file?.type === "application/pdf")) ? (
+                          <div className="w-full h-64 bg-gray-900/60 rounded-xl border-2 border-gray-800/60 flex items-center justify-center">
+                            <div className="text-center">
                               <svg
-                                className="w-8 h-8 text-red-500"
+                                className="w-16 h-16 text-red-500 mx-auto mb-2"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -499,81 +482,92 @@ const InformationManagement: React.FC = () => {
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
                                   strokeWidth={2}
-                                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                                 />
                               </svg>
+                              <p className="text-white font-semibold mb-1">
+                                PDF File
+                              </p>
+                              {file && (
+                                <p className="text-gray-400 text-sm">
+                                  {file.name}
+                                </p>
+                              )}
                             </div>
-                            <span className="text-white font-medium mb-1">
-                              Klik untuk upload file
-                            </span>
-                            <span className="text-gray-400 text-sm">
-                              {type === "activity"
-                                ? "PNG maksimal 10MB"
-                                : "PDF, JPG, PNG maksimal 10MB"}
-                            </span>
-                          </label>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                          </div>
+                        ) : filePreview && filePreview.startsWith("data:") ? (
+                          <img
+                            src={filePreview}
+                            alt="Preview"
+                            className="w-full h-64 object-contain rounded-xl border-2 border-gray-800/60 bg-gray-900/40"
+                          />
+                        ) : filePreview ? (
+                          <img
+                            src={filePreview}
+                            alt="Preview"
+                            className="w-full h-64 object-contain rounded-xl border-2 border-gray-800/60 bg-gray-900/40"
+                          />
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={removeFile}
+                          className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg shadow-lg transition-colors border border-red-800/40"
+                        >
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-gray-800/60 bg-[#1a1a1a]/40 rounded-xl p-8 text-center hover:border-red-800 transition-colors">
+                        <input
+                          type="file"
+                          accept="application/pdf,image/jpeg,image/jpg,image/png"
+                          onChange={handleFileChange}
+                          className="hidden"
+                          id="file-upload"
+                        />
+                        <label
+                          htmlFor="file-upload"
+                          className="cursor-pointer flex flex-col items-center"
+                        >
+                          <div className="w-16 h-16 bg-red-900/40 rounded-2xl flex items-center justify-center mb-3 border border-red-800/40">
+                            <svg
+                              className="w-8 h-8 text-red-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                              />
+                            </svg>
+                          </div>
+                          <span className="text-white font-medium mb-1">
+                            Klik untuk upload file
+                          </span>
+                          <span className="text-gray-400 text-sm">
+                            PDF, JPG, PNG maksimal 10MB
+                          </span>
+                        </label>
+                      </div>
+                    )}
+                  </div>
 
-                  {/* Contact Fields */}
-                  {type === "contact" && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          Nama Kontak *
-                        </label>
-                        <input
-                          type="text"
-                          value={contactName}
-                          onChange={(e) => setContactName(e.target.value)}
-                          required={type === "contact"}
-                          className="w-full px-4 py-3 border-2 border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all placeholder-gray-600"
-                          placeholder="Nama lengkap"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          Posisi
-                        </label>
-                        <input
-                          type="text"
-                          value={contactPosition}
-                          onChange={(e) => setContactPosition(e.target.value)}
-                          className="w-full px-4 py-3 border-2 border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all placeholder-gray-600"
-                          placeholder="Jabatan"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          No. Telepon *
-                        </label>
-                        <input
-                          type="tel"
-                          value={contactPhone}
-                          onChange={(e) => setContactPhone(e.target.value)}
-                          required={type === "contact"}
-                          className="w-full px-4 py-3 border-2 border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all placeholder-gray-600"
-                          placeholder="+62 xxx xxxx xxxx"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-300 mb-2">
-                          Email *
-                        </label>
-                        <input
-                          type="email"
-                          value={contactEmail}
-                          onChange={(e) => setContactEmail(e.target.value)}
-                          required={type === "contact"}
-                          className="w-full px-4 py-3 border-2 border-gray-800/60 bg-[#1a1a1a]/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all placeholder-gray-600"
-                          placeholder="email@example.com"
-                        />
-                      </div>
-                    </div>
-                  )}
-
+                  {/* Order & Status */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                       <label className="block text-sm font-semibold text-gray-300 mb-2">
@@ -619,6 +613,7 @@ const InformationManagement: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Actions */}
                   <div className="flex gap-3 pt-4 border-t border-red-900/40">
                     <button
                       type="submit"
@@ -691,8 +686,8 @@ const InformationManagement: React.FC = () => {
             key={info._id}
             className="bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-2xl overflow-hidden border-2 border-red-900/30 hover:border-red-800 hover:shadow-[0_12px_32px_rgba(139,0,0,0.4)] transition-all flex flex-col"
           >
-            {/* Preview */}
-            {info.type !== "contact" && info.fileUrl && (
+            {/* File Preview */}
+            {info.fileUrl && (
               <div
                 className="w-full h-48 overflow-hidden bg-gray-900/60 cursor-pointer group relative"
                 onClick={() =>
@@ -760,14 +755,19 @@ const InformationManagement: React.FC = () => {
             )}
 
             <div className="p-6 flex flex-col flex-1">
+              {/* Badges */}
               <div className="flex items-center gap-2 mb-3 flex-wrap">
                 <span
-                  className={`${getTypeColor(info.type)} text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm`}
+                  className={`${getCategoryColor(info.category)} text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm`}
                 >
-                  {getTypeLabel(info.type)}
+                  {getCategoryLabel(info.category)}
                 </span>
                 <span
-                  className={`${info.isPublished ? "bg-green-900/60 border border-green-800/40" : "bg-gray-800/60 border border-gray-700/40"} text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm`}
+                  className={`${
+                    info.isPublished
+                      ? "bg-green-900/60 border border-green-800/40"
+                      : "bg-gray-800/60 border border-gray-700/40"
+                  } text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm`}
                 >
                   {info.isPublished ? "Published" : "Draft"}
                 </span>
@@ -778,87 +778,41 @@ const InformationManagement: React.FC = () => {
                 )}
               </div>
 
+              {/* Title */}
               <h3 className="text-white text-lg font-bold mb-2 line-clamp-2">
                 {info.title}
               </h3>
+
+              {/* Tournament name badge */}
+              {info.category === "tournament" && info.tournamentName && (
+                <div className="flex items-center gap-2 mb-2">
+                  <svg
+                    className="w-4 h-4 text-amber-500 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                    />
+                  </svg>
+                  <span className="text-amber-400 text-sm font-medium truncate">
+                    {info.tournamentName}
+                  </span>
+                </div>
+              )}
+
+              {/* Description */}
               {info.description && (
                 <p className="text-gray-400 text-sm mb-3 leading-relaxed line-clamp-2 flex-1">
                   {info.description}
                 </p>
               )}
 
-              {/* Contact Info */}
-              {info.type === "contact" && (
-                <div className="space-y-2 mb-3 text-sm">
-                  <div className="text-gray-400 flex items-center gap-2">
-                    <svg
-                      className="w-4 h-4 text-red-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                    {info.contactName}
-                  </div>
-                  {info.contactPosition && (
-                    <div className="text-gray-400 flex items-center gap-2">
-                      <svg
-                        className="w-4 h-4 text-red-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                        />
-                      </svg>
-                      {info.contactPosition}
-                    </div>
-                  )}
-                  <div className="text-gray-400 flex items-center gap-2">
-                    <svg
-                      className="w-4 h-4 text-red-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                      />
-                    </svg>
-                    {info.contactPhone}
-                  </div>
-                  <div className="text-gray-400 flex items-center gap-2">
-                    <svg
-                      className="w-4 h-4 text-red-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                    {info.contactEmail}
-                  </div>
-                </div>
-              )}
-
+              {/* Meta */}
               <div className="space-y-2 mb-4">
                 <div className="text-gray-500 text-xs flex items-center gap-1">
                   <svg
@@ -894,6 +848,7 @@ const InformationManagement: React.FC = () => {
                 </div>
               </div>
 
+              {/* Action buttons */}
               <div className="flex gap-2 pt-3 border-t border-gray-800/60">
                 <button
                   onClick={() => handleTogglePublished(info._id)}

@@ -1,0 +1,59 @@
+diff --git a/src/components/admin/InformationManagement.tsx b/src/components/admin/InformationManagement.tsx
+index 5fc1ae2..f5a6cc1 100644
+--- a/src/components/admin/InformationManagement.tsx
++++ b/src/components/admin/InformationManagement.tsx
+@@ -4,8 +4,6 @@ import { api } from "../../../convex/_generated/api";
+ import type { Id } from "../../../convex/_generated/dataModel";
+ import { useAuth } from "../../contexts/AuthContext";
+ 
+-type InformationType = "factsheet" | "teesheet" | "activity" | "contact";
+-
+ const InformationManagement: React.FC = () => {
+   const { user } = useAuth();
+   const [showDialog, setShowDialog] = useState(false);
+@@ -16,7 +14,6 @@ const InformationManagement: React.FC = () => {
+   // Form states
+   const [title, setTitle] = useState("");
+   const [description, setDescription] = useState("");
+-  const [type, setType] = useState<InformationType>("factsheet");
+   const [file, setFile] = useState<File | null>(null);
+   const [filePreview, setFilePreview] = useState<string | null>(null);
+   const [isPublished, setIsPublished] = useState(true);
+@@ -51,7 +48,6 @@ const InformationManagement: React.FC = () => {
+   const resetForm = () => {
+     setTitle("");
+     setDescription("");
+-    setType("factsheet");
+     setFile(null);
+     setFilePreview(null);
+     setIsPublished(true);
+@@ -67,18 +63,11 @@ const InformationManagement: React.FC = () => {
+   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+     const selectedFile = e.target.files?.[0];
+     if (selectedFile) {
+-      // Validate file type based on information type
+-      const validTypes =
+-        type === "activity"
+-          ? ["image/png"]
+-          : ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
++      // Validate file type
++      const validTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
+ 
+       if (!validTypes.includes(selectedFile.type)) {
+-        alert(
+-          type === "activity"
+-            ? "Silakan pilih file PNG untuk activity"
+-            : "Silakan pilih file PDF, JPG, atau PNG",
+-        );
++        alert("Silakan pilih file PDF, JPG, atau PNG");
+         return;
+       }
+ 
+@@ -204,7 +193,6 @@ const InformationManagement: React.FC = () => {
+   const handleEdit = (info: any) => {
+     setTitle(info.title);
+     setDescription(info.description || "");
+-    setType(info.type);
+     setIsPublished(info.isPublished);
+     setOrder(info.order?.toString() || "");
+     setContactName(info.contactName || "");
