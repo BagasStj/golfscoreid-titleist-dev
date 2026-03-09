@@ -239,7 +239,7 @@ const LandingPage: React.FC = () => {
               </div>
 
               {/* CTA Button */}
-              <div className="px-8 mb-10 w-full flex justify-center">
+              <div className="px-8 mb-10 w-full flex flex-col items-center">
                 <button
                   onClick={() =>
                     navigate("/player/register", {
@@ -255,6 +255,19 @@ const LandingPage: React.FC = () => {
                   <span>Daftar Sekarang</span>
                   <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </button>
+
+                {/* Login Link */}
+                <div className="mt-6 text-center p-4 bg-gray-900/50 rounded-xl border border-gray-800">
+                  <p className="text-sm text-gray-400">
+                    Sudah punya akun?{" "}
+                    <button
+                      onClick={() => navigate("/player/login")}
+                      className="font-semibold text-red-700 hover:text-red-600 transition-colors"
+                    >
+                      Login di sini
+                    </button>
+                  </p>
+                </div>
               </div>
             </div>
           </div>

@@ -124,11 +124,10 @@ const MobileLayout: React.FC = () => {
         <div className="flex items-center justify-around py-3 px-2">
           <button
             onClick={() => handleTabChange("home")}
-            className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all ${
-              activeTab === "home"
-                ? "text-white bg-gradient-to-br from-red-600 to-red-700 shadow-lg shadow-red-900/50"
-                : "text-gray-500 hover:text-white hover:bg-gray-900/50"
-            }`}
+            className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all ${activeTab === "home"
+              ? "text-white bg-gradient-to-br from-red-600 to-red-700 shadow-lg shadow-red-900/50"
+              : "text-gray-500 hover:text-white hover:bg-gray-900/50"
+              }`}
           >
             <svg
               className="w-6 h-6"
@@ -146,10 +145,12 @@ const MobileLayout: React.FC = () => {
             <span className="text-xs font-semibold">Beranda</span>
           </button>
 
-         <button
-            disabled
-            className="flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all text-gray-500 opacity-30 cursor-not-allowed"
-          >
+          <button
+            onClick={() => handleTabChange("my-tournaments")}
+            className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all ${activeTab === "my-tournaments"
+              ? "text-white bg-gradient-to-br from-red-600 to-red-700 shadow-lg shadow-red-900/50"
+              : "text-gray-500 hover:text-white hover:bg-gray-900/50"
+              }`}          >
             <svg
               className="w-6 h-6"
               fill="none"
@@ -168,11 +169,10 @@ const MobileLayout: React.FC = () => {
 
           <button
             onClick={() => handleTabChange("information")}
-            className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all ${
-              activeTab === "information"
-                ? "text-white bg-gradient-to-br from-red-600 to-red-700 shadow-lg shadow-red-900/50"
-                : "text-gray-500 hover:text-white hover:bg-gray-900/50"
-            }`}
+            className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all ${activeTab === "information"
+              ? "text-white bg-gradient-to-br from-red-600 to-red-700 shadow-lg shadow-red-900/50"
+              : "text-gray-500 hover:text-white hover:bg-gray-900/50"
+              }`}
           >
             <svg
               className="w-6 h-6"
@@ -192,11 +192,10 @@ const MobileLayout: React.FC = () => {
 
           <button
             onClick={() => handleTabChange("profile")}
-            className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all ${
-              activeTab === "profile"
-                ? "text-white bg-gradient-to-br from-red-600 to-red-700 shadow-lg shadow-red-900/50"
-                : "text-gray-500 hover:text-white hover:bg-gray-900/50"
-            }`}
+            className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-xl transition-all ${activeTab === "profile"
+              ? "text-white bg-gradient-to-br from-red-600 to-red-700 shadow-lg shadow-red-900/50"
+              : "text-gray-500 hover:text-white hover:bg-gray-900/50"
+              }`}
           >
             <svg
               className="w-6 h-6"
