@@ -151,6 +151,18 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
 
   const handleDeleteFlight = async (flightId: Id<"tournament_flights">) => {
     if (!user) return;
+
+    // Get flight details to check participant count
+    const flight = flights?.find(f => f._id === flightId);
+    if (!flight) return;
+
+    // Check if flight has participants
+    if (flight.participantCount > 0) {
+      alert(`Tidak dapat menghapus flight dengan ${flight.participantCount} pemain. Hapus semua pemain terlebih dahulu.`);
+      return;
+    }
+
+    // No participants, confirm and delete
     if (!confirm('Apakah Anda yakin ingin menghapus flight ini?')) return;
 
     try {

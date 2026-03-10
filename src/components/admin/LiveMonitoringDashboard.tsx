@@ -222,10 +222,12 @@ export default function LiveMonitoringDashboard() {
 
   // Helper function to get score color
   const getScoreColor = (strokes: number, par: number) => {
-    if (strokes < par) return 'bg-green-400 text-black font-bold'; // Birdie or better - bright green with black text
-    if (strokes === par) return 'bg-gray-300 text-black'; // Par - light gray with black text
-    if (strokes === par + 1) return 'bg-yellow-300 text-black'; // Bogey - bright yellow with black text
-    return 'bg-red-400 text-black'; // Double bogey or worse - bright red with black text
+    const diff = strokes - par;
+    if (diff <= -2) return 'bg-[#fbbf24] text-black font-bold'; // Eagle or better
+    if (diff === -1) return 'bg-[#22c55e] text-black font-bold'; // Birdie
+    if (diff === 0) return 'bg-white text-black'; // Par
+    if (diff === 1) return 'bg-[#DE1A58] text-white font-bold'; // Bogey
+    return 'bg-[#CF0F0F] text-white font-bold'; // Double bogey or worse
   };
 
   return (
@@ -492,7 +494,7 @@ export default function LiveMonitoringDashboard() {
                           return (
                             <td 
                               key={hole} 
-                              className={`px-3 py-3 text-center font-bold text-lg relative group ${
+                              className={`px-3 py-3 text-center font-bold text-2xl relative group ${
                                 score !== null ? getScoreColor(score, par) : 'text-white'
                               }`}
                             >
@@ -851,7 +853,7 @@ export default function LiveMonitoringDashboard() {
                             </div>
                           ) : (
                             <div className="flex items-center justify-center gap-1">
-                              <span>{score !== null ? score : '-'}</span>
+                              <span className="text-4xl">{score !== null ? score : '-'}</span>
                               {score !== null && (
                                 <button
                                   onClick={() => handleEditScore(player.playerId, hole, player.scorecard)}
@@ -867,7 +869,7 @@ export default function LiveMonitoringDashboard() {
                       );
                     })}
                     
-                    <td className="px-3 py-3 text-center font-bold text-amber-400 bg-amber-950/40 border-l-2 border-amber-900/40 text-lg">
+                    <td className="px-3 py-3 text-center font-bold text-amber-400 bg-amber-950/40 border-l-2 border-amber-900/40 text-2xl">
                       {calculateSpecialTotal(player.scorecard, specialHoles) || '-'}
                     </td>
                     <td className="px-3 py-3 text-center font-bold text-purple-400 bg-purple-950/40 border-l-2 border-amber-900/40 text-lg">
@@ -891,26 +893,32 @@ export default function LiveMonitoringDashboard() {
         <h4 className="font-semibold text-white mb-3">Legenda Skor</h4>
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-400 border border-green-500 rounded flex items-center justify-center font-bold text-black">
-              3
+            <div className="w-8 h-8 bg-[#fbbf24] border border-amber-500 rounded flex items-center justify-center font-bold text-black">
+              
             </div>
             <span className="text-gray-400">Eagle</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gray-300 border border-gray-400 rounded flex items-center justify-center font-semibold text-black">
-              4
+            <div className="w-8 h-8 bg-[#22c55e] border border-green-600 rounded flex items-center justify-center font-bold text-black">
+              
+            </div>
+            <span className="text-gray-400">Birdie</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-white border border-gray-400 rounded flex items-center justify-center font-semibold text-black">
+              
             </div>
             <span className="text-gray-400">Par</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-yellow-300 border border-yellow-400 rounded flex items-center justify-center font-semibold text-black">
-              5
+            <div className="w-8 h-8 bg-[#DE1A58] border border-pink-600 rounded flex items-center justify-center font-semibold text-white">
+              
             </div>
             <span className="text-gray-400">Bogey</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-red-400 border border-red-500 rounded flex items-center justify-center font-semibold text-black">
-              6
+            <div className="w-8 h-8 bg-[#CF0F0F] border border-red-700 rounded flex items-center justify-center font-semibold text-white">
+              
             </div>
             <span className="text-gray-400"> Bogey+</span>
           </div>

@@ -180,7 +180,20 @@ export const getTournamentDetails = query({
       })
     );
 
-    let holesConfig = await ctx.db.query("holes_config").collect();
+    let holesConfig = [];
+    
+    // Filter holes by courseId if tournament has a courseId
+    if (tournament.courseId) {
+      holesConfig = await ctx.db
+        .query("holes_config")
+        .withIndex("by_course", (q) => q.eq("courseId", tournament.courseId))
+        .collect();
+    } else {
+      // Fallback: get all holes if no courseId (backward compatibility)
+      holesConfig = await ctx.db.query("holes_config").collect();
+    }
+    
+    // Additional filtering by courseType
     if (tournament.courseType === "F9") {
       holesConfig = holesConfig.filter((h) => h.holeNumber >= 1 && h.holeNumber <= 9);
     } else if (tournament.courseType === "B9") {

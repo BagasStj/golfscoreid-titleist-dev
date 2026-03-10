@@ -115,6 +115,33 @@ const FlightScoringOverview: React.FC = () => {
     };
   }, []);
 
+  // Debug: Check for duplicate hole numbers - must be before conditional return
+  useEffect(() => {
+    if (tournament?.holesConfig && tournament.holesConfig.length > 0) {
+      const holeNumbers = tournament.holesConfig.map((h: any) => h.holeNumber);
+      const uniqueHoleNumbers = new Set(holeNumbers);
+      if (holeNumbers.length !== uniqueHoleNumbers.size) {
+        console.error('⚠️ Duplicate hole numbers detected in holesConfig:', tournament.holesConfig);
+        console.error('Hole numbers:', holeNumbers);
+      }
+    }
+  }, [tournament?.holesConfig]);
+
+  // Deduplicate holesConfig to ensure unique hole numbers - must be before conditional return
+  const uniqueHolesConfig = React.useMemo(() => {
+    if (!tournament?.holesConfig) return [];
+    
+    const seen = new Set<number>();
+    return tournament.holesConfig.filter((hole: any) => {
+      if (seen.has(hole.holeNumber)) {
+        console.warn(`Duplicate hole number ${hole.holeNumber} found in main component, skipping...`);
+        return false;
+      }
+      seen.add(hole.holeNumber);
+      return true;
+    });
+  }, [tournament?.holesConfig]);
+
   if (!tournament || !playerFlight || !flightDetails) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#1a1a1a] via-[#0f0f0f] to-black flex items-center justify-center">
@@ -126,7 +153,7 @@ const FlightScoringOverview: React.FC = () => {
     );
   }
 
-  const holesConfig = tournament.holesConfig || [];
+  // const holesConfig = tournament.holesConfig || [];
 
   const handleFinishTournament = () => {
     // Check if all scores are complete by checking participantScores in ScorecardTable
@@ -287,7 +314,7 @@ const FlightScoringOverview: React.FC = () => {
             <ScorecardTable
               tournament={tournament}
               flightParticipants={flightParticipants}
-              holesConfig={holesConfig}
+              holesConfig={uniqueHolesConfig}
               currentUserId={user?._id}
               scoringMode={scoringMode}
               setScoringMode={setScoringMode}
@@ -313,7 +340,7 @@ const FlightScoringOverview: React.FC = () => {
           <LeaderboardView
             tournament={tournament}
             flightParticipants={flightParticipants}
-            holesConfig={holesConfig}
+            holesConfig={uniqueHolesConfig}
           />
         )}
       </div>
@@ -621,7 +648,21 @@ const ActionButtons: React.FC<{
                 : `Menunggu ${waitingCount} pemain lainnya`}
             </span>
           </button>
+
+          <button
+            onClick={() => {
+              // Trigger parent component to show disclaimer dialog
+              const event = new CustomEvent('showDisclaimerDialog');
+              window.dispatchEvent(event);
+            }}
+            className="w-full bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black hover:from-gray-800 hover:via-[#171718] hover:to-black text-gray-300 hover:text-white font-semibold py-3 px-4 rounded-lg border border-gray-800 hover:border-gray-700 transition-all flex items-center justify-center gap-2"
+          >
+            <Info className="w-5 h-5" />
+            <span className="text-sm">Informasi Scoring</span>
+          </button>
+          
         </>
+        
       ) : (
         <>
           <button
@@ -658,7 +699,7 @@ const ActionButtons: React.FC<{
             className="w-full bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black hover:from-gray-800 hover:via-[#171718] hover:to-black text-gray-300 hover:text-white font-semibold py-3 px-4 rounded-lg border border-gray-800 hover:border-gray-700 transition-all flex items-center justify-center gap-2"
           >
             <Info className="w-5 h-5" />
-            <span className="text-sm">Informasi</span>
+            <span className="text-sm">Informasi Scoring</span>
           </button>
         </>
       )}
@@ -765,23 +806,23 @@ const ScorecardTable: React.FC<{
         <div className="flex flex-col gap-2">
           <div className="flex flex-nowrap items-center justify-center gap-2 text-[10px] overflow-x-auto">
             <div className="flex items-center space-x-1 flex-shrink-0">
-              <div className="w-4 h-4 rounded-full bg-yellow-500 ring-1 ring-yellow-400"></div>
+              <div className="w-4 h-4 rounded-full bg-[#fbbf24] ring-1 ring-amber-500"></div>
               <span className="text-gray-300 font-medium">Eagle</span>
             </div>
             <div className="flex items-center space-x-1 flex-shrink-0">
-              <div className="w-4 h-4 rounded-full bg-red-500 ring-1 ring-red-400"></div>
+              <div className="w-4 h-4 rounded-full bg-[#22c55e] ring-1 ring-green-600"></div>
               <span className="text-gray-300 font-medium">Birdie</span>
             </div>
             <div className="flex items-center space-x-1 flex-shrink-0">
-              <div className="w-4 h-4 rounded-full bg-blue-500"></div>
+              <div className="w-4 h-4 rounded-full bg-white"></div>
               <span className="text-gray-300 font-medium">Par</span>
             </div>
             <div className="flex items-center space-x-1 flex-shrink-0">
-              <div className="w-4 h-4 rounded-full bg-gray-600"></div>
+              <div className="w-4 h-4 rounded-full bg-[#DE1A58]"></div>
               <span className="text-gray-300 font-medium">Bogey</span>
             </div>
             <div className="flex items-center space-x-1 flex-shrink-0">
-              <div className="w-4 h-4 rounded-full bg-gray-700"></div>
+              <div className="w-4 h-4 rounded-full bg-[#CF0F0F]"></div>
               <span className="text-gray-300 font-medium">Double+</span>
             </div>
           </div>
@@ -807,7 +848,7 @@ const ScorecardTable: React.FC<{
                 {holesConfig.map((hole) => (
                   <th
                     key={hole.holeNumber}
-                    className={`text-center text-white font-bold py-2 px-1.5 min-w-[32px] ${
+                    className={`text-center text-white font-bold text-[14px] py-2 px-1.5 min-w-[32px] ${
                       hole.holeNumber === currentHole
                         ? "bg-red-600/30 ring-2 ring-red-500"
                         : ""
@@ -831,7 +872,7 @@ const ScorecardTable: React.FC<{
                 {holesConfig.map((hole) => (
                   <td
                     key={hole.holeNumber}
-                    className="text-center text-gray-300 font-semibold py-1.5 px-1.5"
+                    className="text-center text-gray-300 font-semibold text-[14px] py-1.5 px-1.5"
                   >
                     {hole.par}
                   </td>
@@ -960,27 +1001,27 @@ const ScorecardTable: React.FC<{
                             }
 
                             // Color coding
-                            if (strokes === par - 2) {
-                              // Eagle
-                              bgColor = "bg-yellow-500";
+                            if (strokes <= par - 2) {
+                              // Eagle or better
+                              bgColor = "bg-[#fbbf24]";
                               textColor = "text-black";
-                              borderColor = "ring-1 ring-yellow-400";
+                              borderColor = "ring-1 ring-amber-500";
                             } else if (strokes === par - 1) {
                               // Birdie
-                              bgColor = "bg-red-500";
-                              textColor = "text-white";
-                              borderColor = "ring-1 ring-red-400";
+                              bgColor = "bg-[#22c55e]";
+                              textColor = "text-black";
+                              borderColor = "ring-1 ring-green-600";
                             } else if (strokes === par) {
                               // Par
-                              bgColor = "bg-blue-500";
-                              textColor = "text-white";
+                              bgColor = "bg-white";
+                              textColor = "text-black";
                             } else if (strokes === par + 1) {
                               // Bogey
-                              bgColor = "bg-gray-600";
+                              bgColor = "bg-[#DE1A58]";
                               textColor = "text-white";
                             } else if (strokes >= par + 2) {
                               // Double Bogey+
-                              bgColor = "bg-gray-700";
+                              bgColor = "bg-[#CF0F0F]";
                               textColor = "text-white";
                             }
                           }
@@ -993,7 +1034,7 @@ const ScorecardTable: React.FC<{
                               }`}
                             >
                               <div
-                                className={`w-7 h-7 rounded-full ${bgColor} ${textColor} ${borderColor} flex items-center justify-center mx-auto font-bold text-xs`}
+                                className={`w-7 h-7 rounded-full ${bgColor} ${textColor} ${borderColor} flex items-center justify-center mx-auto font-bold text-[16px]`}
                               >
                                 {displayValue}
                               </div>

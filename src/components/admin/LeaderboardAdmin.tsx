@@ -49,10 +49,12 @@ export default function LeaderboardAdmin({ tournamentId: initialTournamentId }: 
   // Helper functions
   const getScoreColor = (strokes: number | null, par: number) => {
     if (strokes === null) return '';
-    if (strokes < par) return 'bg-green-400 text-black font-bold';
-    if (strokes === par) return 'bg-gray-300 text-black';
-    if (strokes === par + 1) return 'bg-yellow-300 text-black';
-    return 'bg-red-400 text-black';
+    const diff = strokes - par;
+    if (diff <= -2) return 'bg-[#fbbf24] text-black font-bold'; // Eagle or better
+    if (diff === -1) return 'bg-[#22c55e] text-black font-bold'; // Birdie
+    if (diff === 0) return 'bg-white text-black'; // Par
+    if (diff === 1) return 'bg-[#DE1A58] text-white font-bold'; // Bogey
+    return 'bg-[#CF0F0F] text-white font-bold'; // Double bogey or worse
   };
 
   const getMedalIcon = (rank: number) => {
@@ -758,25 +760,31 @@ export default function LeaderboardAdmin({ tournamentId: initialTournamentId }: 
         <h4 className="font-semibold text-white mb-3">Score Legend</h4>
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-400 border border-green-500 rounded flex items-center justify-center font-bold text-black">
-              3
+            <div className="w-8 h-8 bg-[#fbbf24] border border-amber-500 rounded flex items-center justify-center font-bold text-black">
+              2
             </div>
-            <span className="text-gray-400">Birdie or Better</span>
+            <span className="text-gray-400">Eagle or Better</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gray-300 border border-gray-400 rounded flex items-center justify-center font-semibold text-black">
+            <div className="w-8 h-8 bg-[#22c55e] border border-green-600 rounded flex items-center justify-center font-bold text-black">
+              3
+            </div>
+            <span className="text-gray-400">Birdie</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-white border border-gray-400 rounded flex items-center justify-center font-semibold text-black">
               4
             </div>
             <span className="text-gray-400">Par</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-yellow-300 border border-yellow-400 rounded flex items-center justify-center font-semibold text-black">
+            <div className="w-8 h-8 bg-[#DE1A58] border border-pink-600 rounded flex items-center justify-center font-semibold text-white">
               5
             </div>
             <span className="text-gray-400">Bogey</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-red-400 border border-red-500 rounded flex items-center justify-center font-semibold text-black">
+            <div className="w-8 h-8 bg-[#CF0F0F] border border-red-700 rounded flex items-center justify-center font-semibold text-white">
               6
             </div>
             <span className="text-gray-400">Double Bogey+</span>
