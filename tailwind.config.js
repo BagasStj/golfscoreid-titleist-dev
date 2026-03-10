@@ -54,10 +54,11 @@ export default {
         ring: "hsl(var(--ring))",
         // Keep existing custom colors
         golf: {
+          eagle: '#fbbf24',
           birdie: '#22c55e',
-          par: '#eab308',
-          bogey: '#f97316',
-          double: '#dc2626',
+          par: 'rgb(255, 255, 255)',
+          bogey: '#DE1A58',
+          double: '#CF0F0F',
         },
       },
       spacing: {

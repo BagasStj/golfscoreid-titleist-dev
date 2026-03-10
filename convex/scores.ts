@@ -614,3 +614,38 @@ export const getCurrentHoleForFlight = query({
     return holesConfig.length > 0 ? holesConfig[holesConfig.length - 1].holeNumber : 1;
   },
 });
+
+// Admin Update Score - Admin can update any score
+export const adminUpdateScore = mutation({
+  args: {
+    scoreId: v.id("scores"),
+    userId: v.id("users"), // Admin user ID
+    newStrokes: v.number(),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin
+    const admin = await ctx.db.get(args.userId);
+    if (!admin || admin.role !== "admin") {
+      throw new Error("Unauthorized: Admin access required");
+    }
+
+    // Validate positive integer
+    if (!Number.isInteger(args.newStrokes) || args.newStrokes <= 0) {
+      throw new Error("Validation Error: Strokes must be a positive integer");
+    }
+
+    // Get the score
+    const score = await ctx.db.get(args.scoreId);
+    if (!score) {
+      throw new Error("Score not found");
+    }
+
+    // Update the score
+    await ctx.db.patch(args.scoreId, {
+      strokes: args.newStrokes,
+      submittedAt: Date.now(), // Update timestamp
+    });
+
+    return { success: true, message: "Score updated successfully" };
+  },
+});

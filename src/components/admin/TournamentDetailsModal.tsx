@@ -132,35 +132,7 @@ export default function TournamentDetailsModal({
               </div>
             </div>
 
-            {/* Male Tee Box */}
-            {tournamentDetails.maleTeeBox && (
-              <div className="bg-gray-900/60 rounded-lg p-4 border border-gray-800/60">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-900/60 rounded-lg flex items-center justify-center border border-blue-800/40">
-                    <Target className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Tee Box Laki-laki</p>
-                    <p className="font-semibold text-white">{tournamentDetails.maleTeeBox} Tee</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Female Tee Box */}
-            {tournamentDetails.femaleTeeBox && (
-              <div className="bg-gray-900/60 rounded-lg p-4 border border-gray-800/60">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-pink-900/60 rounded-lg flex items-center justify-center border border-pink-800/40">
-                    <Target className="w-5 h-5 text-pink-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Tee Box Perempuan</p>
-                    <p className="font-semibold text-white">{tournamentDetails.femaleTeeBox} Tee</p>
-                  </div>
-                </div>
-              </div>
-            )}
+          
           </div>
 
           {/* Schedule Section */}

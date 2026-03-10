@@ -1,14 +1,22 @@
 import { useState } from 'react';
-import { useQuery } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { Trophy, Activity, RefreshCw, Star, Download, Maximize2 } from 'lucide-react';
+import { Trophy, Activity, RefreshCw, Star, Download, Maximize2, Edit2, Save, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import type { Id } from '../../../convex/_generated/dataModel';
 
 export default function LiveMonitoringDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'special'>('all');
   const [isFullView, setIsFullView] = useState(false);
+  const [editingScore, setEditingScore] = useState<{
+    scoreId: Id<"scores">;
+    playerId: Id<"users">;
+    holeNumber: number;
+    currentStrokes: number;
+  } | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
 
   // Get active tournaments
   const tournaments = useQuery(
@@ -30,6 +38,9 @@ export default function LiveMonitoringDashboard() {
   const holesConfig = useQuery(api.tournaments.getTournamentDetails, 
     selectedTournament && user ? { tournamentId: selectedTournament._id, userId: user._id } : 'skip'
   );
+
+  // Mutation
+  const adminUpdateScore = useMutation(api.scores.adminUpdateScore);
 
   if (tournaments === undefined || !selectedTournament) {
     return (
@@ -66,6 +77,57 @@ export default function LiveMonitoringDashboard() {
   const getScoreForHole = (playerScorecard: any[], holeNumber: number) => {
     const score = playerScorecard.find(s => s.holeNumber === holeNumber);
     return score ? score.strokes : null;
+  };
+
+  // Helper function to get score object (including scoreId)
+  const getScoreObjectForHole = (playerScorecard: any[], holeNumber: number) => {
+    return playerScorecard.find(s => s.holeNumber === holeNumber);
+  };
+
+  // Handle edit score
+  const handleEditScore = (playerId: Id<"users">, holeNumber: number, playerScorecard: any[]) => {
+    const scoreObj = getScoreObjectForHole(playerScorecard, holeNumber);
+    if (scoreObj && scoreObj.scoreId) {
+      setEditingScore({
+        scoreId: scoreObj.scoreId,
+        playerId,
+        holeNumber,
+        currentStrokes: scoreObj.strokes,
+      });
+      setEditValue(scoreObj.strokes.toString());
+    }
+  };
+
+  // Handle save edited score
+  const handleSaveScore = async () => {
+    if (!editingScore || !user) return;
+
+    const newStrokes = parseInt(editValue);
+    if (isNaN(newStrokes) || newStrokes <= 0) {
+      alert('Stroke harus berupa angka positif');
+      return;
+    }
+
+    try {
+      await adminUpdateScore({
+        scoreId: editingScore.scoreId,
+        userId: user._id,
+        newStrokes,
+      });
+      
+      // Reset editing state
+      setEditingScore(null);
+      setEditValue('');
+    } catch (error) {
+      console.error('Error updating score:', error);
+      alert(error instanceof Error ? error.message : 'Gagal memperbarui score');
+    }
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setEditingScore(null);
+    setEditValue('');
   };
 
   // Helper function to calculate total for 9 holes
@@ -160,10 +222,12 @@ export default function LiveMonitoringDashboard() {
 
   // Helper function to get score color
   const getScoreColor = (strokes: number, par: number) => {
-    if (strokes < par) return 'bg-green-400 text-black font-bold'; // Birdie or better - bright green with black text
-    if (strokes === par) return 'bg-gray-300 text-black'; // Par - light gray with black text
-    if (strokes === par + 1) return 'bg-yellow-300 text-black'; // Bogey - bright yellow with black text
-    return 'bg-red-400 text-black'; // Double bogey or worse - bright red with black text
+    const diff = strokes - par;
+    if (diff <= -2) return 'bg-[#fbbf24] text-black font-bold'; // Eagle or better
+    if (diff === -1) return 'bg-[#22c55e] text-black font-bold'; // Birdie
+    if (diff === 0) return 'bg-white text-black'; // Par
+    if (diff === 1) return 'bg-[#DE1A58] text-white font-bold'; // Bogey
+    return 'bg-[#CF0F0F] text-white font-bold'; // Double bogey or worse
   };
 
   return (
@@ -259,6 +323,9 @@ export default function LiveMonitoringDashboard() {
             <div className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-red-500" />
               <h3 className="text-lg font-bold text-white">Scorecard Langsung</h3>
+              <span className="ml-2 px-2 py-1 bg-blue-900/40 text-blue-300 text-xs font-semibold rounded-full border border-blue-800/40">
+                Hover untuk edit
+              </span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -422,14 +489,57 @@ export default function LiveMonitoringDashboard() {
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(hole => {
                           const score = getScoreForHole(player.scorecard, hole);
                           const par = holesMap.get(hole)?.par || 0;
+                          const isEditing = editingScore?.playerId === player.playerId && editingScore?.holeNumber === hole;
+                          
                           return (
                             <td 
                               key={hole} 
-                              className={`px-3 py-3 text-center font-bold text-lg ${
+                              className={`px-3 py-3 text-center font-bold text-2xl relative group ${
                                 score !== null ? getScoreColor(score, par) : 'text-white'
                               }`}
                             >
-                              {score !== null ? score : '-'}
+                              {isEditing ? (
+                                <div className="flex items-center justify-center gap-1">
+                                  <input
+                                    type="number"
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    className="w-12 px-1 py-1 bg-gray-900 border border-blue-500 text-white text-center rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleSaveScore();
+                                      if (e.key === 'Escape') handleCancelEdit();
+                                    }}
+                                  />
+                                  <button
+                                    onClick={handleSaveScore}
+                                    className="p-1 bg-green-600 hover:bg-green-700 text-white rounded"
+                                    title="Simpan"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={handleCancelEdit}
+                                    className="p-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                                    title="Batal"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center gap-1">
+                                  <span>{score !== null ? score : '-'}</span>
+                                  {score !== null && (
+                                    <button
+                                      onClick={() => handleEditScore(player.playerId, hole, player.scorecard)}
+                                      className="opacity-0 group-hover:opacity-100 p-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-opacity"
+                                      title="Edit Score"
+                                    >
+                                      <Edit2 className="w-3 h-3" />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
                             </td>
                           );
                         })}
@@ -441,14 +551,57 @@ export default function LiveMonitoringDashboard() {
                         {[10, 11, 12, 13, 14, 15, 16, 17, 18].map(hole => {
                           const score = getScoreForHole(player.scorecard, hole);
                           const par = holesMap.get(hole)?.par || 0;
+                          const isEditing = editingScore?.playerId === player.playerId && editingScore?.holeNumber === hole;
+                          
                           return (
                             <td 
                               key={hole} 
-                              className={`px-3 py-3 text-center font-bold text-lg ${
+                              className={`px-3 py-3 text-center font-bold text-lg relative group ${
                                 score !== null ? getScoreColor(score, par) : 'text-white'
                               }`}
                             >
-                              {score !== null ? score : '-'}
+                              {isEditing ? (
+                                <div className="flex items-center justify-center gap-1">
+                                  <input
+                                    type="number"
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    className="w-12 px-1 py-1 bg-gray-900 border border-blue-500 text-white text-center rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleSaveScore();
+                                      if (e.key === 'Escape') handleCancelEdit();
+                                    }}
+                                  />
+                                  <button
+                                    onClick={handleSaveScore}
+                                    className="p-1 bg-green-600 hover:bg-green-700 text-white rounded"
+                                    title="Simpan"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={handleCancelEdit}
+                                    className="p-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                                    title="Batal"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center gap-1">
+                                  <span>{score !== null ? score : '-'}</span>
+                                  {score !== null && (
+                                    <button
+                                      onClick={() => handleEditScore(player.playerId, hole, player.scorecard)}
+                                      className="opacity-0 group-hover:opacity-100 p-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-opacity"
+                                      title="Edit Score"
+                                    >
+                                      <Edit2 className="w-3 h-3" />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
                             </td>
                           );
                         })}
@@ -474,14 +627,57 @@ export default function LiveMonitoringDashboard() {
                         ).map(hole => {
                           const score = getScoreForHole(player.scorecard, hole);
                           const par = holesMap.get(hole)?.par || 0;
+                          const isEditing = editingScore?.playerId === player.playerId && editingScore?.holeNumber === hole;
+                          
                           return (
                             <td 
                               key={hole} 
-                              className={`px-3 py-3 text-center font-bold text-lg ${
+                              className={`px-3 py-3 text-center font-bold text-lg relative group ${
                                 score !== null ? getScoreColor(score, par) : 'text-white'
                               }`}
                             >
-                              {score !== null ? score : '-'}
+                              {isEditing ? (
+                                <div className="flex items-center justify-center gap-1">
+                                  <input
+                                    type="number"
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    className="w-12 px-1 py-1 bg-gray-900 border border-blue-500 text-white text-center rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleSaveScore();
+                                      if (e.key === 'Escape') handleCancelEdit();
+                                    }}
+                                  />
+                                  <button
+                                    onClick={handleSaveScore}
+                                    className="p-1 bg-green-600 hover:bg-green-700 text-white rounded"
+                                    title="Simpan"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={handleCancelEdit}
+                                    className="p-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                                    title="Batal"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center gap-1">
+                                  <span>{score !== null ? score : '-'}</span>
+                                  {score !== null && (
+                                    <button
+                                      onClick={() => handleEditScore(player.playerId, hole, player.scorecard)}
+                                      className="opacity-0 group-hover:opacity-100 p-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-opacity"
+                                      title="Edit Score"
+                                    >
+                                      <Edit2 className="w-3 h-3" />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
                             </td>
                           );
                         })}
@@ -516,6 +712,9 @@ export default function LiveMonitoringDashboard() {
               <h3 className="text-lg font-bold text-white">Scorecard Hole Spesial</h3>
               <span className="ml-2 px-2 py-1 bg-amber-700/60 text-amber-200 text-xs font-bold rounded-full border border-amber-600/40">
                 {specialHoles.length} Hole
+              </span>
+              <span className="ml-2 px-2 py-1 bg-blue-900/40 text-blue-300 text-xs font-semibold rounded-full border border-blue-800/40">
+                Hover untuk edit
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-300">
@@ -615,19 +814,62 @@ export default function LiveMonitoringDashboard() {
                     {specialHoles.map(hole => {
                       const score = getScoreForHole(player.scorecard, hole);
                       const par = holesMap.get(hole)?.par || 0;
+                      const isEditing = editingScore?.playerId === player.playerId && editingScore?.holeNumber === hole;
+                      
                       return (
                         <td 
                           key={hole} 
-                          className={`px-3 py-3 text-center font-bold text-lg ${
+                          className={`px-3 py-3 text-center font-bold text-lg relative group ${
                             score !== null ? getScoreColor(score, par) : 'text-white'
                           }`}
                         >
-                          {score !== null ? score : '-'}
+                          {isEditing ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <input
+                                type="number"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                className="w-12 px-1 py-1 bg-gray-900 border border-blue-500 text-white text-center rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleSaveScore();
+                                  if (e.key === 'Escape') handleCancelEdit();
+                                }}
+                              />
+                              <button
+                                onClick={handleSaveScore}
+                                className="p-1 bg-green-600 hover:bg-green-700 text-white rounded"
+                                title="Simpan"
+                              >
+                                <Save className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={handleCancelEdit}
+                                className="p-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                                title="Batal"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center gap-1">
+                              <span className="text-4xl">{score !== null ? score : '-'}</span>
+                              {score !== null && (
+                                <button
+                                  onClick={() => handleEditScore(player.playerId, hole, player.scorecard)}
+                                  className="opacity-0 group-hover:opacity-100 p-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-opacity"
+                                  title="Edit Score"
+                                >
+                                  <Edit2 className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </td>
                       );
                     })}
                     
-                    <td className="px-3 py-3 text-center font-bold text-amber-400 bg-amber-950/40 border-l-2 border-amber-900/40 text-lg">
+                    <td className="px-3 py-3 text-center font-bold text-amber-400 bg-amber-950/40 border-l-2 border-amber-900/40 text-2xl">
                       {calculateSpecialTotal(player.scorecard, specialHoles) || '-'}
                     </td>
                     <td className="px-3 py-3 text-center font-bold text-purple-400 bg-purple-950/40 border-l-2 border-amber-900/40 text-lg">
@@ -651,26 +893,32 @@ export default function LiveMonitoringDashboard() {
         <h4 className="font-semibold text-white mb-3">Legenda Skor</h4>
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-400 border border-green-500 rounded flex items-center justify-center font-bold text-black">
-              3
+            <div className="w-8 h-8 bg-[#fbbf24] border border-amber-500 rounded flex items-center justify-center font-bold text-black">
+              
             </div>
             <span className="text-gray-400">Eagle</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gray-300 border border-gray-400 rounded flex items-center justify-center font-semibold text-black">
-              4
+            <div className="w-8 h-8 bg-[#22c55e] border border-green-600 rounded flex items-center justify-center font-bold text-black">
+              
+            </div>
+            <span className="text-gray-400">Birdie</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-white border border-gray-400 rounded flex items-center justify-center font-semibold text-black">
+              
             </div>
             <span className="text-gray-400">Par</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-yellow-300 border border-yellow-400 rounded flex items-center justify-center font-semibold text-black">
-              5
+            <div className="w-8 h-8 bg-[#DE1A58] border border-pink-600 rounded flex items-center justify-center font-semibold text-white">
+              
             </div>
             <span className="text-gray-400">Bogey</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-red-400 border border-red-500 rounded flex items-center justify-center font-semibold text-black">
-              6
+            <div className="w-8 h-8 bg-[#CF0F0F] border border-red-700 rounded flex items-center justify-center font-semibold text-white">
+              
             </div>
             <span className="text-gray-400"> Bogey+</span>
           </div>

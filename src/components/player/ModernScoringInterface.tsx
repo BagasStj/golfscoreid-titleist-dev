@@ -94,11 +94,11 @@ export default function ModernScoringInterface() {
 
   // Quick score buttons
   const quickScores = currentHole ? [
-    { value: currentHole.par - 2, label: 'Eagle', color: 'bg-yellow-600' },
-    { value: currentHole.par - 1, label: 'Birdie', color: 'bg-green-600' },
-    { value: currentHole.par, label: 'Par', color: 'bg-blue-600' },
-    { value: currentHole.par + 1, label: 'Bogey', color: 'bg-orange-600' },
-    { value: currentHole.par + 2, label: 'Double', color: 'bg-red-600' },
+    { value: currentHole.par - 2, label: 'Eagle', color: 'bg-[#fbbf24]', textColor: 'text-black' },
+    { value: currentHole.par - 1, label: 'Birdie', color: 'bg-[#22c55e]', textColor: 'text-black' },
+    { value: currentHole.par, label: 'Par', color: 'bg-white', textColor: 'text-black' },
+    { value: currentHole.par + 1, label: 'Bogey', color: 'bg-[#DE1A58]', textColor: 'text-white' },
+    { value: currentHole.par + 2, label: 'Double', color: 'bg-[#CF0F0F]', textColor: 'text-white' },
   ] : [];
 
   // Move early returns after all hooks
@@ -364,7 +364,7 @@ export default function ModernScoringInterface() {
                 <button
                   key={quick.label}
                   onClick={() => setStrokes(quick.value)}
-                  className={`py-2 rounded-lg text-white font-bold text-[10px] transition-all transform hover:scale-105 active:scale-95 ${quick.color} ${
+                  className={`py-2 rounded-lg font-bold text-[10px] transition-all transform hover:scale-105 active:scale-95 ${quick.color} ${quick.textColor} ${
                     strokes === quick.value ? 'ring-2 ring-offset-1 ring-offset-black ring-red-500' : ''
                   }`}
                 >

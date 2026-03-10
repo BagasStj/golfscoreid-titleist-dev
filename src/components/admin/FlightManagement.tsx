@@ -9,7 +9,6 @@ import {
   Plus, 
   Trash2, 
   Users, 
-  Clock, 
   MapPin, 
   Upload, 
   X, 
@@ -34,9 +33,7 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
   const [editingFlight, setEditingFlight] = useState<any>(null);
   const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [selectedFlight, setSelectedFlight] = useState<Id<"tournament_flights"> | null>(null);
-  const [flightName, setFlightName] = useState('');
-  const [flightNumber, setFlightNumber] = useState('');
-  const [startTime, setStartTime] = useState('');
+  const [flightCode, setFlightCode] = useState('');
   const [startHole, setStartHole] = useState('1');
   const [selectedPlayerId, setSelectedPlayerId] = useState<Id<"users"> | null>(null);
   const [playerStartHole, setPlayerStartHole] = useState('1');
@@ -81,20 +78,26 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
     e.preventDefault();
     if (!user || !selectedTournament) return;
 
+    // Validate flight code format (should be letter only, A-Z)
+    if (!/^[A-Z]$/.test(flightCode)) {
+      alert('Kode flight harus berupa satu huruf (A-Z)');
+      return;
+    }
+
+    // Generate flight name from start hole + flight code (e.g., "1A", "2B")
+    const generatedFlightName = `${startHole}${flightCode}`;
+
     try {
       await createFlight({
         tournamentId: selectedTournament,
-        flightName,
-        flightNumber: parseInt(flightNumber),
-        startTime: startTime || undefined,
+        flightName: generatedFlightName,
+        flightNumber: parseInt(startHole), // Use start hole as flight number
         startHole: parseInt(startHole),
         userId: user._id,
       });
       
       // Reset form
-      setFlightName('');
-      setFlightNumber('');
-      setStartTime('');
+      setFlightCode('');
       setStartHole('1');
       setShowAddFlightModal(false);
     } catch (error) {
@@ -107,18 +110,25 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
     e.preventDefault();
     if (!user || !editingFlight) return;
 
+    // Validate flight code format (should be letter only, A-Z)
+    if (!/^[A-Z]$/.test(flightCode)) {
+      alert('Kode flight harus berupa satu huruf (A-Z)');
+      return;
+    }
+
+    // Generate flight name from start hole + flight code (e.g., "1A", "2B")
+    const generatedFlightName = `${startHole}${flightCode}`;
+
     try {
       await updateFlight({
         flightId: editingFlight._id,
-        flightName,
-        startTime: startTime || undefined,
+        flightName: generatedFlightName,
         startHole: parseInt(startHole),
         userId: user._id,
       });
       
       // Reset form
-      setFlightName('');
-      setStartTime('');
+      setFlightCode('');
       setStartHole('1');
       setEditingFlight(null);
       setShowEditFlightModal(false);
@@ -130,14 +140,29 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
 
   const openEditFlightModal = (flight: any) => {
     setEditingFlight(flight);
-    setFlightName(flight.flightName);
-    setStartTime(flight.startTime || '');
-    setStartHole(flight.startHole.toString());
+    // Extract flight code (last character) and start hole from flight name
+    const flightName = flight.flightName;
+    const code = flightName.slice(-1); // Last character is the code
+    const hole = flightName.slice(0, -1); // Everything before last character is the hole
+    setFlightCode(code);
+    setStartHole(hole || flight.startHole.toString());
     setShowEditFlightModal(true);
   };
 
   const handleDeleteFlight = async (flightId: Id<"tournament_flights">) => {
     if (!user) return;
+
+    // Get flight details to check participant count
+    const flight = flights?.find(f => f._id === flightId);
+    if (!flight) return;
+
+    // Check if flight has participants
+    if (flight.participantCount > 0) {
+      alert(`Tidak dapat menghapus flight dengan ${flight.participantCount} pemain. Hapus semua pemain terlebih dahulu.`);
+      return;
+    }
+
+    // No participants, confirm and delete
     if (!confirm('Apakah Anda yakin ingin menghapus flight ini?')) return;
 
     try {
@@ -255,13 +280,30 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
   };
 
   // Get available players (not in any flight of this tournament yet)
+  // tournamentParticipants contains players already in flights
+  // The structure has player data spread with _id being the player's _id
   const registeredPlayerIds = new Set(
     tournamentParticipants?.map((p: any) => p._id) || []
   );
-  // Filter only paid players
-  const availablePlayers = allPlayers?.filter(p => 
-    !registeredPlayerIds.has(p._id) && (p as any).paymentStatus === 'paid'
-  );
+  
+  // Debug logging
+  console.log('All Players:', allPlayers?.length);
+  console.log('Tournament Participants:', tournamentParticipants?.length);
+  console.log('Registered Player IDs:', Array.from(registeredPlayerIds));
+  
+  // Filter players: must be paid (check both paidStatus and paymentStatus) and NOT already in a flight
+  const availablePlayers = allPlayers?.filter(p => {
+    const playerData = p as any;
+    // Check both paidStatus and paymentStatus fields
+    const isPaid = playerData.paidStatus === 'paid' || playerData.paymentStatus === 'paid';
+    const notInFlight = !registeredPlayerIds.has(p._id);
+    
+    console.log(`Player ${p.name}: isPaid=${isPaid}, notInFlight=${notInFlight}, paidStatus=${playerData.paidStatus}, paymentStatus=${playerData.paymentStatus}`);
+    
+    return isPaid && notInFlight;
+  });
+  
+  console.log('Available Players:', availablePlayers?.length);
 
   // Filter available players by search query
   const filteredAvailablePlayers = availablePlayers?.filter(player => 
@@ -448,12 +490,6 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                       </div>
 
                       <div className="space-y-2 pt-2 border-t border-gray-800/60">
-                        {flight.startTime && (
-                          <div className="flex items-center gap-2 text-sm text-gray-400">
-                            <Clock className="w-4 h-4 text-red-500" />
-                            <span>{flight.startTime}</span>
-                          </div>
-                        )}
                         <div className="flex items-center gap-2 text-sm text-gray-400">
                           <MapPin className="w-4 h-4 text-red-500" />
                           <span>Mulai dari Hole {flight.startHole}</span>
@@ -858,19 +894,9 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
                                 <h4 className="text-sm font-semibold text-white">{player.name}</h4>
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-950/40 text-green-400 border border-green-900/30">
-                                  PAID
-                                </span>
+                            
                               </div>
-                              <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
-                                <span>{player.email}</span>
-                                {player.handicap !== undefined && (
-                                  <>
-                                    <span>•</span>
-                                    <span>HCP: {player.handicap}</span>
-                                  </>
-                                )}
-                              </div>
+                              
                             </div>
                           </div>
                         </label>
@@ -950,31 +976,6 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
             {/* Modal Body */}
             <form onSubmit={handleCreateFlight} className="p-6 space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Nama Flight *</label>
-                  <input
-                    type="text"
-                    value={flightName}
-                    onChange={(e) => setFlightName(e.target.value)}
-                    placeholder="contoh: Flight A"
-                    required
-                    className="w-full px-4 py-3 bg-gray-900/60 border-2 border-gray-700/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all placeholder:text-gray-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Nomor Flight *</label>
-                  <input
-                    type="number"
-                    value={flightNumber}
-                    onChange={(e) => setFlightNumber(e.target.value)}
-                    placeholder="1"
-                    required
-                    min="1"
-                    className="w-full px-4 py-3 bg-gray-900/60 border-2 border-gray-700/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all placeholder:text-gray-500"
-                  />
-                </div>
-
                 <div>
                   <label className="block text-sm font-semibold text-gray-300 mb-2">Hole Awal *</label>
                   <input
@@ -984,19 +985,27 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                     required
                     min="1"
                     max="18"
-                    className="w-full px-4 py-3 bg-gray-900/60 border-2 border-gray-700/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all"
+                    placeholder="1"
+                    className="w-full px-4 py-3 bg-gray-900/60 border-2 border-gray-700/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all placeholder:text-gray-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Hole tempat flight ini dimulai (1-18)</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Kode Flight *</label>
+                  <input
+                    type="text"
+                    value={flightCode}
+                    onChange={(e) => setFlightCode(e.target.value.toUpperCase())}
+                    placeholder="A"
+                    required
+                    maxLength={1}
+                    pattern="[A-Z]"
+                    className="w-full px-4 py-3 bg-gray-900/60 border-2 border-gray-700/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all placeholder:text-gray-500 uppercase"
                   />
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Waktu Mulai (Opsional)</label>
-                  <input
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-900/60 border-2 border-gray-700/60 text-white rounded-xl focus:ring-2 focus:ring-red-900/50 focus:border-red-800 transition-all"
-                  />
-                </div>
+               
               </div>
 
               {/* Modal Footer */}
@@ -1059,26 +1068,8 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
             {/* Modal Body */}
             <form onSubmit={handleEditFlight} className="p-6 space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Nama Flight *</label>
-                  <input
-                    type="text"
-                    value={flightName}
-                    onChange={(e) => setFlightName(e.target.value)}
-                    placeholder="contoh: Flight A"
-                    required
-                    className="w-full px-4 py-3 bg-gray-900/60 border-2 border-gray-700/60 text-white rounded-xl focus:ring-2 focus:ring-blue-900/50 focus:border-blue-800 transition-all placeholder:text-gray-500"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <div className="bg-blue-900/20 border border-blue-800/40 rounded-xl p-3 text-sm text-blue-300">
-                    <strong>Catatan:</strong> Nomor flight tidak dapat diubah. Saat ini: Flight #{editingFlight.flightNumber}
-                  </div>
-                </div>
-
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Hole Awal *</label>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Hole Awal</label>
                   <input
                     type="number"
                     value={startHole}
@@ -1088,16 +1079,33 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                     max="18"
                     className="w-full px-4 py-3 bg-gray-900/60 border-2 border-gray-700/60 text-white rounded-xl focus:ring-2 focus:ring-blue-900/50 focus:border-blue-800 transition-all"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Hole tempat flight ini dimulai (1-18)</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Waktu Mulai (Opsional)</label>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Kode Flight *</label>
                   <input
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-900/60 border-2 border-gray-700/60 text-white rounded-xl focus:ring-2 focus:ring-blue-900/50 focus:border-blue-800 transition-all"
+                    type="text"
+                    value={flightCode}
+                    onChange={(e) => setFlightCode(e.target.value.toUpperCase())}
+                    placeholder="A"
+                    required
+                    maxLength={1}
+                    pattern="[A-Z]"
+                    className="w-full px-4 py-3 bg-gray-900/60 border-2 border-gray-700/60 text-white rounded-xl focus:ring-2 focus:ring-blue-900/50 focus:border-blue-800 transition-all placeholder:text-gray-500 uppercase"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Satu huruf (A-Z)</p>
+                </div>
+
+                <div className="md:col-span-2">
+                  <div className="bg-blue-900/20 border border-blue-800/40 rounded-xl p-4">
+                    <p className="text-sm text-blue-300">
+                      <strong>Preview Kode Flight:</strong> {startHole && flightCode ? `${startHole}${flightCode}` : '(Isi hole awal dan kode)'}
+                    </p>
+                    <p className="text-xs text-blue-400 mt-1">
+                      Contoh: Hole 1 + Kode A = Flight 1A
+                    </p>
+                  </div>
                 </div>
               </div>
 

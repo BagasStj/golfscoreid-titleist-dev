@@ -21,6 +21,9 @@ import {
   DollarSign,
   CheckCircle2,
   XCircle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { Button } from "../ui";
 import { ConfirmDialog } from "../shared";
@@ -85,6 +88,8 @@ export default function PlayerManagement() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   const [formData, setFormData] = useState<PlayerFormData>({
     name: "",
@@ -107,6 +112,19 @@ export default function PlayerManagement() {
     putters: [],
     golfBalls: [],
   });
+
+  // Handle sorting
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // Toggle direction if same column
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // New column, default to ascending
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+    setCurrentPage(1); // Reset to first page when sorting
+  };
 
   const filteredPlayers = players
     ?.filter((player) => {
@@ -144,9 +162,69 @@ export default function PlayerManagement() {
       return matchesSearch && matchesPayment;
     })
     .sort((a, b) => {
-      // Sort by _creationTime descending (newest first)
+      // Apply sorting if column is selected
+      if (sortColumn) {
+        let aValue: any;
+        let bValue: any;
+
+        switch (sortColumn) {
+          case "name":
+            aValue = a.name.toLowerCase();
+            bValue = b.name.toLowerCase();
+            break;
+          case "email":
+            aValue = a.email.toLowerCase();
+            bValue = b.email.toLowerCase();
+            break;
+          case "phone":
+            aValue = a.phone || "";
+            bValue = b.phone || "";
+            break;
+          case "nickname":
+            aValue = a.nickname || "";
+            bValue = b.nickname || "";
+            break;
+          case "dateOfBirth":
+            aValue = (a as any).dateOfBirth || "";
+            bValue = (b as any).dateOfBirth || "";
+            break;
+          case "gender":
+            aValue = a.gender || "";
+            bValue = b.gender || "";
+            break;
+          case "shirtSize":
+            const shirtOrder = { S: 1, M: 2, L: 3, XL: 4 };
+            aValue = shirtOrder[a.shirtSize as keyof typeof shirtOrder] || 0;
+            bValue = shirtOrder[b.shirtSize as keyof typeof shirtOrder] || 0;
+            break;
+          case "paidStatus":
+            aValue = (a as any).paidStatus === "paid" ? 1 : 0;
+            bValue = (b as any).paidStatus === "paid" ? 1 : 0;
+            break;
+          default:
+            return 0;
+        }
+
+        if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      }
+
+      // Default sort by _creationTime descending (newest first)
       return (b._creationTime || 0) - (a._creationTime || 0);
     });
+
+  // Render sort icon
+  const renderSortIcon = (column: string) => {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-gray-500" />;
+    }
+    return sortDirection === "asc" ? (
+      <ArrowUp className="w-4 h-4 text-red-400" />
+    ) : (
+      <ArrowDown className="w-4 h-4 text-red-400" />
+    );
+  };
 
   // Calculate payment statistics
   const totalPlayers = players?.length || 0;
@@ -960,30 +1038,78 @@ export default function PlayerManagement() {
                     />
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Pemain
+                    <button
+                      onClick={() => handleSort("name")}
+                      className="flex items-center gap-2 hover:text-red-200 transition-colors"
+                    >
+                      Pemain
+                      {renderSortIcon("name")}
+                    </button>
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Email
+                    <button
+                      onClick={() => handleSort("email")}
+                      className="flex items-center gap-2 hover:text-red-200 transition-colors"
+                    >
+                      Email
+                      {renderSortIcon("email")}
+                    </button>
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Telepon
+                    <button
+                      onClick={() => handleSort("phone")}
+                      className="flex items-center gap-2 hover:text-red-200 transition-colors"
+                    >
+                      Telepon
+                      {renderSortIcon("phone")}
+                    </button>
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Nama Alias
+                    <button
+                      onClick={() => handleSort("nickname")}
+                      className="flex items-center gap-2 hover:text-red-200 transition-colors"
+                    >
+                      Nama Alias
+                      {renderSortIcon("nickname")}
+                    </button>
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Tanggal Lahir
+                    <button
+                      onClick={() => handleSort("dateOfBirth")}
+                      className="flex items-center gap-2 hover:text-red-200 transition-colors"
+                    >
+                      Tanggal Lahir
+                      {renderSortIcon("dateOfBirth")}
+                    </button>
                   </th>
                   <th className="px-6 py-4 text-center text-sm font-semibold">
-                    Gender
+                    <button
+                      onClick={() => handleSort("gender")}
+                      className="flex items-center gap-2 hover:text-red-200 transition-colors mx-auto"
+                    >
+                      Gender
+                      {renderSortIcon("gender")}
+                    </button>
                   </th>
                   <th className="px-6 py-4 text-center text-sm font-semibold">
-                    Ukuran
+                    <button
+                      onClick={() => handleSort("shirtSize")}
+                      className="flex items-center gap-2 hover:text-red-200 transition-colors mx-auto"
+                    >
+                      Ukuran
+                      {renderSortIcon("shirtSize")}
+                    </button>
                   </th>
                   {/* Only show Status Bayar column when in Accepted tab */}
                   {paymentFilter === "accepted" && (
                     <th className="px-6 py-4 text-center text-sm font-semibold">
-                      Status Bayar
+                      <button
+                        onClick={() => handleSort("paidStatus")}
+                        className="flex items-center gap-2 hover:text-red-200 transition-colors mx-auto"
+                      >
+                        Status Bayar
+                        {renderSortIcon("paidStatus")}
+                      </button>
                     </th>
                   )}
                   <th className="px-6 py-4 text-center text-sm font-semibold">
