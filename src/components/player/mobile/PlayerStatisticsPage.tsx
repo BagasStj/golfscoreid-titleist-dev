@@ -67,7 +67,7 @@ const PlayerStatisticsPage: React.FC = () => {
       `}</style>
 
       {/* Header */}
-      <div className="flex-shrink-0  shadow-2xl border-b border-gray-800">
+      <div className="flex-shrink-0 shadow-2xl border-b border-gray-800">
         <div className="flex items-center px-4 py-4">
           <button
             onClick={() => navigate('/player?tab=profile')}
@@ -76,8 +76,8 @@ const PlayerStatisticsPage: React.FC = () => {
             <ArrowLeft className="w-6 h-6" />
           </button>
           <div>
-            <h2 className="text-white font-bold text-xl">My Statistics</h2>
-            <p className="text-red-100 text-sm">Overall performance</p>
+            <h2 className="text-white font-bold text-xl">Statistik Saya</h2>
+            <p className="text-red-100 text-sm">Performa keseluruhan</p>
           </div>
         </div>
       </div>
@@ -89,25 +89,25 @@ const PlayerStatisticsPage: React.FC = () => {
         <div className="grid grid-cols-2 gap-4">
           <StatCard
             icon={<Trophy className="w-6 h-6" />}
-            label="Total Tournament"
+            label="Total Turnamen"
             value={stats.totalTournaments}
             color="from-blue-600 to-blue-700"
           />
           <StatCard
             icon={<Target className="w-6 h-6" />}
-            label="Total Holes"
+            label="Total Hole"
             value={stats.totalHolesPlayed}
             color="from-green-600 to-green-700"
           />
           <StatCard
             icon={<Star className="w-6 h-6" />}
-            label="Best Score"
+            label="Skor Terbaik"
             value={stats.bestScore > 0 ? stats.bestScore : '-'}
             color="from-yellow-600 to-yellow-700"
           />
           <StatCard
             icon={<BarChart3 className="w-6 h-6" />}
-            label="Avg Score"
+            label="Rata-rata Skor"
             value={stats.averageScore > 0 ? stats.averageScore.toFixed(1) : '-'}
             color="from-purple-600 to-purple-700"
           />
@@ -117,44 +117,44 @@ const PlayerStatisticsPage: React.FC = () => {
         <div className="bg-black/30 rounded-xl p-5 border border-gray-800">
           <h3 className="text-white font-bold text-lg mb-4 flex items-center">
             <TrendingUp className="w-6 h-6 mr-2 text-red-500" />
-            Score Distribution
+            Distribusi Skor
           </h3>
           <div className="space-y-3">
             <ScoreDistributionBar
               label="Eagle"
               count={stats.scoreDistribution.eagles}
               color="bg-yellow-500"
-              symbol="🦅"
+              icon={<Star className="w-4 h-4" />}
             />
             <ScoreDistributionBar
               label="Birdie"
               count={stats.scoreDistribution.birdies}
               color="bg-blue-500"
-              symbol="🐦"
+              icon={<TrendingUp className="w-4 h-4" />}
             />
             <ScoreDistributionBar
               label="Par"
               count={stats.scoreDistribution.pars}
               color="bg-green-500"
-              symbol="✓"
+              icon={<Target className="w-4 h-4" />}
             />
             <ScoreDistributionBar
               label="Bogey"
               count={stats.scoreDistribution.bogeys}
               color="bg-orange-500"
-              symbol="△"
+              icon={<BarChart3 className="w-4 h-4" />}
             />
             <ScoreDistributionBar
               label="Double Bogey+"
               count={stats.scoreDistribution.doubleBogeyPlus}
               color="bg-red-500"
-              symbol="✕"
+              icon={<Award className="w-4 h-4" />}
             />
           </div>
         </div>
 
         {/* Performance Metrics */}
-        <div className="bg-black/30 rounded-xl p-5 border border-gray-800">
+        {/* <div className="bg-black/30 rounded-xl p-5 border border-gray-800">
           <h3 className="text-white font-bold text-lg mb-4 flex items-center">
             <Target className="w-6 h-6 mr-2 text-red-500" />
             Performance Metrics
@@ -176,10 +176,10 @@ const PlayerStatisticsPage: React.FC = () => {
               progress={stats.parSaveRate}
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Recent Form */}
-        <div className="bg-black/30 rounded-xl p-5 border border-gray-800">
+        {/* <div className="bg-black/30 rounded-xl p-5 border border-gray-800">
           <h3 className="text-white font-bold text-lg mb-4 flex items-center">
             <BarChart3 className="w-6 h-6 mr-2 text-red-500" />
             Recent Form (Last 5 Tournaments)
@@ -206,10 +206,10 @@ const PlayerStatisticsPage: React.FC = () => {
           ) : (
             <p className="text-gray-400 text-center py-4">No performance data yet</p>
           )}
-        </div>
+        </div> */}
 
         {/* Achievements */}
-        {stats.achievements && stats.achievements.length > 0 && (
+        {/* {stats.achievements && stats.achievements.length > 0 && (
           <div className="bg-black/30 rounded-xl p-5 border border-gray-800">
             <h3 className="text-white font-bold text-lg mb-4 flex items-center">
               <Award className="w-6 h-6 mr-2 text-red-500" />
@@ -225,7 +225,7 @@ const PlayerStatisticsPage: React.FC = () => {
               ))}
             </div>
           </div>
-        )}
+        )} */}
         </div>
       </div>
     </div>
@@ -245,11 +245,11 @@ const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string |
   </div>
 );
 
-const ScoreDistributionBar: React.FC<{ label: string; count: number; color: string; symbol: string }> = ({
+const ScoreDistributionBar: React.FC<{ label: string; count: number; color: string; icon: React.ReactNode }> = ({
   label,
   count,
   color,
-  symbol,
+  icon,
 }) => {
   const maxCount = 100; // For percentage calculation
   const percentage = Math.min((count / maxCount) * 100, 100);
@@ -258,13 +258,13 @@ const ScoreDistributionBar: React.FC<{ label: string; count: number; color: stri
     <div>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
-          <span className={`text-lg ${
+          <span className={`${
             label === 'Eagle' ? 'text-yellow-500' :
             label === 'Birdie' ? 'text-blue-500' :
             label === 'Par' ? 'text-green-500' :
             label === 'Bogey' ? 'text-orange-500' :
             'text-red-500'
-          }`}>{symbol}</span>
+          }`}>{icon}</span>
           <span className="text-white font-semibold text-sm">{label}</span>
         </div>
         <span className="text-gray-400 text-sm font-bold">{count}</span>
@@ -279,19 +279,19 @@ const ScoreDistributionBar: React.FC<{ label: string; count: number; color: stri
   );
 };
 
-const MetricRow: React.FC<{ label: string; value: string; progress: number }> = ({ label, value, progress }) => (
-  <div>
-    <div className="flex items-center justify-between mb-2">
-      <span className="text-white font-semibold text-sm">{label}</span>
-      <span className="text-red-400 font-bold">{value}</span>
-    </div>
-    <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
-      <div
-        className="bg-gradient-to-r from-red-600 to-red-500 h-full rounded-full transition-all duration-500"
-        style={{ width: `${progress}%` }}
-      ></div>
-    </div>
-  </div>
-);
+// const MetricRow: React.FC<{ label: string; value: string; progress: number }> = ({ label, value, progress }) => (
+//   <div>
+//     <div className="flex items-center justify-between mb-2">
+//       <span className="text-white font-semibold text-sm">{label}</span>
+//       <span className="text-red-400 font-bold">{value}</span>
+//     </div>
+//     <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+//       <div
+//         className="bg-gradient-to-r from-red-600 to-red-500 h-full rounded-full transition-all duration-500"
+//         style={{ width: `${progress}%` }}
+//       ></div>
+//     </div>
+//   </div>
+// );
 
 export default PlayerStatisticsPage;

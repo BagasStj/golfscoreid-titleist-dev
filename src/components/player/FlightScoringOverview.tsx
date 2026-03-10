@@ -4,7 +4,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../contexts/AuthContext";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Info } from "lucide-react";
 
 const FlightScoringOverview: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -102,6 +102,19 @@ const FlightScoringOverview: React.FC = () => {
     }
   }, [id, tournament, playerFlight, user, currentUserScores]);
 
+  // Listen for custom event to show disclaimer dialog
+  useEffect(() => {
+    const handleShowDisclaimer = () => {
+      setShowDisclaimerDialog(true);
+    };
+
+    window.addEventListener('showDisclaimerDialog', handleShowDisclaimer);
+    
+    return () => {
+      window.removeEventListener('showDisclaimerDialog', handleShowDisclaimer);
+    };
+  }, []);
+
   if (!tournament || !playerFlight || !flightDetails) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#1a1a1a] via-[#0f0f0f] to-black flex items-center justify-center">
@@ -124,6 +137,10 @@ const FlightScoringOverview: React.FC = () => {
   const handleAcceptDisclaimer = () => {
     const disclaimerKey = `scoringDisclaimer_${id}_${user?._id}`;
     localStorage.setItem(disclaimerKey, "true");
+    setShowDisclaimerDialog(false);
+  };
+
+  const handleCloseDisclaimer = () => {
     setShowDisclaimerDialog(false);
   };
 
@@ -305,7 +322,29 @@ const FlightScoringOverview: React.FC = () => {
       {showDisclaimerDialog && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-2xl shadow-2xl border-2 border-blue-900/40 max-w-lg w-full animate-in fade-in zoom-in duration-200">
-            <div className="p-6 space-y-5">
+            {/* Close Button */}
+            <div className="flex justify-end p-4 pb-0">
+              <button
+                onClick={handleCloseDisclaimer}
+                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <svg
+                  className="w-5 h-5 text-gray-400 hover:text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="px-6 pb-6 space-y-5">
               {/* Icon */}
               <div className="w-16 h-16 bg-gradient-to-br from-blue-900/60 to-blue-800/60 rounded-2xl flex items-center justify-center mx-auto border border-blue-800/40 shadow-lg">
                 <svg
@@ -351,23 +390,7 @@ const FlightScoringOverview: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-700/40 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-blue-200 text-sm font-semibold mb-1">
-                      Verifikasi Bersama Tim
-                    </p>
-                    <p className="text-blue-300/80 text-xs leading-relaxed">
-                      Pastikan skor yang diinput sudah benar dan disepakati oleh seluruh pemain dalam flight sebelum melanjutkan ke hole berikutnya.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
+                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 bg-blue-700/40 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                     <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -382,19 +405,27 @@ const FlightScoringOverview: React.FC = () => {
                     </p>
                   </div>
                 </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-700/40 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-blue-200 text-sm font-semibold mb-1">
+                      Skor Tidak Dapat Diubah Setelah Lanjut
+                    </p>
+                    <p className="text-blue-300/80 text-xs leading-relaxed">
+                      Setelah menekan tombol "Simpan & Lanjut ke Hole Berikutnya", skor pada hole sebelumnya tidak dapat diubah lagi. Pastikan semua skor sudah benar sebelum melanjutkan.
+                    </p>
+                  </div>
+                </div>
+
+               
               </div>
 
-              {/* Note */}
-              <div className="bg-yellow-900/20 border border-yellow-800/40 rounded-xl p-3">
-                <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  <p className="text-yellow-300 text-xs leading-relaxed">
-                    <span className="font-semibold">Catatan:</span> Jika terdapat kesalahan input skor yang sudah disetujui, silakan hubungi panitia turnamen untuk bantuan lebih lanjut.
-                  </p>
-                </div>
-              </div>
+              
 
               {/* Action Button */}
               <button
@@ -592,29 +623,44 @@ const ActionButtons: React.FC<{
           </button>
         </>
       ) : (
-        <button
-          onClick={() =>
-            navigate(
-              `/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`,
-            )
-          }
-          className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3.5 rounded-lg transition-all shadow-lg flex items-center justify-center space-x-2"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <>
+          <button
+            onClick={() =>
+              navigate(
+                `/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`,
+              )
+            }
+            className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3.5 rounded-lg transition-all shadow-lg flex items-center justify-center space-x-2"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-            />
-          </svg>
-          <span className="text-base">Input Skor</span>
-        </button>
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+            <span className="text-base">Input Skor</span>
+          </button>
+          
+          {/* Information Button */}
+          <button
+            onClick={() => {
+              // Trigger parent component to show disclaimer dialog
+              const event = new CustomEvent('showDisclaimerDialog');
+              window.dispatchEvent(event);
+            }}
+            className="w-full bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black hover:from-gray-800 hover:via-[#171718] hover:to-black text-gray-300 hover:text-white font-semibold py-3 px-4 rounded-lg border border-gray-800 hover:border-gray-700 transition-all flex items-center justify-center gap-2"
+          >
+            <Info className="w-5 h-5" />
+            <span className="text-sm">Informasi</span>
+          </button>
+        </>
       )}
 
       {allHolesCompleted && (

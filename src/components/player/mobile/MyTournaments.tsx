@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useAuth } from "../../../contexts/AuthContext";
-import { Calendar, MapPin, Target, Users, Play } from "lucide-react";
+import { Calendar, MapPin, Target, Users, Play, Trophy } from "lucide-react";
 import { statusConfig } from "@/lib/utils";
 import type { Id } from "../../../../convex/_generated/dataModel";
 
@@ -45,13 +45,13 @@ const MyTournaments: React.FC = () => {
 
       {myTournaments.length === 0 && (
         <div className="text-center py-16">
-          <div className="text-6xl mb-4">🏌️</div>
+          <div className="w-20 h-20 bg-gray-900/60 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-gray-800/60">
+            <Trophy className="w-10 h-10 text-gray-600" />
+          </div>
           <div className="text-gray-400 text-lg font-semibold">
             Belum ada turnamen
           </div>
-          <div className="text-gray-500 text-sm mt-2">
-            Daftar turnamen untuk mulai bermain
-          </div>
+         
         </div>
       )}
     </div>
@@ -112,9 +112,16 @@ const TournamentCard: React.FC<{
   const tournamentDate = new Date(tournament.date);
   const st = statusConfig(tournament.status);
   const holesConfig = tournamentDetails.holesConfig || [];
-  const totalHoles = holesConfig.length;
+  const totalPar = holesConfig.reduce((sum, hole) => sum + (hole.par || 0), 0);
   const holesCompleted = playerScores?.length || 0;
   const hasStartedScoring = holesCompleted > 0;
+
+  // Check if tournament date is today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tournamentDateOnly = new Date(tournament.date);
+  tournamentDateOnly.setHours(0, 0, 0, 0);
+  const isTournamentToday = tournamentDateOnly.getTime() === today.getTime();
 
   return (
     <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl border border-gray-800 overflow-hidden">
@@ -178,8 +185,8 @@ const TournamentCard: React.FC<{
             </span>
           </div>
           <div className="flex justify-between items-center py-1">
-            <span className="text-gray-400">Total Hole</span>
-            <span className="text-white font-semibold">{totalHoles}</span>
+            <span className="text-gray-400">Total Par</span>
+            <span className="text-white font-semibold">{totalPar}</span>
           </div>
         </div>
       </div>
@@ -307,81 +314,94 @@ const TournamentCard: React.FC<{
         <div className="p-4 border-b border-gray-800">
           <h4 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
             <Users className="w-4 h-4 text-green-500" />
-            Semua Peserta Tournament
+            Semua Peserta Turnamen
           </h4>
 
-          {/* Scrollable container with max height */}
-          <div className="max-h-[400px] overflow-y-auto space-y-3 pr-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
-            {allFlights
-              .map((flight) => {
-                // Filter only paid participants
-                const paidParticipants =
-                  flight.participants?.filter(
-                    (p: any) =>
-                      p.paymentStatus === "invited" && p.paidStatus === "paid",
-                  ) || [];
+          {/* Table Container with scrollable content */}
+          <div className="bg-gray-900/40 rounded-lg border border-gray-800/60 overflow-hidden">
+            <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
+              <table className="w-full text-xs">
+                <thead className="sticky top-0 bg-gray-800/90 backdrop-blur-sm z-10">
+                  <tr className="border-b border-gray-700">
+                    <th className="text-left py-2 px-3 text-gray-300 font-semibold">
+                      Nama Pemain
+                    </th>
+                    <th className="text-center py-2 px-3 text-gray-300 font-semibold">
+                      Flight
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800/60">
+                  {allFlights
+                    .flatMap((flight) => {
+                      // Filter only paid participants
+                      const paidParticipants =
+                        flight.participants?.filter(
+                          (p: any) =>
+                            p.paymentStatus === "invited" && p.paidStatus === "paid",
+                        ) || [];
 
-                // Skip flight if no paid participants
-                if (paidParticipants.length === 0) return null;
-
-                return (
-                  <div
-                    key={flight._id}
-                    className="bg-gray-900/40 rounded-lg p-3 border border-gray-800/60"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <h5 className="text-white font-bold text-xs">
-                          {flight.flightName}
-                        </h5>
-                        <p className="text-gray-400 text-[10px]">
-                          {paidParticipants.length} pemain
-                        </p>
-                      </div>
-                      <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                        {flight.flightNumber}
-                      </div>
-                    </div>
-
-                    {/* Flight Participants - Only Paid */}
-                    <div className="space-y-1 mt-2">
-                      {paidParticipants.map((participant: any) => (
-                        <div
-                          key={participant._id}
-                          className={`flex items-center gap-2 p-1.5 rounded ${
-                            participant._id === userId
-                              ? "bg-green-900/40 border border-green-700/60"
-                              : "bg-gray-800/40"
-                          }`}
-                        >
-                          <div
-                            className={`w-6 h-6 rounded flex items-center justify-center text-white font-bold text-[10px] ${
-                              participant._id === userId
-                                ? "bg-gradient-to-br from-green-600 to-green-700"
-                                : "bg-gradient-to-br from-gray-600 to-gray-700"
-                            }`}
-                          >
-                            {participant.name.charAt(0).toUpperCase()}
-                          </div>
-                          <p className="text-white text-[11px] font-semibold flex items-center gap-1 flex-1">
-                            {participant.name}
-                            {participant._id === userId && (
-                              <span className="text-[9px] bg-green-600 text-white px-1 py-0.5 rounded-full font-semibold">
-                                Anda
+                      // Map participants with flight info
+                      return paidParticipants.map((participant: any) => ({
+                        ...participant,
+                        flightName: flight.flightName,
+                        flightNumber: flight.flightNumber,
+                      }));
+                    })
+                    .sort((a, b) => a.name.localeCompare(b.name)) // Sort by name
+                    .map((participant: any, index: number) => (
+                      <tr
+                        key={`${participant._id}-${index}`}
+                        className={`hover:bg-gray-800/40 transition-colors ${
+                          participant._id === userId
+                            ? "bg-green-900/30"
+                            : index % 2 === 0
+                              ? "bg-gray-900/20"
+                              : "bg-transparent"
+                        }`}
+                      >
+                        <td className="py-2.5 px-3">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0 ${
+                                participant._id === userId
+                                  ? "bg-gradient-to-br from-green-600 to-green-700"
+                                  : "bg-gradient-to-br from-gray-600 to-gray-700"
+                              }`}
+                            >
+                              {participant.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                              <span className="text-white font-semibold truncate">
+                                {participant.name}
                               </span>
-                            )}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })
-              .filter(Boolean)}
+                              {participant._id === userId && (
+                                <span className="text-[9px] bg-green-600 text-white px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">
+                                  Anda
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-blue-700 rounded flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
+                              {participant.flightNumber}
+                            </div>
+                            <span className="text-gray-300 font-semibold text-center">
+                              {participant.flightName}
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Total Participants Summary - Only Paid */}
-          <div className="mt-3 bg-gradient-to-r from-green-900/40 to-green-950/40 rounded-lg p-2 border border-green-800/40">
+          <div className="mt-3 bg-gradient-to-r from-green-900/40 to-green-950/40 rounded-lg p-2.5 border border-green-800/40">
             <div className="flex items-center justify-between">
               <span className="text-gray-300 text-xs font-semibold">
                 Total Peserta
@@ -405,8 +425,8 @@ const TournamentCard: React.FC<{
 
       {/* Action Buttons */}
       <div className="p-4 space-y-2">
-        {/* Scoring Button - Only for active tournaments */}
-        {tournament.status === "active" && (
+        {/* Scoring Button - Only for active tournaments and if tournament date is today */}
+        {tournament.status === "active" && isTournamentToday && (
           <button
             onClick={() => navigate(`/player/flight-scoring/${tournament._id}`)}
             className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-4 rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
@@ -416,6 +436,13 @@ const TournamentCard: React.FC<{
               {hasStartedScoring ? "Lanjutkan Scoring" : "Mulai Scoring"}
             </span>
           </button>
+        )}
+
+        {/* Message if tournament is active but not today */}
+        {tournament.status === "active" && !isTournamentToday && (
+          <div className="w-full bg-gray-900/40 border border-gray-800/60 text-gray-400 font-semibold py-3 px-4 rounded-xl text-center">
+            <p className="text-sm">Scoring akan tersedia pada hari turnamen</p>
+          </div>
         )}
 
         {/* View Details Button */}

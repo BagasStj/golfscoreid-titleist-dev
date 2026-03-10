@@ -1,14 +1,22 @@
 import { useState } from 'react';
-import { useQuery } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { Trophy, Activity, RefreshCw, Star, Download, Maximize2 } from 'lucide-react';
+import { Trophy, Activity, RefreshCw, Star, Download, Maximize2, Edit2, Save, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import type { Id } from '../../../convex/_generated/dataModel';
 
 export default function LiveMonitoringDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'special'>('all');
   const [isFullView, setIsFullView] = useState(false);
+  const [editingScore, setEditingScore] = useState<{
+    scoreId: Id<"scores">;
+    playerId: Id<"users">;
+    holeNumber: number;
+    currentStrokes: number;
+  } | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
 
   // Get active tournaments
   const tournaments = useQuery(
@@ -30,6 +38,9 @@ export default function LiveMonitoringDashboard() {
   const holesConfig = useQuery(api.tournaments.getTournamentDetails, 
     selectedTournament && user ? { tournamentId: selectedTournament._id, userId: user._id } : 'skip'
   );
+
+  // Mutation
+  const adminUpdateScore = useMutation(api.scores.adminUpdateScore);
 
   if (tournaments === undefined || !selectedTournament) {
     return (
@@ -66,6 +77,57 @@ export default function LiveMonitoringDashboard() {
   const getScoreForHole = (playerScorecard: any[], holeNumber: number) => {
     const score = playerScorecard.find(s => s.holeNumber === holeNumber);
     return score ? score.strokes : null;
+  };
+
+  // Helper function to get score object (including scoreId)
+  const getScoreObjectForHole = (playerScorecard: any[], holeNumber: number) => {
+    return playerScorecard.find(s => s.holeNumber === holeNumber);
+  };
+
+  // Handle edit score
+  const handleEditScore = (playerId: Id<"users">, holeNumber: number, playerScorecard: any[]) => {
+    const scoreObj = getScoreObjectForHole(playerScorecard, holeNumber);
+    if (scoreObj && scoreObj.scoreId) {
+      setEditingScore({
+        scoreId: scoreObj.scoreId,
+        playerId,
+        holeNumber,
+        currentStrokes: scoreObj.strokes,
+      });
+      setEditValue(scoreObj.strokes.toString());
+    }
+  };
+
+  // Handle save edited score
+  const handleSaveScore = async () => {
+    if (!editingScore || !user) return;
+
+    const newStrokes = parseInt(editValue);
+    if (isNaN(newStrokes) || newStrokes <= 0) {
+      alert('Stroke harus berupa angka positif');
+      return;
+    }
+
+    try {
+      await adminUpdateScore({
+        scoreId: editingScore.scoreId,
+        userId: user._id,
+        newStrokes,
+      });
+      
+      // Reset editing state
+      setEditingScore(null);
+      setEditValue('');
+    } catch (error) {
+      console.error('Error updating score:', error);
+      alert(error instanceof Error ? error.message : 'Gagal memperbarui score');
+    }
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setEditingScore(null);
+    setEditValue('');
   };
 
   // Helper function to calculate total for 9 holes
@@ -259,6 +321,9 @@ export default function LiveMonitoringDashboard() {
             <div className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-red-500" />
               <h3 className="text-lg font-bold text-white">Scorecard Langsung</h3>
+              <span className="ml-2 px-2 py-1 bg-blue-900/40 text-blue-300 text-xs font-semibold rounded-full border border-blue-800/40">
+                Hover untuk edit
+              </span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -422,14 +487,57 @@ export default function LiveMonitoringDashboard() {
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(hole => {
                           const score = getScoreForHole(player.scorecard, hole);
                           const par = holesMap.get(hole)?.par || 0;
+                          const isEditing = editingScore?.playerId === player.playerId && editingScore?.holeNumber === hole;
+                          
                           return (
                             <td 
                               key={hole} 
-                              className={`px-3 py-3 text-center font-bold text-lg ${
+                              className={`px-3 py-3 text-center font-bold text-lg relative group ${
                                 score !== null ? getScoreColor(score, par) : 'text-white'
                               }`}
                             >
-                              {score !== null ? score : '-'}
+                              {isEditing ? (
+                                <div className="flex items-center justify-center gap-1">
+                                  <input
+                                    type="number"
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    className="w-12 px-1 py-1 bg-gray-900 border border-blue-500 text-white text-center rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleSaveScore();
+                                      if (e.key === 'Escape') handleCancelEdit();
+                                    }}
+                                  />
+                                  <button
+                                    onClick={handleSaveScore}
+                                    className="p-1 bg-green-600 hover:bg-green-700 text-white rounded"
+                                    title="Simpan"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={handleCancelEdit}
+                                    className="p-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                                    title="Batal"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center gap-1">
+                                  <span>{score !== null ? score : '-'}</span>
+                                  {score !== null && (
+                                    <button
+                                      onClick={() => handleEditScore(player.playerId, hole, player.scorecard)}
+                                      className="opacity-0 group-hover:opacity-100 p-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-opacity"
+                                      title="Edit Score"
+                                    >
+                                      <Edit2 className="w-3 h-3" />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
                             </td>
                           );
                         })}
@@ -441,14 +549,57 @@ export default function LiveMonitoringDashboard() {
                         {[10, 11, 12, 13, 14, 15, 16, 17, 18].map(hole => {
                           const score = getScoreForHole(player.scorecard, hole);
                           const par = holesMap.get(hole)?.par || 0;
+                          const isEditing = editingScore?.playerId === player.playerId && editingScore?.holeNumber === hole;
+                          
                           return (
                             <td 
                               key={hole} 
-                              className={`px-3 py-3 text-center font-bold text-lg ${
+                              className={`px-3 py-3 text-center font-bold text-lg relative group ${
                                 score !== null ? getScoreColor(score, par) : 'text-white'
                               }`}
                             >
-                              {score !== null ? score : '-'}
+                              {isEditing ? (
+                                <div className="flex items-center justify-center gap-1">
+                                  <input
+                                    type="number"
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    className="w-12 px-1 py-1 bg-gray-900 border border-blue-500 text-white text-center rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleSaveScore();
+                                      if (e.key === 'Escape') handleCancelEdit();
+                                    }}
+                                  />
+                                  <button
+                                    onClick={handleSaveScore}
+                                    className="p-1 bg-green-600 hover:bg-green-700 text-white rounded"
+                                    title="Simpan"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={handleCancelEdit}
+                                    className="p-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                                    title="Batal"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center gap-1">
+                                  <span>{score !== null ? score : '-'}</span>
+                                  {score !== null && (
+                                    <button
+                                      onClick={() => handleEditScore(player.playerId, hole, player.scorecard)}
+                                      className="opacity-0 group-hover:opacity-100 p-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-opacity"
+                                      title="Edit Score"
+                                    >
+                                      <Edit2 className="w-3 h-3" />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
                             </td>
                           );
                         })}
@@ -474,14 +625,57 @@ export default function LiveMonitoringDashboard() {
                         ).map(hole => {
                           const score = getScoreForHole(player.scorecard, hole);
                           const par = holesMap.get(hole)?.par || 0;
+                          const isEditing = editingScore?.playerId === player.playerId && editingScore?.holeNumber === hole;
+                          
                           return (
                             <td 
                               key={hole} 
-                              className={`px-3 py-3 text-center font-bold text-lg ${
+                              className={`px-3 py-3 text-center font-bold text-lg relative group ${
                                 score !== null ? getScoreColor(score, par) : 'text-white'
                               }`}
                             >
-                              {score !== null ? score : '-'}
+                              {isEditing ? (
+                                <div className="flex items-center justify-center gap-1">
+                                  <input
+                                    type="number"
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    className="w-12 px-1 py-1 bg-gray-900 border border-blue-500 text-white text-center rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleSaveScore();
+                                      if (e.key === 'Escape') handleCancelEdit();
+                                    }}
+                                  />
+                                  <button
+                                    onClick={handleSaveScore}
+                                    className="p-1 bg-green-600 hover:bg-green-700 text-white rounded"
+                                    title="Simpan"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={handleCancelEdit}
+                                    className="p-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                                    title="Batal"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center gap-1">
+                                  <span>{score !== null ? score : '-'}</span>
+                                  {score !== null && (
+                                    <button
+                                      onClick={() => handleEditScore(player.playerId, hole, player.scorecard)}
+                                      className="opacity-0 group-hover:opacity-100 p-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-opacity"
+                                      title="Edit Score"
+                                    >
+                                      <Edit2 className="w-3 h-3" />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
                             </td>
                           );
                         })}
@@ -516,6 +710,9 @@ export default function LiveMonitoringDashboard() {
               <h3 className="text-lg font-bold text-white">Scorecard Hole Spesial</h3>
               <span className="ml-2 px-2 py-1 bg-amber-700/60 text-amber-200 text-xs font-bold rounded-full border border-amber-600/40">
                 {specialHoles.length} Hole
+              </span>
+              <span className="ml-2 px-2 py-1 bg-blue-900/40 text-blue-300 text-xs font-semibold rounded-full border border-blue-800/40">
+                Hover untuk edit
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-300">
@@ -615,14 +812,57 @@ export default function LiveMonitoringDashboard() {
                     {specialHoles.map(hole => {
                       const score = getScoreForHole(player.scorecard, hole);
                       const par = holesMap.get(hole)?.par || 0;
+                      const isEditing = editingScore?.playerId === player.playerId && editingScore?.holeNumber === hole;
+                      
                       return (
                         <td 
                           key={hole} 
-                          className={`px-3 py-3 text-center font-bold text-lg ${
+                          className={`px-3 py-3 text-center font-bold text-lg relative group ${
                             score !== null ? getScoreColor(score, par) : 'text-white'
                           }`}
                         >
-                          {score !== null ? score : '-'}
+                          {isEditing ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <input
+                                type="number"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                className="w-12 px-1 py-1 bg-gray-900 border border-blue-500 text-white text-center rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleSaveScore();
+                                  if (e.key === 'Escape') handleCancelEdit();
+                                }}
+                              />
+                              <button
+                                onClick={handleSaveScore}
+                                className="p-1 bg-green-600 hover:bg-green-700 text-white rounded"
+                                title="Simpan"
+                              >
+                                <Save className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={handleCancelEdit}
+                                className="p-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                                title="Batal"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center gap-1">
+                              <span>{score !== null ? score : '-'}</span>
+                              {score !== null && (
+                                <button
+                                  onClick={() => handleEditScore(player.playerId, hole, player.scorecard)}
+                                  className="opacity-0 group-hover:opacity-100 p-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-opacity"
+                                  title="Edit Score"
+                                >
+                                  <Edit2 className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </td>
                       );
                     })}

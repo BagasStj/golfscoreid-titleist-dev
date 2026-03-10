@@ -124,6 +124,7 @@ export const getLiveMonitoring = query({
           par: holeConfig?.par || 0,
           index: holeConfig?.index || 0,
           submittedAt: score.submittedAt,
+          scoreId: score._id, // Include scoreId for editing
         };
       });
 
