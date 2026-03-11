@@ -150,6 +150,40 @@ export const getAllTournaments = query({
   },
 });
 
+// Get all active tournaments (for accepted players to see)
+export const getAllActiveTournaments = query({
+  args: {},
+  handler: async (ctx) => {
+    const tournaments = await ctx.db
+      .query("tournaments")
+      .withIndex("by_status", (q) => q.eq("status", "active"))
+      .collect();
+    
+    const tournamentsWithDetails = await Promise.all(
+      tournaments.map(async (tournament) => {
+        const participations = await ctx.db
+          .query("tournament_participants")
+          .withIndex("by_tournament", (q) => q.eq("tournamentId", tournament._id))
+          .collect();
+        
+        // Get banner URL from storage if bannerStorageId exists
+        let bannerUrl = tournament.bannerUrl;
+        if (tournament.bannerStorageId) {
+          const url = await ctx.storage.getUrl(tournament.bannerStorageId);
+          if (url) bannerUrl = url;
+        }
+        
+        return { 
+          ...tournament, 
+          participantCount: participations.length,
+          bannerUrl
+        };
+      })
+    );
+    return tournamentsWithDetails;
+  },
+});
+
 export const getTournamentDetails = query({
   args: { tournamentId: v.id("tournaments"), userId: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
