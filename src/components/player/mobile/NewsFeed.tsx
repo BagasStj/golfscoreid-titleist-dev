@@ -22,12 +22,30 @@ const NewsFeed: React.FC = () => {
     api.information.getPublishedInformationForPlayer,
     user ? { playerId: user._id } : "skip",
   );
+  const infoCount = useQuery(api.information.getInformationCount);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [previewDialog, setPreviewDialog] = useState<{
     url: string;
     type: string;
     title: string;
   } | null>(null);
+
+  // Debug logging with more details
+  console.log("NewsFeed Debug:", {
+    user: user?._id,
+    userName: user?.name,
+    userRole: user?.role,
+    informationStatus: information === undefined ? "loading" : information === null ? "null" : "loaded",
+    informationCount: information?.length,
+    databaseInfoCount: infoCount,
+    information: information?.map(i => ({
+      title: i.title,
+      category: i.category,
+      tournamentId: i.tournamentId,
+      tournamentName: i.tournamentName,
+      isPublished: i.isPublished,
+    })),
+  });
 
   const getCategoryIcon = (category: string) => {
     switch (category) {

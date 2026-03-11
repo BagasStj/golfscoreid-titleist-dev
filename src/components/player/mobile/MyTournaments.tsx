@@ -11,14 +11,26 @@ const MyTournaments: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Fetch player's tournaments
+  // Fetch player data to check paidStatus
+  const playerData = useQuery(
+    api.users.getPlayerById,
+    user ? { playerId: user._id } : "skip",
+  );
+
+  // Fetch player's tournaments (tournaments where player is registered)
   const myTournaments = useQuery(
     api.tournaments.getTournaments,
     user ? { userId: user._id } : "skip",
   );
 
+  // Fetch all active tournaments if player is accepted
+  const allActiveTournaments = useQuery(
+    api.tournaments.getAllActiveTournaments,
+    playerData?.paidStatus === "paid" ? {} : "skip",
+  );
+
   // Loading state
-  if (!myTournaments) {
+  if (!myTournaments || !playerData) {
     return (
       <div className="px-4 py-4 space-y-4">
         <div className="text-center py-16">
@@ -29,21 +41,55 @@ const MyTournaments: React.FC = () => {
     );
   }
 
+  // If player is not accepted, show nothing
+  if (playerData.paidStatus !== "paid") {
+    return (
+      <div className="px-4 py-4 space-y-4">
+        <div className="text-center py-16">
+          <div className="w-20 h-20 bg-gray-900/60 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-gray-800/60">
+            <Trophy className="w-10 h-10 text-gray-600" />
+          </div>
+          <div className="text-gray-400 text-lg font-semibold">
+            Belum ada turnamen
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Player is accepted, show all active tournaments
+  let tournamentsToShow = [];
+  
+  if (allActiveTournaments) {
+    // Merge registered tournaments with all active tournaments (avoid duplicates)
+    const registeredIds = new Set(myTournaments.map(t => t._id));
+    const additionalTournaments = allActiveTournaments.filter(
+      t => !registeredIds.has(t._id)
+    );
+    tournamentsToShow = [...myTournaments, ...additionalTournaments];
+  } else {
+    tournamentsToShow = myTournaments;
+  }
+
   return (
     <div className="px-4 py-4 space-y-4">
       {/* Tournament List */}
-      {myTournaments.map((tournament) => {
+      {tournamentsToShow.map((tournament) => {
+        // Check if player is registered in this tournament
+        const isRegistered = myTournaments.some(t => t._id === tournament._id);
+        
         return (
           <TournamentCard
             key={tournament._id}
             tournament={tournament}
             userId={user?._id}
             navigate={navigate}
+            isRegistered={isRegistered}
           />
         );
       })}
 
-      {myTournaments.length === 0 && (
+      {tournamentsToShow.length === 0 && (
         <div className="text-center py-16">
           <div className="w-20 h-20 bg-gray-900/60 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-gray-800/60">
             <Trophy className="w-10 h-10 text-gray-600" />
@@ -63,7 +109,8 @@ const TournamentCard: React.FC<{
   tournament: any;
   userId?: Id<"users">;
   navigate: any;
-}> = ({ tournament, userId, navigate }) => {
+  isRegistered: boolean;
+}> = ({ tournament, userId, navigate, isRegistered }) => {
   // Fetch tournament details including holesConfig
   const tournamentDetails = useQuery(api.tournaments.getTournamentDetails, {
     tournamentId: tournament._id,
@@ -81,10 +128,10 @@ const TournamentCard: React.FC<{
       : "skip",
   );
 
-  // Fetch player's flight info
+  // Fetch player's flight info (only if registered)
   const playerFlight = useQuery(
     api.flights.getPlayerFlight,
-    userId
+    userId && isRegistered
       ? {
           tournamentId: tournament._id,
           playerId: userId,
@@ -92,10 +139,10 @@ const TournamentCard: React.FC<{
       : "skip",
   );
 
-  // Fetch all flights in tournament to show all participants
+  // Fetch all flights in tournament (only if registered and has flight)
   const allFlights = useQuery(
     api.flights.getTournamentFlightsWithParticipants,
-    { tournamentId: tournament._id },
+    isRegistered && playerFlight ? { tournamentId: tournament._id } : "skip",
   );
 
   if (!tournamentDetails) {
@@ -123,6 +170,83 @@ const TournamentCard: React.FC<{
   tournamentDateOnly.setHours(0, 0, 0, 0);
   const isTournamentToday = tournamentDateOnly.getTime() === today.getTime();
 
+  // Determine if should show simplified view
+  const showSimplifiedView = !isRegistered || !playerFlight;
+
+  // SIMPLIFIED VIEW - For players who are accepted but not registered or don't have flight
+  if (showSimplifiedView) {
+    return (
+      <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl border border-gray-800 overflow-hidden">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-800">
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="text-white font-bold text-lg flex-1">
+              {tournament.name}
+            </h3>
+            <div
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ml-2"
+              style={{
+                background: st.bg,
+                borderColor: st.border,
+                color: st.text,
+              }}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${tournament.status === "active" ? "animate-pulse" : ""}`}
+                style={{ background: st.dot }}
+              />
+              {st.label}
+            </div>
+          </div>
+          <p className="text-gray-400 text-sm">{tournament.description}</p>
+        </div>
+
+        {/* Tournament Info Card */}
+        <div className="p-4 space-y-3 border-b border-gray-800">
+          <div className="flex items-center gap-2 text-gray-300">
+            <Calendar className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <span className="text-sm">
+              {tournamentDate.toLocaleDateString("id-ID", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 text-gray-300">
+            <MapPin className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <span className="text-sm">{tournament.location}</span>
+          </div>
+
+          <div className="flex items-center gap-2 text-gray-300">
+            <Target className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <span className="text-sm">{tournament.courseType}</span>
+          </div>
+        </div>
+
+        {/* Quick Info */}
+        <div className="p-4 space-y-2">
+          <h4 className="text-white font-semibold text-sm mb-2">Info Turnamen</h4>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex justify-between items-center py-1">
+              <span className="text-gray-400">Tampilan Skor</span>
+              <span className="text-white font-semibold capitalize">
+                {tournament.scoringDisplay}
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-1">
+              <span className="text-gray-400">Total Par</span>
+              <span className="text-white font-semibold">{totalPar}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // FULL VIEW - For players who are registered and have flight
   return (
     <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl border border-gray-800 overflow-hidden">
       {/* Header */}
@@ -385,9 +509,6 @@ const TournamentCard: React.FC<{
                         </td>
                         <td className="py-2.5 px-3">
                           <div className="flex items-center justify-center gap-1.5">
-                            <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-blue-700 rounded flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
-                              {participant.flightNumber}
-                            </div>
                             <span className="text-gray-300 font-semibold text-center">
                               {participant.flightName}
                             </span>

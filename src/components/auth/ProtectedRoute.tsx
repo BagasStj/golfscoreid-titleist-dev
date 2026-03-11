@@ -14,12 +14,6 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
 
   // Debug: Log protection check
   if (user) {
-    console.group('🛡️ ProtectedRoute Check');
-    console.log('Path:', location.pathname);
-    console.log('User:', user.name);
-    console.log('Role:', user.role);
-    console.log('Requires Admin:', requireAdmin);
-    console.log('Access:', requireAdmin ? (user.role === 'admin' ? '✅ Granted' : '❌ Denied') : '✅ Granted');
     console.groupEnd();
   }
 
@@ -36,7 +30,7 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
 
   // Not authenticated - redirect to login
   if (!user) {
-    return <Navigate to="/admin/login" state={{ from: location, reason: 'unauthenticated' }} replace />;
+    return <Navigate to="/player/login" state={{ from: location, reason: 'unauthenticated' }} replace />;
   }
 
   // Authenticated but insufficient permissions
