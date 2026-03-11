@@ -1086,6 +1086,55 @@ export const getUser = query({
   },
 });
 
+// Get player by ID with full details including payment status
+export const getPlayerById = query({
+  args: {
+    playerId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const player = await ctx.db.get(args.playerId);
+    if (!player) {
+      return null;
+    }
+
+    // Refresh profile photo URL if exists
+    let profilePhotoUrl = player.profilePhotoUrl;
+    if (player.profilePhotoStorageId) {
+      const url = await ctx.storage.getUrl(player.profilePhotoStorageId);
+      if (url) profilePhotoUrl = url;
+    }
+
+    // Return player data without password
+    return {
+      _id: player._id,
+      name: player.name,
+      email: player.email,
+      username: player.username,
+      role: player.role,
+      handicap: player.handicap,
+      phone: player.phone,
+      nickname: player.nickname,
+      dateOfBirth: player.dateOfBirth,
+      gender: player.gender,
+      workLocation: player.workLocation,
+      shirtSize: player.shirtSize,
+      gloveSize: player.gloveSize,
+      profilePhotoUrl,
+      drivers: player.drivers,
+      fairways: player.fairways,
+      hybrids: player.hybrids,
+      utilityIrons: player.utilityIrons,
+      irons: player.irons,
+      wedges: player.wedges,
+      putters: player.putters,
+      golfBalls: player.golfBalls,
+      paymentStatus: player.paymentStatus,
+      paidStatus: player.paidStatus,
+      paidAt: player.paidAt,
+    };
+  },
+});
+
 
 // Update payment status for multiple players
 export const updatePaymentStatus = mutation({

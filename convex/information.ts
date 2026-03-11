@@ -263,12 +263,18 @@ export const getPublishedInformation = query({
   },
 });
 
-// Get Published Information for Player (filtered by category and player's tournaments)
+// Get Published Information for Player (filtered by category and player's paidStatus)
 export const getPublishedInformationForPlayer = query({
   args: {
     playerId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    // Get player data to check paidStatus
+    const player = await ctx.db.get(args.playerId);
+    if (!player) {
+      return [];
+    }
+
     // Get all published information
     const allInformation = await ctx.db
       .query("information")
@@ -276,25 +282,15 @@ export const getPublishedInformationForPlayer = query({
       .order("desc")
       .collect();
 
-    // Get player's tournaments
-    const playerTournaments = await ctx.db
-      .query("tournament_participants")
-      .withIndex("by_player", (q) => q.eq("playerId", args.playerId))
-      .collect();
-
-    const playerTournamentIds = new Set(
-      playerTournaments.map((p) => p.tournamentId)
-    );
-
-    // Filter information based on category
+    // Filter information based on category and player's paidStatus
     const filteredInformation = allInformation.filter((info) => {
-      // Show all general information
+      // Show all general information to everyone
       if (info.category === "general") {
         return true;
       }
-      // Show tournament information only if player is registered in that tournament
-      if (info.category === "tournament" && info.tournamentId) {
-        return playerTournamentIds.has(info.tournamentId);
+      // Show tournament information only if player has paidStatus === "paid" (accepted)
+      if (info.category === "tournament") {
+        return player.paidStatus === "paid";
       }
       return false;
     });
@@ -394,5 +390,62 @@ export const getAllTournaments = query({
       date: t.date,
       status: t.status,
     }));
+  },
+});
+
+// Debug query - Get count of all information
+export const getInformationCount = query({
+  args: {},
+  handler: async (ctx) => {
+    const allInfo = await ctx.db.query("information").collect();
+    const publishedInfo = await ctx.db
+      .query("information")
+      .withIndex("by_published", (q) => q.eq("isPublished", true))
+      .collect();
+    
+    return {
+      total: allInfo.length,
+      published: publishedInfo.length,
+      byCategory: {
+        general: allInfo.filter(i => i.category === "general").length,
+        tournament: allInfo.filter(i => i.category === "tournament").length,
+      },
+      publishedByCategory: {
+        general: publishedInfo.filter(i => i.category === "general").length,
+        tournament: publishedInfo.filter(i => i.category === "tournament").length,
+      },
+    };
+  },
+});
+
+// Debug query - Get player tournament registrations
+export const getPlayerTournaments = query({
+  args: {
+    playerId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const player = await ctx.db.get(args.playerId);
+    const participants = await ctx.db
+      .query("tournament_participants")
+      .withIndex("by_player", (q) => q.eq("playerId", args.playerId))
+      .collect();
+    
+    const tournamentsWithNames = await Promise.all(
+      participants.map(async (p) => {
+        const tournament = await ctx.db.get(p.tournamentId);
+        return {
+          tournamentId: p.tournamentId,
+          tournamentName: tournament?.name,
+          registeredAt: p.registeredAt,
+        };
+      })
+    );
+    
+    return {
+      playerName: player?.name,
+      paidStatus: player?.paidStatus,
+      tournamentsCount: participants.length,
+      tournaments: tournamentsWithNames,
+    };
   },
 });

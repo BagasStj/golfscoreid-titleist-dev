@@ -385,9 +385,6 @@ const TournamentCard: React.FC<{
                         </td>
                         <td className="py-2.5 px-3">
                           <div className="flex items-center justify-center gap-1.5">
-                            <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-blue-700 rounded flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
-                              {participant.flightNumber}
-                            </div>
                             <span className="text-gray-300 font-semibold text-center">
                               {participant.flightName}
                             </span>

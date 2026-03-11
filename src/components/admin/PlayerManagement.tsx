@@ -68,9 +68,6 @@ export default function PlayerManagement() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentFilter, setPaymentFilter] = useState<"all" | "accepted">("all");
-  const [subPaymentFilter, setSubPaymentFilter] = useState<
-    "all" | "unpaid" | "paid"
-  >("all"); // Sub-filter for accepted tab
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<Set<Id<"users">>>(
     new Set(),
   );
@@ -143,20 +140,6 @@ export default function PlayerManagement() {
       } else if (paymentFilter === "accepted") {
         // Show only accepted players
         matchesPayment = (player as any).paymentStatus === "invited";
-
-        // Apply sub-filter for accepted tab
-        if (matchesPayment && subPaymentFilter !== "all") {
-          if (subPaymentFilter === "paid") {
-            matchesPayment =
-              (player as any).paymentStatus === "invited" &&
-              (player as any).paidStatus === "paid";
-          } else if (subPaymentFilter === "unpaid") {
-            matchesPayment =
-              (player as any).paymentStatus === "invited" &&
-              ((player as any).paidStatus === "unpaid" ||
-                !(player as any).paidStatus);
-          }
-        }
       }
 
       return matchesSearch && matchesPayment;
@@ -197,10 +180,6 @@ export default function PlayerManagement() {
             aValue = shirtOrder[a.shirtSize as keyof typeof shirtOrder] || 0;
             bValue = shirtOrder[b.shirtSize as keyof typeof shirtOrder] || 0;
             break;
-          case "paidStatus":
-            aValue = (a as any).paidStatus === "paid" ? 1 : 0;
-            bValue = (b as any).paidStatus === "paid" ? 1 : 0;
-            break;
           default:
             return 0;
         }
@@ -232,18 +211,6 @@ export default function PlayerManagement() {
     players?.filter((p) => (p as any).paymentStatus !== "invited").length || 0;
   const acceptedPlayers =
     players?.filter((p) => (p as any).paymentStatus === "invited").length || 0;
-  const unpaidPlayers =
-    players?.filter(
-      (p) =>
-        (p as any).paymentStatus === "invited" &&
-        ((p as any).paidStatus === "unpaid" || !(p as any).paidStatus),
-    ).length || 0;
-  const paidPlayers =
-    players?.filter(
-      (p) =>
-        (p as any).paymentStatus === "invited" &&
-        (p as any).paidStatus === "paid",
-    ).length || 0;
 
   // Pagination calculations
   const totalPages = Math.ceil((filteredPlayers?.length || 0) / itemsPerPage);
@@ -262,13 +229,6 @@ export default function PlayerManagement() {
     setPaymentFilter(filter);
     setCurrentPage(1);
     setSelectedPlayerIds(new Set()); // Clear selection when filter changes
-    setSubPaymentFilter("all"); // Reset sub-filter
-  };
-
-  // Handle sub-payment filter change (for accepted tab)
-  const handleSubPaymentFilterChange = (filter: "all" | "unpaid" | "paid") => {
-    setSubPaymentFilter(filter);
-    setCurrentPage(1);
   };
 
   // Handle checkbox toggle
@@ -329,50 +289,6 @@ export default function PlayerManagement() {
       setSelectedPlayerIds(new Set());
       showToast(
         `${selectedPlayerIds.size} pemain berhasil dikembalikan ke REGISTERED`,
-        "success",
-      );
-    } catch (err) {
-      showToast((err as Error).message, "error");
-    }
-  };
-
-  // Handle mark as unpaid
-  const handleMarkAsUnpaid = async () => {
-    if (selectedPlayerIds.size === 0) {
-      showToast("Pilih minimal satu pemain", "warning");
-      return;
-    }
-
-    try {
-      await updatePaymentStatus({
-        playerIds: Array.from(selectedPlayerIds),
-        paidStatus: "unpaid",
-      });
-      setSelectedPlayerIds(new Set());
-      showToast(
-        `${selectedPlayerIds.size} pemain berhasil ditandai sebagai UNPAID`,
-        "success",
-      );
-    } catch (err) {
-      showToast((err as Error).message, "error");
-    }
-  };
-
-  // Handle mark as paid
-  const handleMarkAsPaid = async () => {
-    if (selectedPlayerIds.size === 0) {
-      showToast("Pilih minimal satu pemain", "warning");
-      return;
-    }
-
-    try {
-      await updatePaymentStatus({
-        playerIds: Array.from(selectedPlayerIds),
-        paidStatus: "paid",
-      });
-      setSelectedPlayerIds(new Set());
-      showToast(
-        `${selectedPlayerIds.size} pemain berhasil ditandai sebagai PAID`,
         "success",
       );
     } catch (err) {
@@ -572,10 +488,6 @@ export default function PlayerManagement() {
             : "",
       "Ukuran Baju": player.shirtSize || "",
       "Ukuran Sarung Tangan": player.gloveSize || "",
-      "Status Bayar": (player as any).paidStatus === "paid" ? "PAID" : "UNPAID",
-      "Tanggal Bayar": (player as any).paidAt
-        ? new Date((player as any).paidAt).toLocaleDateString("id-ID")
-        : "",
       "Driver Brand": player.drivers?.[0]?.brand || "",
       "Driver Model": player.drivers?.[0]?.model || "",
       "Fairway Brand": player.fairways?.[0]?.brand || "",
@@ -607,8 +519,6 @@ export default function PlayerManagement() {
       { wch: 12 }, // Gender
       { wch: 14 }, // Ukuran Baju
       { wch: 22 }, // Ukuran Sarung Tangan
-      { wch: 14 }, // Status Bayar
-      { wch: 15 }, // Tanggal Bayar
       { wch: 15 }, // Driver Brand
       { wch: 20 }, // Driver Model
       { wch: 15 }, // Fairway Brand
@@ -710,42 +620,6 @@ export default function PlayerManagement() {
                 </div>
               </div>
             </div>
-
-            {/* Divider - Hidden on mobile */}
-            <div className="hidden lg:block w-px h-12 bg-gray-700/60"></div>
-
-            {/* Unpaid Players */}
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 flex-1 bg-gray-900/40 lg:bg-transparent p-3 lg:p-0 rounded-xl lg:rounded-none">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-orange-900/60 to-orange-950/60 rounded-xl flex items-center justify-center border border-orange-900/40 shadow-lg flex-shrink-0">
-                <XCircle className="w-6 h-6 sm:w-7 sm:h-7 text-orange-400" />
-              </div>
-              <div className="text-center sm:text-left">
-                <div className="text-2xl sm:text-3xl font-bold text-orange-400">
-                  {unpaidPlayers}
-                </div>
-                <div className="text-xs text-gray-400 whitespace-nowrap">
-                  Unpaid
-                </div>
-              </div>
-            </div>
-
-            {/* Divider - Hidden on mobile */}
-            <div className="hidden lg:block w-px h-12 bg-gray-700/60"></div>
-
-            {/* Paid Players */}
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 flex-1 bg-gray-900/40 lg:bg-transparent p-3 lg:p-0 rounded-xl lg:rounded-none">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-900/60 to-emerald-950/60 rounded-xl flex items-center justify-center border border-emerald-900/40 shadow-lg flex-shrink-0">
-                <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400" />
-              </div>
-              <div className="text-center sm:text-left">
-                <div className="text-2xl sm:text-3xl font-bold text-emerald-400">
-                  {paidPlayers}
-                </div>
-                <div className="text-xs text-gray-400 whitespace-nowrap">
-                  Paid
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Search Bar - Center (Flexible) */}
@@ -813,52 +687,6 @@ export default function PlayerManagement() {
                 Accepted ({acceptedPlayers})
               </button>
             </div>
-
-            {/* Divider */}
-            {paymentFilter === "accepted" && (
-              <>
-                <div className="w-px h-8 bg-gray-700/60"></div>
-
-                {/* Payment Status Sub-filter - Only show when accepted tab is active */}
-                <span className="text-sm font-semibold text-gray-400">
-                  Status Pembayaran:
-                </span>
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => handleSubPaymentFilterChange("all")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      subPaymentFilter === "all"
-                        ? "bg-gradient-to-r from-blue-900 to-blue-800 text-white border-2 border-blue-700"
-                        : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
-                    }`}
-                  >
-                    Semua
-                  </button>
-                  <button
-                    onClick={() => handleSubPaymentFilterChange("unpaid")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                      subPaymentFilter === "unpaid"
-                        ? "bg-gradient-to-r from-orange-900 to-orange-800 text-white border-2 border-orange-700"
-                        : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
-                    }`}
-                  >
-                    <XCircle className="w-3.5 h-3.5" />
-                    Unpaid ({unpaidPlayers})
-                  </button>
-                  <button
-                    onClick={() => handleSubPaymentFilterChange("paid")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                      subPaymentFilter === "paid"
-                        ? "bg-gradient-to-r from-emerald-900 to-emerald-800 text-white border-2 border-emerald-700"
-                        : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
-                    }`}
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Paid ({paidPlayers})
-                  </button>
-                </div>
-              </>
-            )}
           </div>
         </div>
 
@@ -945,7 +773,7 @@ export default function PlayerManagement() {
                     </Button>
                   </>
                 ) : (
-                  // Accepted tab: Show Back to Registered, Unpaid, Paid buttons
+                  // Accepted tab: Show Back to Registered button only
                   <>
                     <Button
                       variant="outline"
@@ -955,24 +783,6 @@ export default function PlayerManagement() {
                       className="!bg-gray-600 hover:!bg-gray-700 !border-gray-700 !text-white shadow-[0_4px_12px_rgba(107,114,128,0.4)]"
                     >
                       Back to Registered
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="md"
-                      icon={XCircle}
-                      onClick={handleMarkAsUnpaid}
-                      className="!bg-orange-600 hover:!bg-orange-700 !border-orange-700 !text-white shadow-[0_4px_12px_rgba(249,115,22,0.4)]"
-                    >
-                      Mark as Unpaid
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="md"
-                      icon={CheckCircle2}
-                      onClick={handleMarkAsPaid}
-                      className="!bg-green-600 hover:!bg-green-700 !border-green-700 !text-white shadow-[0_4px_12px_rgba(34,197,94,0.4)]"
-                    >
-                      Mark as Paid
                     </Button>
                   </>
                 )}
@@ -1100,18 +910,6 @@ export default function PlayerManagement() {
                       {renderSortIcon("shirtSize")}
                     </button>
                   </th>
-                  {/* Only show Status Bayar column when in Accepted tab */}
-                  {paymentFilter === "accepted" && (
-                    <th className="px-6 py-4 text-center text-sm font-semibold">
-                      <button
-                        onClick={() => handleSort("paidStatus")}
-                        className="flex items-center gap-2 hover:text-red-200 transition-colors mx-auto"
-                      >
-                        Status Bayar
-                        {renderSortIcon("paidStatus")}
-                      </button>
-                    </th>
-                  )}
                   <th className="px-6 py-4 text-center text-sm font-semibold">
                     Aksi
                   </th>
@@ -1214,32 +1012,6 @@ export default function PlayerManagement() {
                         </div>
                       </div>
                     </td>
-
-                    {/* Only show Status Bayar column when in Accepted tab */}
-                    {paymentFilter === "accepted" && (
-                      <td className="px-6 py-4 text-center">
-                        {(player as any).paidStatus === "paid" ? (
-                          <div className="flex flex-col items-center gap-1">
-                            <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-950/40 text-emerald-400 border border-emerald-900/30">
-                              <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                              PAID
-                            </span>
-                            {(player as any).paidAt && (
-                              <span className="text-xs text-gray-500">
-                                {new Date(
-                                  (player as any).paidAt,
-                                ).toLocaleDateString("id-ID")}
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-950/40 text-orange-400 border border-orange-900/30">
-                            <XCircle className="w-3.5 h-3.5 mr-1" />
-                            UNPAID
-                          </span>
-                        )}
-                      </td>
-                    )}
 
                     <td
                       className="px-6 py-4"
