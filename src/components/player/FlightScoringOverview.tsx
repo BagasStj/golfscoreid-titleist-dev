@@ -959,11 +959,7 @@ const ScorecardTable: React.FC<{
                             <div className="min-w-0">
                               <div className="text-white font-semibold text-xs truncate">
                                 {participant.name}
-                                {isCurrentUser && (
-                                  <span className="ml-1 text-red-500 text-[10px]">
-                                    (kamu)
-                                  </span>
-                                )}
+                              
                               </div>
                               {/* <div className="text-gray-400 text-[10px]">
                             HCP {participant.handicap || 0} • {holesPlayed}/{holesConfig.length}
