@@ -13,7 +13,8 @@ import {
   Plus,
   Flag,
   TrendingDown,
-  TrendingUp
+  TrendingUp,
+  Trash2
 } from 'lucide-react';
 
 export default function ModernScoringInterface() {
@@ -29,6 +30,7 @@ export default function ModernScoringInterface() {
   const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
   const [strokes, setStrokes] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const tournamentDetails = useQuery(
     api.tournaments.getTournamentDetails,
@@ -73,6 +75,19 @@ export default function ModernScoringInterface() {
     }
   );
 
+  const { mutate: deleteScoreMutation } = useRetryMutation(
+    api.scores.deleteScore,
+    {
+      maxRetries: 3,
+      onSuccess: () => {
+        showSuccess('Score deleted! 🗑️', 1000);
+      },
+      onError: (error) => {
+        showError(error.message || 'Failed to delete score');
+      },
+    }
+  );
+
   // All hooks must be called before any conditional returns
   const holesConfig = tournamentDetails?.holesConfig || [];
   const scoredHolesMap = new Map((playerScores || []).map((s) => [s.holeNumber, s]));
@@ -80,6 +95,27 @@ export default function ModernScoringInterface() {
   const currentHole = holesConfig[currentHoleIndex];
   const existingScore = currentHole ? scoredHolesMap.get(currentHole.holeNumber) : null;
   const isEditMode = !!existingScore;
+
+  // Check if current hole is approved (locked)
+  const approvedHolesKey = id && user ? `approvedHoles_${id}_${user._id}` : null;
+  const approvedHoles: number[] = approvedHolesKey 
+    ? JSON.parse(localStorage.getItem(approvedHolesKey) || '[]')
+    : [];
+  const isHoleApproved = currentHole ? approvedHoles.includes(currentHole.holeNumber) : false;
+
+  // Debug logging
+  useEffect(() => {
+    if (currentHole) {
+      console.log('🔍 Debug Info:', {
+        currentHoleNumber: currentHole.holeNumber,
+        existingScore: existingScore,
+        isEditMode: isEditMode,
+        isHoleApproved: isHoleApproved,
+        playerScoresCount: playerScores?.length || 0,
+        scoredHolesMapSize: scoredHolesMap.size,
+      });
+    }
+  }, [currentHole, existingScore, isEditMode, isHoleApproved, playerScores, scoredHolesMap]);
 
   const totalHoles = holesConfig.length;
   const holesCompleted = (playerScores || []).length;
@@ -176,6 +212,28 @@ export default function ModernScoringInterface() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!existingScore || !user) return;
+
+    setIsSubmitting(true);
+    try {
+      await deleteScoreMutation({
+        scoreId: existingScore._id,
+        playerId: user._id as Id<'users'>,
+      });
+
+      // Navigate back to flight scoring overview after deletion
+      setTimeout(() => {
+        navigate(`/player/flight-scoring/${id}`);
+      }, 800);
+    } catch (error) {
+      console.error('Delete error:', error);
+    } finally {
+      setIsSubmitting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   const handlePrevHole = () => {
     if (currentHoleIndex > 0) {
       setCurrentHoleIndex(currentHoleIndex - 1);
@@ -207,6 +265,37 @@ export default function ModernScoringInterface() {
             className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-xl"
           >
             View Scorecard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // If hole is approved (locked), show locked message
+  if (isHoleApproved) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] via-[#0f0f0f] to-black flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <div className="w-20 h-20 bg-gradient-to-br from-green-600 to-green-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+            <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <h2 className="text-3xl font-bold text-white mb-4">Hole Terkunci 🔒</h2>
+          <p className="text-gray-400 mb-2">
+            Skor untuk Hole {currentHole.holeNumber} sudah disetujui dan tidak dapat diubah lagi.
+          </p>
+          <div className="bg-green-900/20 border border-green-800/40 rounded-xl p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-300 text-sm">Skor Anda:</span>
+              <span className="text-white font-bold text-2xl">{existingScore?.strokes || '-'} strokes</span>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate(`/player/flight-scoring/${id}`)}
+            className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-xl"
+          >
+            Kembali ke Scorecard
           </button>
         </div>
       </div>
@@ -377,7 +466,7 @@ export default function ModernScoringInterface() {
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || strokes <= 0}
-              className={`w-full py-3 ${
+              className={`w-full py-3 mb-2 ${
                 isEditMode 
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800' 
                   : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800'
@@ -395,6 +484,18 @@ export default function ModernScoringInterface() {
                 </>
               )}
             </button>
+
+            {/* Delete Button - Only show in edit mode */}
+            {isEditMode && existingScore && (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={isSubmitting}
+                className="w-full py-3 bg-gradient-to-r from-red-900 to-red-950 hover:from-red-800 hover:to-red-900 disabled:from-gray-800 disabled:to-gray-800 text-white font-bold text-sm rounded-xl transition-all transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:transform-none shadow-xl flex items-center justify-center gap-2 border border-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete Score</span>
+              </button>
+            )}
           </div>
 
           {/* Hole Navigation */}
@@ -434,6 +535,67 @@ export default function ModernScoringInterface() {
           </div> */}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-2xl shadow-2xl border border-red-900/40 max-w-md w-full animate-in fade-in zoom-in duration-200">
+            <div className="p-6 space-y-4">
+              {/* Icon */}
+              <div className="w-16 h-16 bg-red-900/40 rounded-full flex items-center justify-center mx-auto">
+                <Trash2 className="w-8 h-8 text-red-500" />
+              </div>
+
+              {/* Title */}
+              <div className="text-center">
+                <h3 className="text-xl font-bold text-white mb-2">
+                  Hapus Skor?
+                </h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Apakah Anda yakin ingin menghapus skor untuk Hole {currentHole?.holeNumber}? 
+                  Tindakan ini tidak dapat dibatalkan.
+                </p>
+              </div>
+
+              {/* Score Info */}
+              <div className="bg-red-900/20 border border-red-800/40 rounded-xl p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-300 text-sm">Hole {currentHole?.holeNumber}</span>
+                  <span className="text-white font-bold text-lg">{existingScore?.strokes} strokes</span>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isSubmitting}
+                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition-all"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={isSubmitting}
+                  className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-4 rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Menghapus...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Hapus
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

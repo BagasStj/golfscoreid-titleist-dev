@@ -145,6 +145,17 @@ const TournamentCard: React.FC<{
     isRegistered && playerFlight ? { tournamentId: tournament._id } : "skip",
   );
 
+  // Check if tournament is finished from localStorage
+  const [isTournamentFinished, setIsTournamentFinished] = React.useState(false);
+  
+  React.useEffect(() => {
+    if (tournament._id && userId) {
+      const finishedKey = `tournamentFinished_${tournament._id}_${userId}`;
+      const isFinished = localStorage.getItem(finishedKey) === 'true';
+      setIsTournamentFinished(isFinished);
+    }
+  }, [tournament._id, userId]);
+
   if (!tournamentDetails) {
     return (
       <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-xl shadow-xl p-4 border border-gray-800">
@@ -548,15 +559,31 @@ const TournamentCard: React.FC<{
       <div className="p-4 space-y-2">
         {/* Scoring Button - Only for active tournaments and if tournament date is today */}
         {tournament.status === "active" && isTournamentToday && (
-          <button
-            onClick={() => navigate(`/player/flight-scoring/${tournament._id}`)}
-            className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-4 rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-          >
-            <Play className="w-5 h-5" />
-            <span>
-              {hasStartedScoring ? "Lanjutkan Scoring" : "Mulai Scoring"}
-            </span>
-          </button>
+          <>
+            {isTournamentFinished ? (
+              // Show "View Results" button if tournament is finished
+              <button
+                onClick={() => navigate(`/player/flight-scoring/${tournament._id}`)}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-4 rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Lihat Hasil Score</span>
+              </button>
+            ) : (
+              // Show "Start/Continue Scoring" button if tournament is not finished
+              <button
+                onClick={() => navigate(`/player/flight-scoring/${tournament._id}`)}
+                className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-4 rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              >
+                <Play className="w-5 h-5" />
+                <span>
+                  {hasStartedScoring ? "Lanjutkan Scoring" : "Mulai Scoring"}
+                </span>
+              </button>
+            )}
+          </>
         )}
 
         {/* Message if tournament is active but not today */}
