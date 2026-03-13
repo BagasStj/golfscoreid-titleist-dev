@@ -90,6 +90,31 @@ export const updateScore = mutation({
   },
 });
 
+// Delete Score
+export const deleteScore = mutation({
+  args: {
+    scoreId: v.id("scores"),
+    playerId: v.id("users"), // Add playerId for authorization
+  },
+  handler: async (ctx, args) => {
+    // Get the score
+    const score = await ctx.db.get(args.scoreId);
+    if (!score) {
+      throw new Error("Score not found");
+    }
+
+    // Authorization: Player can only delete own scores
+    if (score.playerId !== args.playerId) {
+      throw new Error("Authorization Error: You can only delete your own scores");
+    }
+
+    // Delete the score
+    await ctx.db.delete(args.scoreId);
+
+    return { success: true };
+  },
+});
+
 // Get Player Scores
 export const getPlayerScores = query({
   args: {

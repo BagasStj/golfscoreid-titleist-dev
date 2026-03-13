@@ -15,8 +15,14 @@ const FlightScoringOverview: React.FC = () => {
   );
   const [scoringMode, setScoringMode] = useState<"stroke" | "over">("stroke");
   const [showIncompleteAlert, setShowIncompleteAlert] = useState(false);
-  const [currentHole, setCurrentHole] = useState<number>(1);
+  const [currentHole, setCurrentHole] = useState<number | null>(null);
   const [showDisclaimerDialog, setShowDisclaimerDialog] = useState(false);
+  const [showHoleMismatchAlert, setShowHoleMismatchAlert] = useState(false);
+  const [holeMismatchDetails, setHoleMismatchDetails] = useState<{
+    userHole: number;
+    otherPlayers: Array<{ name: string; hole: number }>;
+  } | null>(null);
+  const [tournamentFinished, setTournamentFinished] = useState(false);
 
   // Fetch tournament details
   const tournament = useQuery(
@@ -52,34 +58,31 @@ const FlightScoringOverview: React.FC = () => {
       : "skip",
   );
 
-  // Get current hole based on flight (first hole where not all players scored)
-  const currentHoleFromFlight = useQuery(
-    api.scores.getCurrentHoleForFlight,
-    flightParticipants.length > 0 && id
-      ? {
-          tournamentId: id as Id<"tournaments">,
-          playerIds: flightParticipants.map((p) => p._id),
-        }
-      : "skip",
-  );
-
-  // Update current hole when flight data changes, but only if not manually set
+  // Determine current hole based on user's last scored hole and approved holes
   useEffect(() => {
-    if (currentHoleFromFlight !== undefined && currentHoleFromFlight !== null) {
-      // Check if we have a saved current hole in localStorage
-      const savedHole = localStorage.getItem(`currentHole_${id}`);
-      if (savedHole) {
-        setCurrentHole(parseInt(savedHole));
+    if (currentUserScores !== undefined && id && user) {
+      // Get approved holes from localStorage
+      const approvedHolesKey = `approvedHoles_${id}_${user._id}`;
+      const approvedHoles: number[] = JSON.parse(localStorage.getItem(approvedHolesKey) || '[]');
+      
+      if (currentUserScores.length > 0) {
+        // Find the last hole the user scored
+        const sortedScores = [...currentUserScores].sort((a, b) => b.holeNumber - a.holeNumber);
+        const lastScoredHole = sortedScores[0].holeNumber;
+        
+        // If last scored hole is approved, set current hole to null (ready for next hole)
+        if (approvedHoles.includes(lastScoredHole)) {
+          setCurrentHole(null);
+        } else {
+          // Last scored hole not yet approved, show it as current
+          setCurrentHole(lastScoredHole);
+        }
       } else {
-        // First time, use the calculated current hole
-        setCurrentHole(currentHoleFromFlight);
-        localStorage.setItem(
-          `currentHole_${id}`,
-          currentHoleFromFlight.toString(),
-        );
+        // User hasn't scored any holes yet, set to null
+        setCurrentHole(null);
       }
     }
-  }, [currentHoleFromFlight, id]);
+  }, [currentUserScores, id, user]);
 
   // Show disclaimer dialog on first visit - only if player hasn't scored yet
   useEffect(() => {
@@ -114,6 +117,15 @@ const FlightScoringOverview: React.FC = () => {
       window.removeEventListener('showDisclaimerDialog', handleShowDisclaimer);
     };
   }, []);
+
+  // Check if tournament is finished from localStorage
+  useEffect(() => {
+    if (id && user) {
+      const finishedKey = `tournamentFinished_${id}_${user._id}`;
+      const isFinished = localStorage.getItem(finishedKey) === 'true';
+      setTournamentFinished(isFinished);
+    }
+  }, [id, user]);
 
   // Debug: Check for duplicate hole numbers - must be before conditional return
   useEffect(() => {
@@ -156,9 +168,26 @@ const FlightScoringOverview: React.FC = () => {
   // const holesConfig = tournament.holesConfig || [];
 
   const handleFinishTournament = () => {
-    // Check if all scores are complete by checking participantScores in ScorecardTable
-    // For now, just show alert - the actual check will be done in the table component
-    setShowIncompleteAlert(true);
+    if (!user || !id) return;
+    
+    // Get user's scores
+    const userScores = currentUserScores || [];
+    const holesConfig = uniqueHolesConfig || [];
+    
+    // Check if all holes are scored
+    const allHolesScored = userScores.length === holesConfig.length;
+    
+    if (!allHolesScored) {
+      setShowIncompleteAlert(true);
+      return;
+    }
+    
+    // Mark tournament as finished in localStorage
+    const finishedKey = `tournamentFinished_${id}_${user._id}`;
+    localStorage.setItem(finishedKey, 'true');
+    
+    // Update state to hide buttons
+    setTournamentFinished(true);
   };
 
   const handleAcceptDisclaimer = () => {
@@ -309,6 +338,23 @@ const FlightScoringOverview: React.FC = () => {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 pb-4 space-y-3">
+        {/* Tournament Finished Message */}
+        {tournamentFinished && (
+          <div className="bg-gradient-to-r from-green-900/40 to-green-800/40 border-2 border-green-600 rounded-xl p-4 shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-white font-bold text-base">Pertandingan Selesai! 🎉</h3>
+                <p className="text-green-200 text-sm">Anda telah menyelesaikan semua hole. Scorecard di bawah adalah hasil final Anda.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeTab === "scorecard" ? (
           <>
             <ScorecardTable
@@ -320,11 +366,21 @@ const FlightScoringOverview: React.FC = () => {
               setScoringMode={setScoringMode}
               currentHole={currentHole}
               setCurrentHole={setCurrentHole}
+              tournamentId={id || ""}
+              onHoleClick={(holeNumber) => {
+                // Navigate to scoring interface for the clicked hole
+                if (user) {
+                  navigate(
+                    `/player/scoring/${id}?playerId=${user._id}&hole=${holeNumber}`,
+                  );
+                }
+              }}
             />
-            {/* Action Buttons - Outside Table - Only show for active tournaments */}
+            {/* Action Buttons - Outside Table - Only show for active tournaments and not finished */}
             {user &&
               flightParticipants.some((p) => p._id === user._id) &&
-              tournament.status === "active" && (
+              tournament.status === "active" &&
+              !tournamentFinished && (
                 <ActionButtons
                   tournament={tournament}
                   flightParticipants={flightParticipants}
@@ -333,6 +389,8 @@ const FlightScoringOverview: React.FC = () => {
                   tournamentId={id as Id<"tournaments">}
                   navigate={navigate}
                   handleFinishTournament={handleFinishTournament}
+                  setShowHoleMismatchAlert={setShowHoleMismatchAlert}
+                  setHoleMismatchDetails={setHoleMismatchDetails}
                 />
               )}
           </>
@@ -469,6 +527,65 @@ const FlightScoringOverview: React.FC = () => {
         </div>
       )}
 
+      {/* Hole Mismatch Alert Dialog */}
+      {showHoleMismatchAlert && holeMismatchDetails && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-2xl shadow-2xl border border-gray-800 max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+            <div className="text-center space-y-4">
+              {/* Icon */}
+              <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
+                <svg
+                  className="w-8 h-8 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-xl font-bold text-white">
+                Hole Tidak Sama
+              </h3>
+
+              {/* Message */}
+              <div className="text-left bg-red-900/20 border border-red-800/40 rounded-xl p-4 space-y-2">
+                <p className="text-red-200 text-sm">
+                  Anda mengisi skor di <span className="font-bold">Hole {holeMismatchDetails.userHole}</span>, tetapi pemain lain mengisi di hole yang berbeda:
+                </p>
+                <ul className="text-red-300/80 text-xs space-y-1 ml-4">
+                  {holeMismatchDetails.otherPlayers.map((player, idx) => (
+                    <li key={idx}>
+                      • {player.name}: Hole {player.hole}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-red-200 text-sm mt-3">
+                  Semua pemain dalam flight harus mengisi skor di hole yang sama sebelum dapat melanjutkan.
+                </p>
+              </div>
+
+              {/* Button */}
+              <button
+                onClick={() => {
+                  setShowHoleMismatchAlert(false);
+                  setHoleMismatchDetails(null);
+                }}
+                className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-4 rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95"
+              >
+                Mengerti
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Incomplete Alert Dialog */}
       {showIncompleteAlert && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -493,14 +610,20 @@ const FlightScoringOverview: React.FC = () => {
 
               {/* Title */}
               <h3 className="text-xl font-bold text-white">
-                Skor Belum Lengkap
+                Belum Bisa Selesai
               </h3>
 
               {/* Message */}
               <p className="text-gray-400 text-sm leading-relaxed">
-                Silakan selesaikan terlebih dahulu proses pengisian skor sebelum
-                menyelesaikan pertandingan.
+                Pastikan semua hole sudah diisi skornya sebelum menyelesaikan pertandingan.
               </p>
+
+              {/* Info */}
+              <div className="bg-yellow-900/20 border border-yellow-800/40 rounded-xl p-3">
+                <p className="text-yellow-200 text-xs">
+                  Cek kembali scorecard Anda dan pastikan tidak ada hole yang masih kosong (-).
+                </p>
+              </div>
 
               {/* Button */}
               <button
@@ -521,11 +644,13 @@ const FlightScoringOverview: React.FC = () => {
 const ActionButtons: React.FC<{
   tournament: any;
   flightParticipants: any[];
-  currentHole: number;
+  currentHole: number | null;
   userId: Id<"users">;
   tournamentId: Id<"tournaments">;
   navigate: any;
   handleFinishTournament: () => void;
+  setShowHoleMismatchAlert: (show: boolean) => void;
+  setHoleMismatchDetails: (details: any) => void;
 }> = ({
   tournament,
   flightParticipants,
@@ -534,6 +659,8 @@ const ActionButtons: React.FC<{
   tournamentId,
   navigate,
   handleFinishTournament,
+  setShowHoleMismatchAlert,
+  setHoleMismatchDetails,
 }) => {
   // Use getFlightScores to fetch all scores at once
   const flightScoresData = useQuery(
@@ -561,16 +688,33 @@ const ActionButtons: React.FC<{
   const userScoresData = participantScores.find(
     (ps) => ps.participant._id === userId,
   );
-  const userHasScored =
-    userScoresData?.scores?.some((s) => s.holeNumber === currentHole) || false;
+  
+  // Get the last hole each player scored
+  const playerLastHoles = participantScores.map((ps) => {
+    const sortedScores = [...(ps.scores || [])].sort((a, b) => b.holeNumber - a.holeNumber);
+    return {
+      participant: ps.participant,
+      lastHole: sortedScores.length > 0 ? sortedScores[0].holeNumber : null,
+    };
+  });
 
-  // Check if all players have scored current hole
-  const playersWhoScored = participantScores.filter((ps) =>
-    ps.scores?.some((s) => s.holeNumber === currentHole),
+  // Check if all players are on the same hole
+  const userLastHole = playerLastHoles.find(p => p.participant._id === userId)?.lastHole;
+  const allOnSameHole = playerLastHoles.every(p => p.lastHole === userLastHole);
+  
+  // Get players who are on different holes
+  const playersOnDifferentHoles = playerLastHoles.filter(
+    p => p.participant._id !== userId && p.lastHole !== userLastHole
   );
-  const allPlayersScored =
-    playersWhoScored.length === flightParticipants.length;
-  const waitingCount = flightParticipants.length - playersWhoScored.length;
+
+  const userHasScored = currentHole !== null;
+  const allPlayersScored = allOnSameHole && playerLastHoles.every(p => p.lastHole !== null);
+  const waitingCount = playerLastHoles.filter(p => p.lastHole === null).length;
+
+  // Check if current hole is approved
+  const approvedHolesKey = `approvedHoles_${tournamentId}_${userId}`;
+  const approvedHoles: number[] = JSON.parse(localStorage.getItem(approvedHolesKey) || '[]');
+  const isCurrentHoleApproved = currentHole !== null && approvedHoles.includes(currentHole);
 
   // Check if all holes are completed by current user
   const holesConfig = tournament.holesConfig || [];
@@ -579,14 +723,16 @@ const ActionButtons: React.FC<{
 
   return (
     <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg border border-gray-800 p-3 space-y-2">
-      {userHasScored ? (
+      {userHasScored && !isCurrentHoleApproved ? (
         <>
           <button
-            onClick={() =>
-              navigate(
-                `/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`,
-              )
-            }
+            onClick={() => {
+              if (currentHole !== null) {
+                navigate(
+                  `/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`,
+                );
+              }
+            }}
             className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3.5 rounded-lg transition-all shadow-lg flex items-center justify-center space-x-2"
           >
             <svg
@@ -602,29 +748,38 @@ const ActionButtons: React.FC<{
                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
               />
             </svg>
-            <span className="text-base">Edit Score</span>
+            <span className="text-base">Edit Score Hole {currentHole}</span>
           </button>
           <button
             onClick={() => {
-              if (allPlayersScored) {
-                // Update localStorage to next hole
-                const currentHoleIndex = holesConfig.findIndex(
-                  (h: any) => h.holeNumber === currentHole,
-                );
-                if (currentHoleIndex < holesConfig.length - 1) {
-                  const nextHole = holesConfig[currentHoleIndex + 1];
-                  localStorage.setItem(
-                    `currentHole_${tournamentId}`,
-                    nextHole.holeNumber.toString(),
-                  );
+              if (!allOnSameHole) {
+                // Show alert about hole mismatch
+                setShowHoleMismatchAlert(true);
+                setHoleMismatchDetails({
+                  userHole: userLastHole || 0,
+                  otherPlayers: playersOnDifferentHoles.map(p => ({
+                    name: p.participant.name,
+                    hole: p.lastHole || 0,
+                  })),
+                });
+              } else if (allPlayersScored && userLastHole !== null) {
+                // All players on same hole, mark as approved and clear current hole
+                // Store approved holes in localStorage
+                const approvedHolesKey = `approvedHoles_${tournamentId}_${userId}`;
+                const approvedHoles = JSON.parse(localStorage.getItem(approvedHolesKey) || '[]');
+                
+                if (!approvedHoles.includes(userLastHole)) {
+                  approvedHoles.push(userLastHole);
+                  localStorage.setItem(approvedHolesKey, JSON.stringify(approvedHoles));
                 }
-                // Reload page to update current hole
+                
+                // Reload to update the view
                 window.location.reload();
               }
             }}
-            disabled={!allPlayersScored}
+            disabled={!allPlayersScored || waitingCount > 0}
             className={`w-full font-semibold py-3 px-4 rounded-lg border transition-all flex items-center justify-center gap-2 ${
-              allPlayersScored
+              allPlayersScored && waitingCount === 0
                 ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-green-600 shadow-lg cursor-pointer"
                 : "bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed"
             }`}
@@ -643,9 +798,11 @@ const ActionButtons: React.FC<{
               />
             </svg>
             <span>
-              {allPlayersScored
-                ? "Simpan & Lanjut ke Hole Berikutnya"
-                : `Menunggu ${waitingCount} pemain lainnya`}
+              {waitingCount > 0
+                ? `Menunggu ${waitingCount} pemain lainnya`
+                : allPlayersScored
+                ? "Setujui & Lanjutkan"
+                : "Menunggu pemain lain"}
             </span>
           </button>
 
@@ -665,12 +822,36 @@ const ActionButtons: React.FC<{
         
       ) : (
         <>
+          {/* Show Input Score button that opens a hole selector */}
           <button
-            onClick={() =>
-              navigate(
-                `/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`,
-              )
-            }
+            onClick={() => {
+              // Find first unscored hole
+              const holesConfig = tournament.holesConfig || [];
+              const userScoresData = participantScores.find(
+                (ps) => ps.participant._id === userId,
+              );
+              const scoredHoles = new Set(userScoresData?.scores?.map(s => s.holeNumber) || []);
+              
+              // Get approved holes
+              const approvedHolesKey = `approvedHoles_${tournamentId}_${userId}`;
+              const approvedHoles: number[] = JSON.parse(localStorage.getItem(approvedHolesKey) || '[]');
+              
+              // Find first unscored and unapproved hole
+              const firstUnscoredHole = holesConfig.find(
+                (h: any) => !scoredHoles.has(h.holeNumber) && !approvedHoles.includes(h.holeNumber)
+              );
+              
+              if (firstUnscoredHole) {
+                navigate(
+                  `/player/scoring/${tournamentId}?playerId=${userId}&hole=${firstUnscoredHole.holeNumber}`,
+                );
+              } else {
+                // All holes scored, go to first hole
+                navigate(
+                  `/player/scoring/${tournamentId}?playerId=${userId}&hole=${holesConfig[0]?.holeNumber || 1}`,
+                );
+              }
+            }}
             className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3.5 rounded-lg transition-all shadow-lg flex items-center justify-center space-x-2"
           >
             <svg
@@ -707,7 +888,7 @@ const ActionButtons: React.FC<{
       {allHolesCompleted && (
         <button
           onClick={handleFinishTournament}
-          className="w-full bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black hover:from-gray-800 hover:via-[#171718] hover:to-black text-white font-semibold py-3 px-4 rounded-lg border border-gray-800 hover:border-gray-700 transition-all flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-4 rounded-lg border border-green-600 transition-all flex items-center justify-center gap-2 shadow-lg"
         >
           <svg
             className="w-5 h-5"
@@ -737,8 +918,10 @@ const ScorecardTable: React.FC<{
   currentUserId?: Id<"users">;
   scoringMode: "stroke" | "over";
   setScoringMode: (mode: "stroke" | "over") => void;
-  currentHole: number;
-  setCurrentHole: (hole: number) => void;
+  currentHole: number | null;
+  setCurrentHole: (hole: number | null) => void;
+  onHoleClick?: (holeNumber: number) => void;
+  tournamentId: string;
 }> = ({
   tournament,
   flightParticipants,
@@ -747,6 +930,8 @@ const ScorecardTable: React.FC<{
   scoringMode,
   setScoringMode,
   currentHole,
+  onHoleClick,
+  tournamentId,
 }) => {
   // Fetch scores for ALL participants sekaligus — tidak pakai hook di dalam .map()
   const flightScoresData = useQuery(
@@ -828,8 +1013,14 @@ const ScorecardTable: React.FC<{
           </div>
           <div className="text-center">
             <span className="text-[10px] text-gray-400">
-              Hole saat ini:{" "}
-              <span className="text-red-500 font-bold">#{currentHole}</span>
+              {currentHole !== null ? (
+                <>
+                  Hole terakhir Anda:{" "}
+                  <span className="text-red-500 font-bold">#{currentHole}</span>
+                </>
+              ) : (
+                <span className="text-blue-400">Klik nomor hole untuk mulai</span>
+              )}
             </span>
           </div>
         </div>
@@ -845,18 +1036,69 @@ const ScorecardTable: React.FC<{
                 <th className="sticky left-0 z-20 bg-gradient-to-r from-[#2e2e2e] to-gray-900 text-left text-white font-bold py-2 px-2 border-r border-gray-800 min-w-[110px]">
                   Pemain
                 </th>
-                {holesConfig.map((hole) => (
-                  <th
-                    key={hole.holeNumber}
-                    className={`text-center text-white font-bold text-[14px] py-2 px-1.5 min-w-[32px] ${
-                      hole.holeNumber === currentHole
-                        ? "bg-red-600/30 ring-2 ring-red-500"
-                        : ""
-                    }`}
-                  >
-                    {hole.holeNumber}
-                  </th>
-                ))}
+                {holesConfig.map((hole) => {
+                  // Check if current user has scored this hole
+                  const userScoresData = participantScores.find(
+                    (ps) => ps.participant._id === currentUserId,
+                  );
+                  const userHasScoredThisHole = userScoresData?.scores?.some(
+                    (s) => s.holeNumber === hole.holeNumber
+                  );
+                  
+                  // Check if this hole is approved
+                  const approvedHolesKey = currentUserId && tournamentId ? `approvedHoles_${tournamentId}_${currentUserId}` : null;
+                  const approvedHoles: number[] = approvedHolesKey 
+                    ? JSON.parse(localStorage.getItem(approvedHolesKey) || '[]')
+                    : [];
+                  const isApproved = approvedHoles.includes(hole.holeNumber);
+                  
+                  return (
+                    <th
+                      key={hole.holeNumber}
+                      onClick={() => {
+                        // Only allow clicking if user hasn't scored this hole yet OR hole is not approved
+                        if ((!userHasScoredThisHole || !isApproved) && onHoleClick) {
+                          onHoleClick(hole.holeNumber);
+                        }
+                      }}
+                      className={`text-center text-white font-bold text-[14px] py-2 px-1.5 min-w-[32px] ${
+                        hole.holeNumber === currentHole
+                          ? "bg-red-600/30 ring-2 ring-red-500"
+                          : ""
+                      } ${
+                        isApproved
+                          ? "bg-green-900/30 cursor-not-allowed opacity-60"
+                          : !userHasScoredThisHole && onHoleClick
+                          ? "cursor-pointer hover:bg-red-600/20 transition-colors"
+                          : userHasScoredThisHole && !isApproved
+                          ? "cursor-pointer hover:bg-blue-600/20 transition-colors"
+                          : ""
+                      }`}
+                      title={
+                        isApproved
+                          ? "Skor sudah disetujui (locked)"
+                          : userHasScoredThisHole
+                          ? "Klik untuk edit skor"
+                          : "Klik untuk input skor"
+                      }
+                    >
+                      {hole.holeNumber}
+                      {isApproved && (
+                        <svg
+                          className="w-3 h-3 inline-block ml-0.5 text-green-400"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                    </th>
+                  );
+                })}
                 <th className="text-center text-white font-bold py-2 px-2 border-l-2 border-red-600 min-w-[45px]">
                   Tot
                 </th>
@@ -959,11 +1201,7 @@ const ScorecardTable: React.FC<{
                             <div className="min-w-0">
                               <div className="text-white font-semibold text-xs truncate">
                                 {participant.name}
-                                {isCurrentUser && (
-                                  <span className="ml-1 text-red-500 text-[10px]">
-                                    (kamu)
-                                  </span>
-                                )}
+                              
                               </div>
                               {/* <div className="text-gray-400 text-[10px]">
                             HCP {participant.handicap || 0} • {holesPlayed}/{holesConfig.length}
