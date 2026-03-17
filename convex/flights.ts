@@ -108,6 +108,7 @@ export const getFlightDetails = query({
               startHole: p.startHole,
               registeredAt: p.registeredAt,
               participationId: p._id,
+              scoringFinished: p.scoringFinished,
             }
           : null;
       })
@@ -333,6 +334,7 @@ export const getPlayerFlight = query({
               startHole: p.startHole,
               registeredAt: p.registeredAt,
               participationId: p._id,
+              scoringFinished: p.scoringFinished,
             }
           : null;
       })
@@ -451,6 +453,7 @@ export const getTournamentFlightsWithParticipants = query({
                   participationId: p._id,
                   paymentStatus: player.paymentStatus,
                   paidAt: player.paidAt,
+                  scoringFinished: p.scoringFinished,
                 }
               : null;
           })
@@ -465,5 +468,33 @@ export const getTournamentFlightsWithParticipants = query({
     );
 
     return flightsWithParticipants;
+  },
+});
+
+// Finish Scoring for a Player
+export const finishScoring = mutation({
+  args: {
+    tournamentId: v.id("tournaments"),
+    playerId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    // Find the participant entry
+    const participation = await ctx.db
+      .query("tournament_participants")
+      .withIndex("by_tournament_and_player", (q) =>
+        q.eq("tournamentId", args.tournamentId).eq("playerId", args.playerId)
+      )
+      .first();
+
+    if (!participation) {
+      throw new Error("Participation not found");
+    }
+
+    // Set scoringFinished to true
+    await ctx.db.patch(participation._id, {
+      scoringFinished: true,
+    });
+
+    return { success: true };
   },
 });

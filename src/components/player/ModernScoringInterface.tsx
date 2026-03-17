@@ -48,6 +48,14 @@ export default function ModernScoringInterface() {
     } : 'skip'
   );
 
+  const playerFlight = useQuery(
+    api.flights.getPlayerFlight,
+    id && user ? {
+      tournamentId: id as Id<'tournaments'>,
+      playerId: user._id as Id<'users'>,
+    } : 'skip'
+  );
+
   const { mutate: submitScoreMutation } = useRetryMutation(
     api.scores.submitScore,
     {
@@ -101,7 +109,11 @@ export default function ModernScoringInterface() {
   const approvedHoles: number[] = approvedHolesKey 
     ? JSON.parse(localStorage.getItem(approvedHolesKey) || '[]')
     : [];
-  const isHoleApproved = currentHole ? approvedHoles.includes(currentHole.holeNumber) : false;
+  
+  const isScoringFinished = playerFlight?.members?.find((m: any) => m._id === user?._id)?.scoringFinished === true 
+    || (id && user && localStorage.getItem(`tournamentFinished_${id}_${user._id}`) === 'true');
+
+  const isHoleApproved = isScoringFinished || (currentHole ? approvedHoles.includes(currentHole.holeNumber) : false);
 
   // Debug logging
   useEffect(() => {
@@ -282,9 +294,13 @@ export default function ModernScoringInterface() {
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-white mb-4">Hole Terkunci 🔒</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">
+            {isScoringFinished ? "Pertandingan Selesai! 🎉" : "Hole Terkunci 🔒"}
+          </h2>
           <p className="text-gray-400 mb-2">
-            Skor untuk Hole {currentHole.holeNumber} sudah disetujui dan tidak dapat diubah lagi.
+            {isScoringFinished 
+              ? "Anda sudah menyelesaikan pertandingan ini. Skor tidak dapat diubah lagi."
+              : `Skor untuk Hole ${currentHole.holeNumber} sudah disetujui dan tidak dapat diubah lagi.`}
           </p>
           <div className="bg-green-900/20 border border-green-800/40 rounded-xl p-4 mb-6">
             <div className="flex items-center justify-between">

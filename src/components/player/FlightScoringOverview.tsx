@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../contexts/AuthContext";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -57,6 +57,8 @@ const FlightScoringOverview: React.FC = () => {
         }
       : "skip",
   );
+
+  const finishScoringMutation = useMutation(api.flights.finishScoring);
 
   // Determine current hole based on user's last scored hole and approved holes
   useEffect(() => {
@@ -120,14 +122,22 @@ const FlightScoringOverview: React.FC = () => {
     };
   }, []);
 
-  // Check if tournament is finished from localStorage
+  // Check if tournament is finished from localStorage or convex
   useEffect(() => {
-    if (id && user) {
+    if (id && user && flightDetails) {
+      // Find current user's participation
+      const currentPlayerParticipation = flightDetails.participants.find(
+        (p: any) => p._id === user._id
+      );
+      
+      const isFinishedFromConvex = currentPlayerParticipation?.scoringFinished === true;
+
       const finishedKey = `tournamentFinished_${id}_${user._id}`;
-      const isFinished = localStorage.getItem(finishedKey) === 'true';
-      setTournamentFinished(isFinished);
+      const isFinishedFromLocal = localStorage.getItem(finishedKey) === 'true';
+      
+      setTournamentFinished(isFinishedFromConvex || isFinishedFromLocal);
     }
-  }, [id, user]);
+  }, [id, user, flightDetails]);
 
   // Debug: Check for duplicate hole numbers - must be before conditional return
   useEffect(() => {
@@ -169,7 +179,7 @@ const FlightScoringOverview: React.FC = () => {
 
   // const holesConfig = tournament.holesConfig || [];
 
-  const handleFinishTournament = () => {
+  const handleFinishTournament = async () => {
     if (!user || !id) return;
     
     // Get user's scores
@@ -184,12 +194,26 @@ const FlightScoringOverview: React.FC = () => {
       return;
     }
     
-    // Mark tournament as finished in localStorage
-    const finishedKey = `tournamentFinished_${id}_${user._id}`;
-    localStorage.setItem(finishedKey, 'true');
-    
-    // Update state to hide buttons
-    setTournamentFinished(true);
+    try {
+      // Mark as finished in Convex
+      await finishScoringMutation({
+        tournamentId: id as Id<"tournaments">,
+        playerId: user._id,
+      });
+
+      // Mark tournament as finished in localStorage
+      const finishedKey = `tournamentFinished_${id}_${user._id}`;
+      localStorage.setItem(finishedKey, 'true');
+      
+      // Update state to hide buttons
+      setTournamentFinished(true);
+    } catch (error) {
+      console.error("Failed to finish scoring:", error);
+      // Fallback
+      const finishedKey = `tournamentFinished_${id}_${user._id}`;
+      localStorage.setItem(finishedKey, 'true');
+      setTournamentFinished(true);
+    }
   };
 
   const handleAcceptDisclaimer = () => {

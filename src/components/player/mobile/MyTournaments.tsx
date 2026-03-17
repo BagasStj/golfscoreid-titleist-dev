@@ -169,16 +169,22 @@ const TournamentCard: React.FC<{
     });
   }, [allPlayers, allParticipantsQuery]);
 
-  // Check if tournament is finished from localStorage
+  // Check if tournament is finished from localStorage or convex
   const [isTournamentFinished, setIsTournamentFinished] = React.useState(false);
   
   React.useEffect(() => {
     if (tournament._id && userId) {
       const finishedKey = `tournamentFinished_${tournament._id}_${userId}`;
-      const isFinished = localStorage.getItem(finishedKey) === 'true';
-      setIsTournamentFinished(isFinished);
+      const isFinishedFromLocal = localStorage.getItem(finishedKey) === 'true';
+      
+      const currentPlayerParticipant = playerFlight?.members?.find(
+        (m: any) => m._id === userId
+      );
+      const isFinishedFromConvex = currentPlayerParticipant?.scoringFinished === true;
+      
+      setIsTournamentFinished(isFinishedFromLocal || isFinishedFromConvex);
     }
-  }, [tournament._id, userId]);
+  }, [tournament._id, userId, playerFlight]);
 
   if (!tournamentDetails) {
     return (
