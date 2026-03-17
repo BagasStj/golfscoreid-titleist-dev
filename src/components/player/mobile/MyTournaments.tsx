@@ -139,11 +139,35 @@ const TournamentCard: React.FC<{
       : "skip",
   );
 
-  // Fetch all flights in tournament (only if registered and has flight)
-  const allFlights = useQuery(
-    api.flights.getTournamentFlightsWithParticipants,
-    isRegistered && playerFlight ? { tournamentId: tournament._id } : "skip",
+  // Fetch all participants in tournament (only if registered)
+  const allParticipantsQuery = useQuery(
+    api.tournaments.getTournamentParticipants,
+    isRegistered ? { tournamentId: tournament._id } : "skip",
   );
+
+  const allPlayers = useQuery(api.users.listAllPlayers);
+
+  const allParticipants = React.useMemo(() => {
+    if (!allPlayers) return null;
+    
+    // Filter paid players
+    const paidPlayers = allPlayers.filter(
+      (p: any) => p.paymentStatus === "paid" || p.paidStatus === "paid"
+    );
+
+    // Map to participant structure
+    return paidPlayers.map((player: any) => {
+      const participation = allParticipantsQuery?.find(
+        (tp: any) => tp._id === player._id
+      );
+      
+      return {
+        ...player,
+        flightId: participation?.flightId || null,
+        flightName: participation?.flightName || "-",
+      };
+    });
+  }, [allPlayers, allParticipantsQuery]);
 
   // Check if tournament is finished from localStorage
   const [isTournamentFinished, setIsTournamentFinished] = React.useState(false);
@@ -445,7 +469,7 @@ const TournamentCard: React.FC<{
       )}
 
       {/* All Tournament Participants */}
-      {allFlights && allFlights.length > 0 && (
+      {allParticipants && allParticipants.length > 0 && (
         <div className="p-4 border-b border-gray-800">
           <h4 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
             <Users className="w-4 h-4 text-green-500" />
@@ -467,23 +491,8 @@ const TournamentCard: React.FC<{
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800/60">
-                  {allFlights
-                    .flatMap((flight) => {
-                      // Filter only paid participants
-                      const paidParticipants =
-                        flight.participants?.filter(
-                          (p: any) =>
-                            p.paymentStatus === "invited" && p.paidStatus === "paid",
-                        ) || [];
-
-                      // Map participants with flight info
-                      return paidParticipants.map((participant: any) => ({
-                        ...participant,
-                        flightName: flight.flightName,
-                        flightNumber: flight.flightNumber,
-                      }));
-                    })
-                    .sort((a, b) => a.name.localeCompare(b.name)) // Sort by name
+                  {allParticipants
+                    .sort((a: any, b: any) => a.name.localeCompare(b.name)) // Sort by name
                     .map((participant: any, index: number) => (
                       <tr
                         key={`${participant._id}-${index}`}
@@ -521,7 +530,7 @@ const TournamentCard: React.FC<{
                         <td className="py-2.5 px-3">
                           <div className="flex items-center justify-center gap-1.5">
                             <span className="text-gray-300 font-semibold text-center">
-                              {participant.flightName}
+                              {participant.flightId ? participant.flightName : "-"}
                             </span>
                           </div>
                         </td>
@@ -539,16 +548,7 @@ const TournamentCard: React.FC<{
                 Total Peserta
               </span>
               <span className="text-green-400 text-sm font-bold">
-                {allFlights.reduce((total, flight) => {
-                  const paidCount =
-                    flight.participants?.filter(
-                      (p: any) =>
-                        p.paymentStatus === "invited" &&
-                        p.paidStatus === "paid",
-                    ).length || 0;
-                  return total + paidCount;
-                }, 0)}{" "}
-                pemain
+                {allParticipants.length} pemain
               </span>
             </div>
           </div>

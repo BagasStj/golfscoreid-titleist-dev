@@ -66,8 +66,10 @@ const FlightScoringOverview: React.FC = () => {
       const approvedHoles: number[] = JSON.parse(localStorage.getItem(approvedHolesKey) || '[]');
       
       if (currentUserScores.length > 0) {
-        // Find the last hole the user scored
-        const sortedScores = [...currentUserScores].sort((a, b) => b.holeNumber - a.holeNumber);
+        // Find the last hole the user scored (most recently submitted)
+        const sortedScores = [...currentUserScores].sort(
+          (a, b) => (b.submittedAt ?? 0) - (a.submittedAt ?? 0)
+        );
         const lastScoredHole = sortedScores[0].holeNumber;
         
         // If last scored hole is approved, set current hole to null (ready for next hole)
@@ -405,10 +407,10 @@ const FlightScoringOverview: React.FC = () => {
 
       {/* Disclaimer Dialog */}
       {showDisclaimerDialog && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-2xl shadow-2xl border-2 border-blue-900/40 max-w-lg w-full animate-in fade-in zoom-in duration-200">
-            {/* Close Button */}
-            <div className="flex justify-end p-4 pb-0">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-t-2xl sm:rounded-2xl shadow-2xl border-2 border-blue-900/40 w-full sm:max-w-lg max-h-[90vh] flex flex-col animate-in fade-in slide-in-from-bottom-4 sm:zoom-in duration-200">
+            {/* Close Button - sticky at top */}
+            <div className="flex justify-end p-4 pb-0 flex-shrink-0">
               <button
                 onClick={handleCloseDisclaimer}
                 className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
@@ -429,7 +431,8 @@ const FlightScoringOverview: React.FC = () => {
               </button>
             </div>
 
-            <div className="px-6 pb-6 space-y-5">
+            {/* Scrollable content area */}
+            <div className="px-6 pb-2 overflow-y-auto flex-1 space-y-5">
               {/* Icon */}
               <div className="w-16 h-16 bg-gradient-to-br from-blue-900/60 to-blue-800/60 rounded-2xl flex items-center justify-center mx-auto border border-blue-800/40 shadow-lg">
                 <svg
@@ -507,12 +510,26 @@ const FlightScoringOverview: React.FC = () => {
                   </div>
                 </div>
 
-               
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-yellow-700/40 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-4 h-4 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-yellow-200 text-sm font-semibold mb-1">
+                      Hole Harus Sama dengan Semua Pemain dalam Flight
+                    </p>
+                    <p className="text-yellow-300/80 text-xs leading-relaxed">
+                      Setiap anggota dalam satu flight <span className="font-bold text-yellow-200">wajib mengisi skor hole yang sama</span> sebelum dapat melanjutkan ke hole berikutnya. Tombol "Setujui &amp; Lanjutkan" hanya aktif jika semua pemain telah mengisi hole yang sama.
+                    </p>
+                  </div>
+                </div>
               </div>
+            </div>
 
-              
-
-              {/* Action Button */}
+            {/* Action Button - sticky at bottom */}
+            <div className="px-6 py-4 flex-shrink-0 border-t border-gray-800/60">
               <button
                 onClick={handleAcceptDisclaimer}
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
@@ -689,9 +706,12 @@ const ActionButtons: React.FC<{
     (ps) => ps.participant._id === userId,
   );
   
-  // Get the last hole each player scored
+  // Get the last hole each player scored (by submission time, not hole number)
+  // This handles wrap-around: e.g. player starts at hole 3, goes to 18, then fills hole 1 & 2
   const playerLastHoles = participantScores.map((ps) => {
-    const sortedScores = [...(ps.scores || [])].sort((a, b) => b.holeNumber - a.holeNumber);
+    const sortedScores = [...(ps.scores || [])].sort(
+      (a, b) => (b.submittedAt ?? 0) - (a.submittedAt ?? 0) // Most recently submitted first
+    );
     return {
       participant: ps.participant,
       lastHole: sortedScores.length > 0 ? sortedScores[0].holeNumber : null,
@@ -750,61 +770,69 @@ const ActionButtons: React.FC<{
             </svg>
             <span className="text-base">Edit Score Hole {currentHole}</span>
           </button>
-          <button
-            onClick={() => {
-              if (!allOnSameHole) {
-                // Show alert about hole mismatch
-                setShowHoleMismatchAlert(true);
-                setHoleMismatchDetails({
-                  userHole: userLastHole || 0,
-                  otherPlayers: playersOnDifferentHoles.map(p => ({
-                    name: p.participant.name,
-                    hole: p.lastHole || 0,
-                  })),
-                });
-              } else if (allPlayersScored && userLastHole !== null) {
-                // All players on same hole, mark as approved and clear current hole
-                // Store approved holes in localStorage
-                const approvedHolesKey = `approvedHoles_${tournamentId}_${userId}`;
-                const approvedHoles = JSON.parse(localStorage.getItem(approvedHolesKey) || '[]');
-                
-                if (!approvedHoles.includes(userLastHole)) {
-                  approvedHoles.push(userLastHole);
-                  localStorage.setItem(approvedHolesKey, JSON.stringify(approvedHoles));
+          <div className="relative w-full group">
+            <button
+              onClick={() => {
+                if (!allOnSameHole) {
+                  // Show alert about hole mismatch
+                  setShowHoleMismatchAlert(true);
+                  setHoleMismatchDetails({
+                    userHole: userLastHole || 0,
+                    otherPlayers: playersOnDifferentHoles.map(p => ({
+                      name: p.participant.name,
+                      hole: p.lastHole || 0,
+                    })),
+                  });
+                } else if (allPlayersScored && userLastHole !== null) {
+                  // All players on same hole — save approval and stay on this page
+                  const approvedHolesKey = `approvedHoles_${tournamentId}_${userId}`;
+                  const approvedHoles = JSON.parse(localStorage.getItem(approvedHolesKey) || '[]');
+                  
+                  if (!approvedHoles.includes(userLastHole)) {
+                    approvedHoles.push(userLastHole);
+                    localStorage.setItem(approvedHolesKey, JSON.stringify(approvedHoles));
+                  }
+                  
+                  // Reload to update the view (currentHole will become null, showing "Input Skor")
+                  window.location.reload();
                 }
-                
-                // Reload to update the view
-                window.location.reload();
-              }
-            }}
-            disabled={!allPlayersScored || waitingCount > 0}
-            className={`w-full font-semibold py-3 px-4 rounded-lg border transition-all flex items-center justify-center gap-2 ${
-              allPlayersScored && waitingCount === 0
-                ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-green-600 shadow-lg cursor-pointer"
-                : "bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed"
-            }`}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+              }}
+              disabled={!allPlayersScored || waitingCount > 0}
+              className={`w-full font-semibold py-3 px-4 rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                allPlayersScored && waitingCount === 0
+                  ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-green-600 shadow-lg cursor-pointer"
+                  : "bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed"
+              }`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-            <span>
-              {waitingCount > 0
-                ? `Menunggu ${waitingCount} pemain lainnya`
-                : allPlayersScored
-                ? "Setujui & Lanjutkan"
-                : "Menunggu pemain lain"}
-            </span>
-          </button>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              <span>
+                {waitingCount > 0
+                  ? `Menunggu ${waitingCount} pemain lainnya`
+                  : allPlayersScored
+                  ? "Setujui & Lanjutkan"
+                  : "Menunggu pemain lain"}
+              </span>
+            </button>
+            {/* Tooltip — only shown when button is disabled */}
+            {(!allPlayersScored || waitingCount > 0) && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 border border-yellow-700/60 text-yellow-300 text-xs font-semibold rounded-lg shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                <span>⚠️ Pastikan hole yang terisi sama dengan pemain lain</span>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-gray-900" />
+              </div>
+            )}
+          </div>
 
           <button
             onClick={() => {
@@ -825,30 +853,58 @@ const ActionButtons: React.FC<{
           {/* Show Input Score button that opens a hole selector */}
           <button
             onClick={() => {
-              // Find first unscored hole
-              const holesConfig = tournament.holesConfig || [];
+              const holesConfig: any[] = tournament.holesConfig || [];
+
               const userScoresData = participantScores.find(
                 (ps) => ps.participant._id === userId,
               );
-              const scoredHoles = new Set(userScoresData?.scores?.map(s => s.holeNumber) || []);
-              
-              // Get approved holes
-              const approvedHolesKey = `approvedHoles_${tournamentId}_${userId}`;
-              const approvedHoles: number[] = JSON.parse(localStorage.getItem(approvedHolesKey) || '[]');
-              
-              // Find first unscored and unapproved hole
-              const firstUnscoredHole = holesConfig.find(
-                (h: any) => !scoredHoles.has(h.holeNumber) && !approvedHoles.includes(h.holeNumber)
+
+              const userScores: any[] = userScoresData?.scores || [];
+
+              // Build a set of all scored hole numbers
+              const scoredHoles = new Set(userScores.map((s: any) => s.holeNumber));
+
+              // Sort holesConfig by holeNumber ascending (canonical order)
+              const sortedHoles = [...holesConfig].sort(
+                (a, b) => a.holeNumber - b.holeNumber
               );
-              
-              if (firstUnscoredHole) {
-                navigate(
-                  `/player/scoring/${tournamentId}?playerId=${userId}&hole=${firstUnscoredHole.holeNumber}`,
+
+              let targetHole: any = null;
+
+              if (userScores.length > 0) {
+                // Find the most recently submitted hole (by submittedAt timestamp)
+                const lastSubmittedScore = [...userScores].sort(
+                  (a, b) => (b.submittedAt ?? 0) - (a.submittedAt ?? 0)
+                )[0];
+                const lastSubmittedHoleNumber = lastSubmittedScore.holeNumber;
+
+                // Find the index of lastSubmittedHole in sortedHoles
+                const lastIndex = sortedHoles.findIndex(
+                  (h) => h.holeNumber === lastSubmittedHoleNumber
                 );
-              } else {
-                // All holes scored, go to first hole
+
+                // Next hole is the one after lastSubmittedHole in sortedHoles order (wrap around)
+                if (lastIndex !== -1 && lastIndex < sortedHoles.length - 1) {
+                  targetHole = sortedHoles[lastIndex + 1];
+                } else if (lastIndex === sortedHoles.length - 1) {
+                  // Wrap around: last hole in config, go back to first unscored
+                  targetHole = sortedHoles.find((h) => !scoredHoles.has(h.holeNumber));
+                }
+              }
+
+              // Fallback: first hole in config not yet scored
+              if (!targetHole) {
+                targetHole = sortedHoles.find((h) => !scoredHoles.has(h.holeNumber));
+              }
+
+              // Last fallback: last hole in config
+              if (!targetHole) {
+                targetHole = sortedHoles[sortedHoles.length - 1];
+              }
+
+              if (targetHole) {
                 navigate(
-                  `/player/scoring/${tournamentId}?playerId=${userId}&hole=${holesConfig[0]?.holeNumber || 1}`,
+                  `/player/scoring/${tournamentId}?playerId=${userId}&hole=${targetHole.holeNumber}`,
                 );
               }
             }}

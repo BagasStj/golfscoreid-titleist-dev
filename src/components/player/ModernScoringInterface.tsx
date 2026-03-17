@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from 'convex/react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../../convex/_generated/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../shared/ToastContainer';
@@ -23,10 +23,10 @@ export default function ModernScoringInterface() {
   const { user } = useAuth();
   const { showSuccess, showError } = useToast();
   
-  // Get hole parameter from URL
-  const searchParams = new URLSearchParams(window.location.search);
+  // Get hole parameter from URL (reactive via useSearchParams)
+  const [searchParams] = useSearchParams();
   const holeParam = searchParams.get('hole');
-  
+
   const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
   const [strokes, setStrokes] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,16 +144,17 @@ export default function ModernScoringInterface() {
     }
   }, [id, user, navigate]);
 
-  // Set initial hole based on URL parameter
+  // Set current hole based on URL ?hole= parameter whenever holesConfig loads
   useEffect(() => {
     if (holeParam && holesConfig.length > 0) {
-      const holeNumber = parseInt(holeParam);
+      const holeNumber = parseInt(holeParam, 10);
       const holeIndex = holesConfig.findIndex(h => h.holeNumber === holeNumber);
       if (holeIndex !== -1) {
         setCurrentHoleIndex(holeIndex);
       }
     }
-  }, [holeParam, holesConfig]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [holeParam, holesConfig.length]);
 
   useEffect(() => {
     if (currentHole) {
