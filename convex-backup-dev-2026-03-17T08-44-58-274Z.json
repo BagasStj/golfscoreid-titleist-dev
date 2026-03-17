@@ -1,0 +1,3379 @@
+{
+  "courses": [
+    {
+      "_creationTime": 1773181509632.2131,
+      "_id": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "createdAt": 1773181509632,
+      "createdBy": "k977y80rr7z5hfjm1wjjswtrph8276m0",
+      "isActive": true,
+      "location": "Depok , Jawa Barat",
+      "name": "Pangkalan Jati Golf",
+      "teeBoxes": [
+        {
+          "color": "#000000",
+          "name": "Black"
+        },
+        {
+          "color": "#3B82F6",
+          "name": "Blue"
+        },
+        {
+          "color": "#FFFFFF",
+          "name": "White"
+        },
+        {
+          "color": "#F59E0B",
+          "name": "Gold"
+        },
+        {
+          "color": "#EF4444",
+          "name": "Red"
+        }
+      ],
+      "totalHoles": 18
+    },
+    {
+      "_creationTime": 1773180688251.0127,
+      "_id": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "createdAt": 1773180688251,
+      "createdBy": "k977y80rr7z5hfjm1wjjswtrph8276m0",
+      "description": "Modern Golf & Country Club is an 18 Holes International Standard Golf Course. ",
+      "isActive": true,
+      "location": "Tangerang",
+      "name": "Modern Golf & Country Club",
+      "teeBoxes": [
+        {
+          "color": "#000000",
+          "name": "Black"
+        },
+        {
+          "color": "#3B82F6",
+          "name": "Blue"
+        },
+        {
+          "color": "#FFFFFF",
+          "name": "White"
+        },
+        {
+          "color": "#F59E0B",
+          "name": "Gold"
+        },
+        {
+          "color": "#EF4444",
+          "name": "Red"
+        }
+      ],
+      "totalHoles": 18
+    },
+    {
+      "_creationTime": 1772598520297.199,
+      "_id": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "createdAt": 1772598520297,
+      "createdBy": "k977y80rr7z5hfjm1wjjswtrph8276m0",
+      "isActive": true,
+      "location": "JAKARTA UTARA",
+      "name": "SEDAYU INDO GOLF",
+      "teeBoxes": [
+        {
+          "color": "#000000",
+          "name": "Black"
+        },
+        {
+          "color": "#3B82F6",
+          "name": "Blue"
+        },
+        {
+          "color": "#FFFFFF",
+          "name": "White"
+        },
+        {
+          "color": "#F59E0B",
+          "name": "Gold"
+        },
+        {
+          "color": "#EF4444",
+          "name": "Red"
+        }
+      ],
+      "totalHoles": 18
+    }
+  ],
+  "email_logs": [],
+  "holes_config": [
+    {
+      "_creationTime": 1772598533991.948,
+      "_id": "jd709at2cqwk0pr1ryb68f5wts829fz5",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 6,
+      "index": 6,
+      "par": 5
+    },
+    {
+      "_creationTime": 1773180948939.6418,
+      "_id": "jd70d3q0zs5w4w0apbcce43fy982m5ny",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 3,
+      "index": 9,
+      "par": 3
+    },
+    {
+      "_creationTime": 1773182000212.0474,
+      "_id": "jd70e99772syzs941gnfagav4582my8t",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 1,
+      "index": 3,
+      "par": 5
+    },
+    {
+      "_creationTime": 1773180948939.6416,
+      "_id": "jd70ejpqk399h20de1j6f7fa8d82m7yv",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 2,
+      "index": 3,
+      "par": 4
+    },
+    {
+      "_creationTime": 1772598533991.95,
+      "_id": "jd70k01z3g1vknfthn63kys6xx829sm7",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 14,
+      "index": 14,
+      "par": 5
+    },
+    {
+      "_creationTime": 1772598533991.9495,
+      "_id": "jd70q6vye24vz0c2r5tn1h8f29829824",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 12,
+      "index": 12,
+      "par": 3
+    },
+    {
+      "_creationTime": 1772598533991.9507,
+      "_id": "jd70qw4s3svcye932kvj60ty21828hxr",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 17,
+      "index": 17,
+      "par": 5
+    },
+    {
+      "_creationTime": 1772598533991.9468,
+      "_id": "jd711wgdscppca43c4m97k7rs18285fa",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 1,
+      "index": 1,
+      "par": 4
+    },
+    {
+      "_creationTime": 1772598533991.9485,
+      "_id": "jd71p272tdfen2vbp8ggyfnpr18280a9",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 8,
+      "index": 8,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773182000212.0479,
+      "_id": "jd71yj3kb5fft8z3tp4tx0jvy182nj16",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 3,
+      "index": 13,
+      "par": 3
+    },
+    {
+      "_creationTime": 1773180948939.644,
+      "_id": "jd721hptmyaznne2hyagxv7mpx82nccx",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 12,
+      "index": 18,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773180948939.6428,
+      "_id": "jd72jp7rrp2vh0yaab13ny1be182m101",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 7,
+      "index": 1,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773180948939.6426,
+      "_id": "jd72q69t6qrqaygeyv35byxydd82nccz",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 6,
+      "index": 11,
+      "par": 3
+    },
+    {
+      "_creationTime": 1773180948939.6414,
+      "_id": "jd7337ry72kg7bmnxajp7w676982mjdg",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 1,
+      "index": 15,
+      "par": 5
+    },
+    {
+      "_creationTime": 1773180948939.645,
+      "_id": "jd73pn0vnep84k32knfzj1hqb582m5vz",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 16,
+      "index": 12,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773182000212.0476,
+      "_id": "jd73q83p629dnt69wpn1sc407n82m49p",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 2,
+      "index": 7,
+      "par": 4
+    },
+    {
+      "_creationTime": 1772598533991.9502,
+      "_id": "jd73xr4yawjmks1e6j3cedwj71828tnk",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 15,
+      "index": 15,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773180948939.6448,
+      "_id": "jd73zsg34j2f00wghpya9619qs82m6my",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 15,
+      "index": 16,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773182000212.0483,
+      "_id": "jd740dz41wv88y770kcxvjpbss82nywa",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 5,
+      "index": 17,
+      "par": 4
+    },
+    {
+      "_creationTime": 1772598533991.9487,
+      "_id": "jd745ayvczr2t2s09bhe74dx39828gt6",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 9,
+      "index": 9,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773182000212.0488,
+      "_id": "jd749z9jwy18x8zcexq4z7dnzh82nnh1",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 7,
+      "index": 15,
+      "par": 5
+    },
+    {
+      "_creationTime": 1773182000212.049,
+      "_id": "jd74qwyn58m03rn9mhbwh86syx82mztd",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 8,
+      "index": 11,
+      "par": 3
+    },
+    {
+      "_creationTime": 1773182000212.0496,
+      "_id": "jd74td54azktgm5cs97v1vpvy182ns20",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 10,
+      "index": 10,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773180948939.6423,
+      "_id": "jd750gj5e5ca1094hj2jm2mv0n82m9d9",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 5,
+      "index": 7,
+      "par": 5
+    },
+    {
+      "_creationTime": 1773180948939.6438,
+      "_id": "jd759kahjmkkezv14yzfm34e8982mpx0",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 11,
+      "index": 6,
+      "par": 3
+    },
+    {
+      "_creationTime": 1772598533991.9497,
+      "_id": "jd76j30qsdkbjmyhy4qtp1h0w1829g40",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 13,
+      "index": 13,
+      "par": 4
+    },
+    {
+      "_creationTime": 1772598533991.9478,
+      "_id": "jd76tf6t0v61vngp4tkf7w179n829nk6",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 5,
+      "index": 5,
+      "par": 3
+    },
+    {
+      "_creationTime": 1773180948939.6443,
+      "_id": "jd776dfg6kcf5nhj0e9mw1e44d82njc4",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 13,
+      "index": 2,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773182000212.0493,
+      "_id": "jd7799wpppwvypcevshymyjva582mwfq",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 9,
+      "index": 9,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773182000212.048,
+      "_id": "jd77k3anse1tdk855tbzmzcz9h82n8y9",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 4,
+      "index": 1,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773180948939.6455,
+      "_id": "jd784rxvpnqxw2hdyge3fnjyhh82metn",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 18,
+      "index": 8,
+      "par": 5
+    },
+    {
+      "_creationTime": 1773182000212.051,
+      "_id": "jd78dzky0k85th4r3sy4ygwe8n82mtfb",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 16,
+      "index": 16,
+      "par": 3
+    },
+    {
+      "_creationTime": 1773182000212.0513,
+      "_id": "jd78f6wekx7wacwh7eqzs3j0rs82nz4d",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 17,
+      "index": 8,
+      "par": 4
+    },
+    {
+      "_creationTime": 1772598533991.947,
+      "_id": "jd795gz8tbf5028gderw73ezmd8296er",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 2,
+      "index": 2,
+      "par": 5
+    },
+    {
+      "_creationTime": 1773182000212.0515,
+      "_id": "jd79v2erm05zm5z2vh82f43bph82nye1",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 18,
+      "index": 14,
+      "par": 5
+    },
+    {
+      "_creationTime": 1773180948939.642,
+      "_id": "jd7a560vvp2vjf49mv8nrqa2wn82nszr",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 4,
+      "index": 17,
+      "par": 4
+    },
+    {
+      "_creationTime": 1772598533991.9482,
+      "_id": "jd7ahf8rp0r1y7snmqhew88a1s829mx4",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 7,
+      "index": 7,
+      "par": 3
+    },
+    {
+      "_creationTime": 1772598533991.949,
+      "_id": "jd7b4c72bpkawg8z4xb5dxr4g1828y19",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 10,
+      "index": 10,
+      "par": 4
+    },
+    {
+      "_creationTime": 1772598533991.9504,
+      "_id": "jd7b97bk7f0nhfyxtg04q3xxj98281qa",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 16,
+      "index": 16,
+      "par": 3
+    },
+    {
+      "_creationTime": 1773180948939.6445,
+      "_id": "jd7bawj8jnmrwthvrb1be9qtgh82npq4",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 14,
+      "index": 4,
+      "par": 5
+    },
+    {
+      "_creationTime": 1773182000212.0508,
+      "_id": "jd7bs0w6r97ag772833wrg74wn82ncmb",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 15,
+      "index": 2,
+      "par": 4
+    },
+    {
+      "_creationTime": 1772598533991.9492,
+      "_id": "jd7bxsprc4xz0pcxv8f5b9vbd58286sw",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 11,
+      "index": 11,
+      "par": 4
+    },
+    {
+      "_creationTime": 1772598533991.951,
+      "_id": "jd7c0w8wdmg0gqc5js1z0d1az5828eev",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 18,
+      "index": 18,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773182000212.0486,
+      "_id": "jd7c8g5qhcn94g2tchmk2rf1w982m6bv",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 6,
+      "index": 5,
+      "par": 4
+    },
+    {
+      "_creationTime": 1772598533991.9475,
+      "_id": "jd7cywdsw6xs7w2hrx4eff9hpx828pf4",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 4,
+      "index": 4,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773182000212.0498,
+      "_id": "jd7ddv5k784tj76djt5k9efhnx82mmtx",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 11,
+      "index": 6,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773182000212.0505,
+      "_id": "jd7dn9z17t6h2cvc0ezh8h5jvs82nrpb",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 14,
+      "index": 4,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773180948939.6453,
+      "_id": "jd7e1kw21zqb3b95aez5mexy0h82mx1h",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 17,
+      "index": 10,
+      "par": 3
+    },
+    {
+      "_creationTime": 1773182000212.05,
+      "_id": "jd7e5py9tx7dxyt66dhszx8aqd82m56b",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 12,
+      "index": 18,
+      "par": 5
+    },
+    {
+      "_creationTime": 1773180948939.6433,
+      "_id": "jd7e82vpgchqbnqj9ckz4mw5ys82nnc1",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 9,
+      "index": 13,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773180948939.6436,
+      "_id": "jd7f0v6e5sn4kcfzsatvrj72pn82mc7j",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 10,
+      "index": 14,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773180948939.643,
+      "_id": "jd7fh45yjpe5cnmzp3behxknws82nq26",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 8,
+      "index": 5,
+      "par": 4
+    },
+    {
+      "_creationTime": 1773182000212.0503,
+      "_id": "jd7fpmvyfmkjrbp67h935qsj9n82m2f6",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseSection": "back9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 13,
+      "index": 12,
+      "par": 3
+    },
+    {
+      "_creationTime": 1772598533991.9473,
+      "_id": "jd7fvxqts8jajkgy5pfm8xpdr5828pcv",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseSection": "front9",
+      "distances": [
+        {
+          "distance": 0,
+          "teeBoxName": "Black"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Blue"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "White"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Gold"
+        },
+        {
+          "distance": 0,
+          "teeBoxName": "Red"
+        }
+      ],
+      "holeNumber": 3,
+      "index": 3,
+      "par": 4
+    }
+  ],
+  "information": [
+    {
+      "_creationTime": 1773199166876.727,
+      "_id": "kd784gwrsj7yjkcavmfh0788rx82qn2j",
+      "category": "tournament",
+      "createdAt": 1773199166876,
+      "createdBy": "k977y80rr7z5hfjm1wjjswtrph8276m0",
+      "description": "test 1",
+      "fileStorageId": "kg25s6tvxvmddffsfmkp01f3td82q3kr",
+      "fileType": "pdf",
+      "fileUrl": "https://dashing-viper-441.convex.cloud/api/storage/0e05ad58-1c98-4c69-9329-68c8331139bc",
+      "isPublished": true,
+      "order": 1,
+      "title": "test",
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf",
+      "updatedAt": 1773231381757
+    }
+  ],
+  "news": [],
+  "news_confirmations": [],
+  "pending_scores": [],
+  "scores": [
+    {
+      "_creationTime": 1772685019711.5552,
+      "_id": "js701gpx8sqy9tkea40jn6bq9s82bgyh",
+      "holeNumber": 5,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 2,
+      "submittedAt": 1772685019711,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773039696498.1428,
+      "_id": "js7050gcp53vrafywk5r14s3d582j5h9",
+      "holeNumber": 6,
+      "playerId": "k975pykpjdzmea64vmnet3n1k58269sc",
+      "strokes": 4,
+      "submittedAt": 1773039696498,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773415836876.946,
+      "_id": "js709j6br5gg27n80bkap1dzfd82vczk",
+      "holeNumber": 12,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 3,
+      "submittedAt": 1773415836877,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773217741524.8428,
+      "_id": "js70jc92h68t3ysqp9mpwt7m7982qhy2",
+      "holeNumber": 17,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 6,
+      "submittedAt": 1773226874955,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773221383586.5579,
+      "_id": "js70rwqa4fsg7kd0ev7xt6bp1982p257",
+      "holeNumber": 2,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 6,
+      "submittedAt": 1773221417667,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1772678868214.0247,
+      "_id": "js70tp7h4cx6jg59eddn8saa3982ajcm",
+      "holeNumber": 3,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 3,
+      "submittedAt": 1772678868214,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773212677207.4397,
+      "_id": "js70wvg9wxm51wrfpgmr28wa2h82q91x",
+      "holeNumber": 11,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 5,
+      "submittedAt": 1773212677207,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773220291797.25,
+      "_id": "js711m0emcsgyb8q0gsxddb93x82qg3d",
+      "holeNumber": 2,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 6,
+      "submittedAt": 1773221462308,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773415978433.639,
+      "_id": "js714nsw3g81f3179mpydwmntx82ven2",
+      "holeNumber": 18,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 4,
+      "submittedAt": 1773415978433,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773222351351.6213,
+      "_id": "js71gv2a65f419zk3vv66wpn4d82pxre",
+      "holeNumber": 4,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 6,
+      "submittedAt": 1773224469861,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773184491067.9539,
+      "_id": "js71nck69ea6pmm5w4v6hs4a2n82ncsc",
+      "holeNumber": 8,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 5,
+      "submittedAt": 1773184491068,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773158742489.4307,
+      "_id": "js71p8yg8cec262x93cz15ypts82mnbm",
+      "holeNumber": 7,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 3,
+      "submittedAt": 1773158742489,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773225908732.2842,
+      "_id": "js72ctg7hb7thk896rbs9b7e6182py1b",
+      "holeNumber": 8,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 4,
+      "submittedAt": 1773225909896,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773216020969.9495,
+      "_id": "js72pvgenh1f6cxvyegwe5ct8n82p94a",
+      "holeNumber": 15,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 4,
+      "submittedAt": 1773226854322,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773211716654.1965,
+      "_id": "js72qac15rzts4pbft9zvrcdbn82p0t2",
+      "holeNumber": 10,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 7,
+      "submittedAt": 1773211716654,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773415772663.1929,
+      "_id": "js72r1zds6zxbq590v82p7sgrn82ty0b",
+      "holeNumber": 11,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 4,
+      "submittedAt": 1773415772663,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773158729235.009,
+      "_id": "js72rf7c3p148asev62rzgbvp982nj85",
+      "holeNumber": 7,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 3,
+      "submittedAt": 1773158729235,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773226770976.5286,
+      "_id": "js72sr0b31c3nr17110pwhrx7x82q093",
+      "holeNumber": 9,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 5,
+      "submittedAt": 1773226770976,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773415932375.768,
+      "_id": "js72wde9wrffzhtbjj2qfy85fn82vbb9",
+      "holeNumber": 17,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 5,
+      "submittedAt": 1773415932375,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773415925310.0737,
+      "_id": "js73414weykqhmpfn282eh6mg182tr9b",
+      "holeNumber": 16,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 3,
+      "submittedAt": 1773415925310,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773039629818.911,
+      "_id": "js7380j89yw82rybf5989s7sqx82jz5k",
+      "holeNumber": 6,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 5,
+      "submittedAt": 1773039629819,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1772684570561.137,
+      "_id": "js73gtv3emm6824n4m0c5khyw582bmdd",
+      "holeNumber": 5,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 3,
+      "submittedAt": 1772684570561,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773415830520.748,
+      "_id": "js73segasz9qy9m5z6fvd3xrd982tb0c",
+      "holeNumber": 12,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 3,
+      "submittedAt": 1773415830520,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773413075193.6191,
+      "_id": "js74d36jq53jq521fyrckkeg4d82vfb2",
+      "holeNumber": 11,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 4,
+      "submittedAt": 1773413075193,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773221434298.2246,
+      "_id": "js74fa1p8mxcz8628ew97795zs82q0h2",
+      "holeNumber": 3,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 4,
+      "submittedAt": 1773221434298,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773415854904.4573,
+      "_id": "js74jj1axadzrcpxtzjndye21s82v1tw",
+      "holeNumber": 13,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 4,
+      "submittedAt": 1773415854904,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773217797218.0784,
+      "_id": "js74nk8c8hnt3qj7qsd1v6ead582qy6j",
+      "holeNumber": 17,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 4,
+      "submittedAt": 1773226877700,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773225038242.1003,
+      "_id": "js74t01safgjna20xe35nw2xkn82qr7d",
+      "holeNumber": 7,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 6,
+      "submittedAt": 1773225038242,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773214060814.7788,
+      "_id": "js74zj5p90py6ae3fqgsevv1tx82p378",
+      "holeNumber": 13,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 6,
+      "submittedAt": 1773214060814,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773224467032.2456,
+      "_id": "js75cnk52my3d030dynzw4fx9182pha2",
+      "holeNumber": 6,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 4,
+      "submittedAt": 1773224467032,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773219950653.2878,
+      "_id": "js75wrmx3bmfbttgypqnmhmcss82q37n",
+      "holeNumber": 1,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 6,
+      "submittedAt": 1773236097345,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1772678696587.3374,
+      "_id": "js760bm4h9e5x3zbe0mwrsw0s982afv6",
+      "holeNumber": 2,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 4,
+      "submittedAt": 1772678696587,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773215305946.3008,
+      "_id": "js760daac0cnnqeex97dmx3dhd82pemx",
+      "holeNumber": 14,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 7,
+      "submittedAt": 1773215305946,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1772611325905.932,
+      "_id": "js763c5yysp6p5h3a2s3ry2a8h828wcj",
+      "holeNumber": 1,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 1,
+      "submittedAt": 1773197837959,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773215978540.19,
+      "_id": "js76a3n8tpyvx0mqxssv4qhky182pxt4",
+      "holeNumber": 15,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 5,
+      "submittedAt": 1773226851788,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1772678904983.3477,
+      "_id": "js76mazxp7pv7n33p1cvcqwqq982brmz",
+      "holeNumber": 4,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 5,
+      "submittedAt": 1772678904983,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1772678849820.2024,
+      "_id": "js76x04m9msjhjhcvs57a23s3182bbvm",
+      "holeNumber": 3,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 4,
+      "submittedAt": 1773186491864,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773415920060.9355,
+      "_id": "js77ha361mxtfrdcbx4hwb632982tanc",
+      "holeNumber": 16,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 3,
+      "submittedAt": 1773415920060,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1772678898498.6396,
+      "_id": "js77wg17n6krzqnrwx53d3ygnh82a9c4",
+      "holeNumber": 4,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 3,
+      "submittedAt": 1772678898498,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773212084614.1748,
+      "_id": "js780p4ye4m8trnq3bz7r8x8w982pnez",
+      "holeNumber": 10,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 5,
+      "submittedAt": 1773212084614,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773218784576.7473,
+      "_id": "js780txzmy8s4d92vdsvge233h82qhyj",
+      "holeNumber": 18,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 6,
+      "submittedAt": 1773226883193,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773415883675.316,
+      "_id": "js78bav4p50wae2a01pqp1eev982vgtt",
+      "holeNumber": 14,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 5,
+      "submittedAt": 1773415883675,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773225128899.106,
+      "_id": "js78fcjksresvnd25sjeeppgy582pzqd",
+      "holeNumber": 7,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 7,
+      "submittedAt": 1773225128899,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773039669853.1328,
+      "_id": "js78qeqe24c58jkxr6d99cd2hd82k8ak",
+      "holeNumber": 6,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 6,
+      "submittedAt": 1773039669853,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773415902204.5627,
+      "_id": "js78va6jr9qnxegxa11jdwnfj182ve3b",
+      "holeNumber": 15,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 4,
+      "submittedAt": 1773415902204,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773217049402.673,
+      "_id": "js78vevdxhc7jq0pttp973d26182qdww",
+      "holeNumber": 16,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 5,
+      "submittedAt": 1773226867626,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773213155588.995,
+      "_id": "js78xe2cse7vbta27vt2ef97w982qjm4",
+      "holeNumber": 12,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 6,
+      "submittedAt": 1773213155589,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1772678665919.8005,
+      "_id": "js79nggkcc0csvvxks3v945gp182bv66",
+      "holeNumber": 2,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 4,
+      "submittedAt": 1772678665919,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773415878066.6123,
+      "_id": "js79nj50p5jx6t4dfdbzn46dnd82t5c8",
+      "holeNumber": 14,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 5,
+      "submittedAt": 1773415878066,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773224451533.9033,
+      "_id": "js79njm8tsmxma3xrxewwvf9f582qjjf",
+      "holeNumber": 5,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 7,
+      "submittedAt": 1773224451533,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1772637321004.242,
+      "_id": "js7a37jm8jqve4ywxx94xqt501828dv0",
+      "holeNumber": 1,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 4,
+      "submittedAt": 1772637321004,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773215419368.9172,
+      "_id": "js7a5h9d3dr5k376an8f5echj182qenv",
+      "holeNumber": 14,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 6,
+      "submittedAt": 1773215419368,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773415987900.4165,
+      "_id": "js7akwg3a5mnsqvvj0m84cwngh82vxfr",
+      "holeNumber": 18,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 4,
+      "submittedAt": 1773415987900,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773226748419.0042,
+      "_id": "js7amg5dr5qysvby4aap70bev182pqka",
+      "holeNumber": 9,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 6,
+      "submittedAt": 1773226748419,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773214318309.4785,
+      "_id": "js7avd7mxkvpxtkwj8fpgxh9t582qx21",
+      "holeNumber": 13,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 7,
+      "submittedAt": 1773214318309,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773221471505.7627,
+      "_id": "js7bk6xjxasq5t87x5ta5hn7gn82pndm",
+      "holeNumber": 3,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 4,
+      "submittedAt": 1773221471505,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773216994328.1138,
+      "_id": "js7brjrkvvdrx30zp7zns9rtzn82pd9j",
+      "holeNumber": 16,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 7,
+      "submittedAt": 1773226864628,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1772678674194.5469,
+      "_id": "js7btpy4y736p1h4m63f0ppnt182b5yj",
+      "holeNumber": 2,
+      "playerId": "k975pykpjdzmea64vmnet3n1k58269sc",
+      "strokes": 4,
+      "submittedAt": 1772678674194,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773224494942.0667,
+      "_id": "js7ch0kzp5vfvehm8v98dwgne582pm44",
+      "holeNumber": 6,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 5,
+      "submittedAt": 1773224496137,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1772678857683.2292,
+      "_id": "js7cr0abq35vef6mqypx287k4182aatj",
+      "holeNumber": 3,
+      "playerId": "k975pykpjdzmea64vmnet3n1k58269sc",
+      "strokes": 5,
+      "submittedAt": 1772678857683,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1772678960297.249,
+      "_id": "js7cxq1py833hns95yc4t10fah82bs62",
+      "holeNumber": 4,
+      "playerId": "k975pykpjdzmea64vmnet3n1k58269sc",
+      "strokes": 5,
+      "submittedAt": 1772678960297,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773413049508.5166,
+      "_id": "js7d1k2syz9t4c42chhpy390n582v02v",
+      "holeNumber": 10,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 4,
+      "submittedAt": 1773413049508,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773213306302.733,
+      "_id": "js7dc8tpj9btmvq2v0f6x8md2n82pebk",
+      "holeNumber": 12,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 8,
+      "submittedAt": 1773213306302,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773413056259.4414,
+      "_id": "js7dhbeeswsv22cptqchkfzr4n82vae7",
+      "holeNumber": 10,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 4,
+      "submittedAt": 1773413056259,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773219943436.8481,
+      "_id": "js7dhe22xrxzm2cnys36vk05wx82pmw5",
+      "holeNumber": 1,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 7,
+      "submittedAt": 1773219943436,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773223227555.3176,
+      "_id": "js7dqzm96j6k9bsb7kar78k7vn82p2mc",
+      "holeNumber": 4,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 6,
+      "submittedAt": 1773223227555,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773158690793.2017,
+      "_id": "js7drmzhp3qryb7eqav72cyqt982n0zf",
+      "holeNumber": 1,
+      "playerId": "k97env7cm4hkv11vjqryqyef6s826k28",
+      "strokes": 4,
+      "submittedAt": 1773158690793,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773218879856.446,
+      "_id": "js7dyeqdpc5xqyh3nj0vvmzbnh82pvzr",
+      "holeNumber": 18,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 5,
+      "submittedAt": 1773236040427,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773415961539.1365,
+      "_id": "js7e0h5rrm5znr1sxsed8f2e3x82vst4",
+      "holeNumber": 17,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 5,
+      "submittedAt": 1773415961539,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773224483849.0908,
+      "_id": "js7e82mwp736kzreffnvzsrw2182p3g1",
+      "holeNumber": 5,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 7,
+      "submittedAt": 1773224484856,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773184395601.326,
+      "_id": "js7er63s7mejxfsxkt9pkht8y982nymr",
+      "holeNumber": 8,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 6,
+      "submittedAt": 1773184576365,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773415864254.1323,
+      "_id": "js7eyfpm36w9yvy67jycxr0cfd82td4g",
+      "holeNumber": 13,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 4,
+      "submittedAt": 1773415864254,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1772678497539.7783,
+      "_id": "js7f9sv233ygrn7xc2r1rcsa5182be80",
+      "holeNumber": 1,
+      "playerId": "k975pykpjdzmea64vmnet3n1k58269sc",
+      "strokes": 4,
+      "submittedAt": 1772678497539,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773415896988.5623,
+      "_id": "js7fbkc3x5c8z5esf75fctyk8n82v86n",
+      "holeNumber": 15,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 4,
+      "submittedAt": 1773415896988,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1772684978414.5808,
+      "_id": "js7fjrcwfvy1rtf92m6yf99fv982bvqb",
+      "holeNumber": 5,
+      "playerId": "k975pykpjdzmea64vmnet3n1k58269sc",
+      "strokes": 5,
+      "submittedAt": 1772684978414,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773226024839.3518,
+      "_id": "js7fmy9aq6reh7yqkt82tx7ydd82qytn",
+      "holeNumber": 8,
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "strokes": 6,
+      "submittedAt": 1773226024839,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773302097039.577,
+      "_id": "js7fppaky5jdt51tdghxwpa1hs82r719",
+      "holeNumber": 9,
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "strokes": 4,
+      "submittedAt": 1773302097039,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773412900509.8757,
+      "_id": "js7fqc9z4nf4fvgdenyncqyc6n82vef0",
+      "holeNumber": 9,
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "strokes": 4,
+      "submittedAt": 1773412900509,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773212585440.7515,
+      "_id": "js7fvqqegxj2r4jwa45s6k393182ptb9",
+      "holeNumber": 11,
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "strokes": 3,
+      "submittedAt": 1773212585440,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    }
+  ],
+  "tournament_flights": [
+    {
+      "_creationTime": 1772770955830.5632,
+      "_id": "jx79nhqkw44sjx7kxrfcgy3sr982c7r9",
+      "createdAt": 1772770955830,
+      "flightName": "1B",
+      "flightNumber": 2,
+      "startHole": 1,
+      "startTime": "12:24",
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773210869028.3665,
+      "_id": "jx7czgr9as6k4t56g4fd7cm3rh82pj8p",
+      "createdAt": 1773210869028,
+      "flightName": "10A",
+      "flightNumber": 10,
+      "startHole": 10,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773183119068.22,
+      "_id": "jx7ewf4r5vmw286zbahkd50jsx82n80g",
+      "createdAt": 1773183119068,
+      "flightName": "1A",
+      "flightNumber": 1,
+      "startHole": 1,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1772604194815.0007,
+      "_id": "jx7faykrn0hrp5t6cwr7ht8yxs829xsy",
+      "createdAt": 1772604194815,
+      "flightName": "1A",
+      "flightNumber": 1,
+      "startHole": 1,
+      "startTime": "14:06",
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    }
+  ],
+  "tournament_participants": [
+    {
+      "_creationTime": 1772605958466.2014,
+      "_id": "k170xx6jvyfs5qhfc3vswncgw98281xe",
+      "flightId": "jx7faykrn0hrp5t6cwr7ht8yxs829xsy",
+      "playerId": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "registeredAt": 1772605958466,
+      "startHole": 1,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1772770961647.3855,
+      "_id": "k1756e0tgnkh84bt5yhvvx52h182ce9c",
+      "flightId": "jx79nhqkw44sjx7kxrfcgy3sr982c7r9",
+      "playerId": "k97env7cm4hkv11vjqryqyef6s826k28",
+      "registeredAt": 1772770961647,
+      "startHole": 1,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773183159523.8616,
+      "_id": "k1785avs5ejkxt2hsfhv1azpq982m1qk",
+      "flightId": "jx7czgr9as6k4t56g4fd7cm3rh82pj8p",
+      "playerId": "k9730t2scxcy10ee8s3qab832582n18g",
+      "registeredAt": 1773183159523,
+      "startHole": 10,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1772604944978.9902,
+      "_id": "k178f9f8a2s6hbr32b8sqg358n828wja",
+      "flightId": "jx7faykrn0hrp5t6cwr7ht8yxs829xsy",
+      "playerId": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "registeredAt": 1772604944979,
+      "startHole": 1,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    },
+    {
+      "_creationTime": 1773183159184.876,
+      "_id": "k17d6qfgapwz8zjx6bbtghw77h82m659",
+      "flightId": "jx7czgr9as6k4t56g4fd7cm3rh82pj8p",
+      "playerId": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "registeredAt": 1773183159184,
+      "startHole": 10,
+      "tournamentId": "k571jsqev3n07kv297rpayexqn82mxh6"
+    },
+    {
+      "_creationTime": 1773039791394.801,
+      "_id": "k17ddvcray97px8qy25qmpjyan82kb49",
+      "flightId": "jx79nhqkw44sjx7kxrfcgy3sr982c7r9",
+      "playerId": "k973vxz6sr5srrzc0bax3ebaw182kthe",
+      "registeredAt": 1773039791394,
+      "startHole": 1,
+      "tournamentId": "k57e2rk6cvsrmf2w1t0by3vg21828pyf"
+    }
+  ],
+  "tournaments": [
+    {
+      "_creationTime": 1773182729604.2275,
+      "_id": "k571jsqev3n07kv297rpayexqn82mxh6",
+      "bannerStorageId": "kg2cye35kstgmjt8541r5te3vh82mv60",
+      "courseId": "j57214pdgnkjez6g3cj0cm5jn982ma56",
+      "courseType": "18holes",
+      "createdAt": 1773182729604,
+      "createdBy": "k977y80rr7z5hfjm1wjjswtrph8276m0",
+      "date": 1773208800000,
+      "description": "Tournament Modern Golf",
+      "femaleTeeBox": "White",
+      "gameMode": "peoria",
+      "hiddenHoles": [],
+      "location": "Modern Golf & Country Club - Tangerang",
+      "maleTeeBox": "Blue",
+      "name": "Tournament Modern Golf",
+      "scoringDisplay": "stroke",
+      "specialScoringHoles": [],
+      "startHole": 1,
+      "status": "active"
+    },
+    {
+      "_creationTime": 1773182816979.5044,
+      "_id": "k57cxddbrg76g7hszmawdrb4a182n3em",
+      "bannerStorageId": "kg28gr2bs3dtzhhg3h5nwynfdx82nwh9",
+      "courseId": "j570b39018ejby5zqz8q4fy8h982n8dd",
+      "courseType": "18holes",
+      "createdAt": 1773182816979,
+      "createdBy": "k977y80rr7z5hfjm1wjjswtrph8276m0",
+      "date": 1773295200000,
+      "description": "Tournament Pangkalan Jati Golf",
+      "femaleTeeBox": "White",
+      "gameMode": "peoria",
+      "hiddenHoles": [],
+      "location": "Pangkalan Jati Golf - Depok , Jawa Barat",
+      "maleTeeBox": "Blue",
+      "name": "Tournament Pangkalan Jati Golf",
+      "scoringDisplay": "stroke",
+      "specialScoringHoles": [],
+      "startHole": 1,
+      "status": "active"
+    },
+    {
+      "_creationTime": 1772599623140.4182,
+      "_id": "k57e2rk6cvsrmf2w1t0by3vg21828pyf",
+      "bannerStorageId": "kg2a111at49mceyca0ee34j7v182948d",
+      "courseId": "j57fc2ap2zhjjr4yws5z2jg19d8290es",
+      "courseType": "18holes",
+      "createdAt": 1772599623140,
+      "createdBy": "k977y80rr7z5hfjm1wjjswtrph8276m0",
+      "date": 1773360000000,
+      "description": "sasas",
+      "femaleTeeBox": "White",
+      "gameMode": "peoria",
+      "hiddenHoles": [],
+      "location": "SEDAYU INDO GOLF - JAKARTA UTARA",
+      "maleTeeBox": "Blue",
+      "name": "test tournament invitation 2026",
+      "schedule": "07:00 - makan makan \n08:00 - sayonara",
+      "scoringDisplay": "stroke",
+      "specialScoringHoles": [],
+      "startHole": 1,
+      "status": "active"
+    }
+  ],
+  "users": [
+    {
+      "_creationTime": 1772597406777.3313,
+      "_id": "k970y33qw9n0g2ms5rcqmm0d1h8283ty",
+      "dateOfBirth": "2025-06-02",
+      "drivers": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ],
+      "email": "dev@gmail.com",
+      "fairways": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ],
+      "gender": "male",
+      "gloveSize": "23",
+      "golfBalls": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ],
+      "hybrids": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ],
+      "irons": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ],
+      "name": "dev1",
+      "nickname": "dev1aja",
+      "paidAt": 1773072451775,
+      "paidStatus": "paid",
+      "password": "$2b$10$CZqewQeLq8f9oa6m/XFTHeHv7zumVFI/nSaBWxFS5oedQqZK/eMty",
+      "paymentStatus": "invited",
+      "phone": "834423",
+      "putters": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ],
+      "role": "player",
+      "shirtSize": "M",
+      "username": "dev1",
+      "wedges": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ]
+    },
+    {
+      "_creationTime": 1773650544246.7532,
+      "_id": "k9710zck902xfc93k7cjznwdcs831tyz",
+      "drivers": [
+        {
+          "brand": "r",
+          "model": "r"
+        }
+      ],
+      "email": "tinker@gmail.com",
+      "fairways": [
+        {
+          "brand": "r",
+          "model": "r"
+        }
+      ],
+      "gender": "female",
+      "gloveSize": "24",
+      "golfBalls": [
+        {
+          "brand": "r",
+          "model": "r"
+        }
+      ],
+      "hybrids": [
+        {
+          "brand": "r",
+          "model": "r"
+        }
+      ],
+      "irons": [
+        {
+          "brand": "r",
+          "model": "r"
+        }
+      ],
+      "name": "tinker",
+      "nickname": "tinker",
+      "paidAt": 1773736313785,
+      "paidStatus": "paid",
+      "password": "$2b$10$WkBRUnnRUEjgoZ5wAh7y6.8V6O4ymILm7o1rFIkTh1bbbN2XLcckC",
+      "paymentStatus": "paid",
+      "phone": "123",
+      "putters": [
+        {
+          "brand": "r",
+          "model": "r"
+        }
+      ],
+      "role": "player",
+      "shirtSize": "L",
+      "username": "tinker",
+      "wedges": [
+        {
+          "brand": "r",
+          "model": "r"
+        }
+      ]
+    },
+    {
+      "_creationTime": 1773180008095.8652,
+      "_id": "k9730t2scxcy10ee8s3qab832582n18g",
+      "drivers": [
+        {
+          "brand": "PING ",
+          "model": "G440 Max 10K"
+        }
+      ],
+      "email": "domi@decomfenomahaka.com",
+      "fairways": [
+        {
+          "brand": "Callaway ",
+          "model": "Epic Max wood 3"
+        }
+      ],
+      "gender": "male",
+      "gloveSize": "24",
+      "golfBalls": [
+        {
+          "brand": "Titleist ",
+          "model": "ProV 1X"
+        }
+      ],
+      "hybrids": [
+        {
+          "brand": "PING ",
+          "model": "G430 Hybrid 4"
+        }
+      ],
+      "irons": [
+        {
+          "brand": "Titleist ",
+          "model": "T350"
+        }
+      ],
+      "name": "domi",
+      "nickname": "domi",
+      "paidAt": 1773183141381,
+      "paidStatus": "paid",
+      "password": "$2b$10$VG74N/LEkHcnysDvDS1/CueN1iMEEILhPsV6cQHpDsbMQ0IZEuqwe",
+      "paymentStatus": "invited",
+      "phone": "082113178644",
+      "putters": [
+        {
+          "brand": "Titleist ",
+          "model": " Scotty Cameron X5"
+        }
+      ],
+      "role": "player",
+      "shirtSize": "L",
+      "username": "domi",
+      "wedges": [
+        {
+          "brand": "Titleist ",
+          "model": "SM9 W56"
+        }
+      ]
+    },
+    {
+      "_creationTime": 1773039724791.858,
+      "_id": "k973vxz6sr5srrzc0bax3ebaw182kthe",
+      "dateOfBirth": "2000-12-06",
+      "drivers": [
+        {
+          "brand": "t",
+          "model": "t"
+        }
+      ],
+      "email": "gracia@gmail.com",
+      "fairways": [
+        {
+          "brand": "t",
+          "model": "t"
+        }
+      ],
+      "gender": "male",
+      "gloveSize": "22",
+      "golfBalls": [
+        {
+          "brand": "t",
+          "model": "t"
+        }
+      ],
+      "hybrids": [
+        {
+          "brand": "t",
+          "model": "t"
+        }
+      ],
+      "irons": [
+        {
+          "brand": "t",
+          "model": "t"
+        }
+      ],
+      "name": "gracia",
+      "nickname": "graciarp_",
+      "paidAt": 1773217292130,
+      "paidStatus": "paid",
+      "password": "$2b$10$/6OGx1GuK8BkYjAkbcDoUeTlCDx8g5Hgtpc9cHJ39L6Ft3t/MNaeS",
+      "paymentStatus": "invited",
+      "phone": "081234567890",
+      "putters": [
+        {
+          "brand": "t",
+          "model": "t"
+        }
+      ],
+      "role": "player",
+      "shirtSize": "S",
+      "username": "gracia",
+      "wedges": [
+        {
+          "brand": "t",
+          "model": "t"
+        }
+      ]
+    },
+    {
+      "_creationTime": 1773197440921.691,
+      "_id": "k974rcjewyaed6qef6kmqbt5gn82qz6q",
+      "dateOfBirth": "2000-12-06",
+      "drivers": [
+        {
+          "brand": "Titleist",
+          "model": "-"
+        }
+      ],
+      "email": "test2@gmail.com",
+      "fairways": [
+        {
+          "brand": "Titleist",
+          "model": "-"
+        }
+      ],
+      "gender": "female",
+      "gloveSize": "23",
+      "golfBalls": [
+        {
+          "brand": "Titleist",
+          "model": "-"
+        }
+      ],
+      "hybrids": [
+        {
+          "brand": "Titleist",
+          "model": "-"
+        }
+      ],
+      "irons": [
+        {
+          "brand": "Titleist",
+          "model": "-"
+        }
+      ],
+      "name": "Test 2",
+      "nickname": "test2aja",
+      "paidAt": 1773217294785,
+      "paidStatus": "paid",
+      "password": "$2b$10$BNPaYeBJR4zz9ImbvMkjPu5jC93E7Q68TTSJ1n7UtAt9SuuCO47cy",
+      "paymentStatus": "invited",
+      "phone": "081234567890",
+      "putters": [
+        {
+          "brand": "Titleist",
+          "model": "-"
+        }
+      ],
+      "role": "player",
+      "shirtSize": "M",
+      "username": "Test 2",
+      "wedges": [
+        {
+          "brand": "Titleist",
+          "model": "-"
+        }
+      ]
+    },
+    {
+      "_creationTime": 1772533641800.1462,
+      "_id": "k97540sh5t9zs87vyyj0xfge3s827k5h",
+      "email": "player3@golfscore.id",
+      "handicap": 8,
+      "name": "Bob Wilson",
+      "nickname": "bw",
+      "paidAt": 1773072462938,
+      "paidStatus": "paid",
+      "password": "$2b$10$T3m.FzIozY5dBOHinwAFxOjj3U/TOu2mzvR0XkATu1Xx9oUj8uupW",
+      "paymentStatus": "invited",
+      "role": "player",
+      "username": "player3"
+    },
+    {
+      "_creationTime": 1772533641800.146,
+      "_id": "k975pykpjdzmea64vmnet3n1k58269sc",
+      "email": "player2@golfscore.id",
+      "handicap": 18,
+      "name": "Jane Smith",
+      "nickname": "js",
+      "paidAt": 1773072473252,
+      "paidStatus": "paid",
+      "password": "$2b$10$T3m.FzIozY5dBOHinwAFxOjj3U/TOu2mzvR0XkATu1Xx9oUj8uupW",
+      "paymentStatus": "invited",
+      "role": "player",
+      "username": "player2"
+    },
+    {
+      "_creationTime": 1773071918347.6118,
+      "_id": "k9777mk1eccqa4dx3w4cb5fex582jbgt",
+      "drivers": [
+        {
+          "brand": "11",
+          "model": "1"
+        }
+      ],
+      "email": "sndssds@gmail.com",
+      "fairways": [
+        {
+          "brand": "1",
+          "model": "1"
+        }
+      ],
+      "gender": "female",
+      "gloveSize": "24",
+      "golfBalls": [
+        {
+          "brand": "1",
+          "model": "1"
+        }
+      ],
+      "hybrids": [
+        {
+          "brand": "1",
+          "model": "1"
+        }
+      ],
+      "irons": [
+        {
+          "brand": "1",
+          "model": "1"
+        }
+      ],
+      "name": "testlagi2",
+      "nickname": "123test",
+      "paidAt": 1773177975966,
+      "paidStatus": "paid",
+      "password": "$2b$10$epJMunsSTO0KA1LzUt/F5.GgnEnZtXxA4gHycg9QqZGmMp0VwHJj6",
+      "paymentStatus": "invited",
+      "phone": "123",
+      "putters": [
+        {
+          "brand": "1",
+          "model": "1"
+        }
+      ],
+      "role": "player",
+      "shirtSize": "XL",
+      "username": "testlagi2",
+      "wedges": [
+        {
+          "brand": "1",
+          "model": "1"
+        }
+      ]
+    },
+    {
+      "_creationTime": 1772533641800.1455,
+      "_id": "k977y80rr7z5hfjm1wjjswtrph8276m0",
+      "email": "admin@golfscore.id",
+      "name": "Admin User",
+      "password": "$2b$10$T3m.FzIozY5dBOHinwAFxOjj3U/TOu2mzvR0XkATu1Xx9oUj8uupW",
+      "role": "admin",
+      "username": "admin"
+    },
+    {
+      "_creationTime": 1773650491500.1987,
+      "_id": "k978myjafv1xhg1wtqpsygbmbd830f0n",
+      "drivers": [
+        {
+          "brand": "e",
+          "model": "e"
+        }
+      ],
+      "email": "cassandra@gmail.com",
+      "fairways": [
+        {
+          "brand": "e",
+          "model": "e"
+        }
+      ],
+      "gender": "female",
+      "gloveSize": "26",
+      "golfBalls": [
+        {
+          "brand": "e",
+          "model": "e"
+        }
+      ],
+      "hybrids": [
+        {
+          "brand": "e",
+          "model": "e"
+        }
+      ],
+      "irons": [
+        {
+          "brand": "e",
+          "model": "e"
+        }
+      ],
+      "name": "cassandra",
+      "nickname": "cassandra",
+      "paidAt": 1773736313785,
+      "paidStatus": "paid",
+      "password": "$2b$10$MHL8eyBNBEKEH1snO8mhDuW5SUIBB9Tz8o7D6kmKygaeJnI4YP8ty",
+      "paymentStatus": "paid",
+      "phone": "123",
+      "putters": [
+        {
+          "brand": "e",
+          "model": "e"
+        }
+      ],
+      "role": "player",
+      "shirtSize": "M",
+      "username": "cassandra",
+      "wedges": [
+        {
+          "brand": "e",
+          "model": "e"
+        }
+      ]
+    },
+    {
+      "_creationTime": 1773179925064.6094,
+      "_id": "k97bqbr8w3e5m233rcae0gqgw182m7gm",
+      "dateOfBirth": "1981-09-03",
+      "drivers": [
+        {
+          "brand": "PING ",
+          "model": "G440 Max 10K"
+        }
+      ],
+      "email": "rio.p@decomfenomahaka.com",
+      "fairways": [
+        {
+          "brand": "Callaway ",
+          "model": "Epic Max wood 3"
+        }
+      ],
+      "gender": "male",
+      "gloveSize": "24",
+      "golfBalls": [
+        {
+          "brand": "Titleist ",
+          "model": "ProV 1X"
+        }
+      ],
+      "hybrids": [
+        {
+          "brand": "PING ",
+          "model": "G430 Hybrid 4"
+        }
+      ],
+      "irons": [
+        {
+          "brand": "Titleist ",
+          "model": "T350"
+        }
+      ],
+      "name": "ario prakosa",
+      "nickname": "ario",
+      "paidAt": 1773183141381,
+      "paidStatus": "paid",
+      "password": "$2b$10$VG74N/LEkHcnysDvDS1/CueN1iMEEILhPsV6cQHpDsbMQ0IZEuqwe",
+      "paymentStatus": "invited",
+      "phone": "082113178644",
+      "putters": [
+        {
+          "brand": "Titleist ",
+          "model": " Scotty Cameron X5"
+        }
+      ],
+      "role": "player",
+      "shirtSize": "L",
+      "username": "ario prakosa",
+      "wedges": [
+        {
+          "brand": "Titleist ",
+          "model": "SM9 W56"
+        }
+      ]
+    },
+    {
+      "_creationTime": 1773650670517.7942,
+      "_id": "k97d33qjc6a04whctxk5s45vz9830b5q",
+      "drivers": [
+        {
+          "brand": "o",
+          "model": "o"
+        }
+      ],
+      "email": "ali@gmail.com",
+      "fairways": [
+        {
+          "brand": "o",
+          "model": "o"
+        }
+      ],
+      "gender": "female",
+      "gloveSize": "24",
+      "golfBalls": [
+        {
+          "brand": "o",
+          "model": "o"
+        }
+      ],
+      "hybrids": [
+        {
+          "brand": "o",
+          "model": "o"
+        }
+      ],
+      "irons": [
+        {
+          "brand": "o",
+          "model": "o"
+        }
+      ],
+      "name": "ali nasgor",
+      "nickname": "ali",
+      "paidAt": 1773736279231,
+      "paidStatus": "paid",
+      "password": "$2b$10$oNZItUFseKLBLe9Ksci89.APS.va.eMn.IM1MYfDbFEDeGFiPHzma",
+      "paymentStatus": "paid",
+      "phone": "123",
+      "putters": [
+        {
+          "brand": "o",
+          "model": "o"
+        }
+      ],
+      "role": "player",
+      "shirtSize": "L",
+      "username": "ali nasgor",
+      "wedges": [
+        {
+          "brand": "o",
+          "model": "o"
+        }
+      ]
+    },
+    {
+      "_creationTime": 1773650445225.9001,
+      "_id": "k97d4kme0czn44j3s288z1w1b5830hsm",
+      "drivers": [
+        {
+          "brand": "w",
+          "model": "w"
+        }
+      ],
+      "email": "setiaji@gmail.com",
+      "fairways": [
+        {
+          "brand": "w",
+          "model": "w"
+        }
+      ],
+      "gender": "female",
+      "gloveSize": "24",
+      "golfBalls": [
+        {
+          "brand": "w",
+          "model": "w"
+        }
+      ],
+      "hybrids": [
+        {
+          "brand": "w",
+          "model": "w"
+        }
+      ],
+      "irons": [
+        {
+          "brand": "w",
+          "model": "w"
+        }
+      ],
+      "name": "bagas",
+      "nickname": "123",
+      "paidAt": 1773736313785,
+      "paidStatus": "paid",
+      "password": "$2b$10$3NJqha9CHhxGyiNdaoYuNeMMiYgR.wy7UqqovBPm6WzYyXRFdIDBy",
+      "paymentStatus": "paid",
+      "phone": "0987712",
+      "putters": [
+        {
+          "brand": "w",
+          "model": "w"
+        }
+      ],
+      "role": "player",
+      "shirtSize": "L",
+      "username": "bagas",
+      "wedges": [
+        {
+          "brand": "w",
+          "model": "w"
+        }
+      ]
+    },
+    {
+      "_creationTime": 1772897269657.7053,
+      "_id": "k97egb5ewah2vqtx77ygeppr9182fh9m",
+      "dateOfBirth": "2011-12-15",
+      "drivers": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ],
+      "email": "heheh@gmail.com",
+      "fairways": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ],
+      "gender": "male",
+      "gloveSize": "23",
+      "golfBalls": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ],
+      "hybrids": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ],
+      "irons": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ],
+      "name": "testhehe2djkmwdw",
+      "nickname": "test22",
+      "password": "$2b$10$FtnsgSlENikUL/69.yCcnuGqCxD1OSO4cStR1cT2Tspj8LQ4xxbmW",
+      "paymentStatus": "unpaid",
+      "phone": "087777",
+      "putters": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ],
+      "role": "player",
+      "shirtSize": "L",
+      "username": "testhehe2djkmwdw",
+      "wedges": [
+        {
+          "brand": "q",
+          "model": "q"
+        }
+      ]
+    },
+    {
+      "_creationTime": 1772533641800.1458,
+      "_id": "k97env7cm4hkv11vjqryqyef6s826k28",
+      "email": "player1@golfscore.id",
+      "handicap": 12,
+      "name": "John Doe",
+      "nickname": "test",
+      "paidAt": 1773072462938,
+      "paidStatus": "paid",
+      "password": "$2b$10$T3m.FzIozY5dBOHinwAFxOjj3U/TOu2mzvR0XkATu1Xx9oUj8uupW",
+      "paymentStatus": "invited",
+      "role": "player",
+      "username": "player1"
+    }
+  ]
+}

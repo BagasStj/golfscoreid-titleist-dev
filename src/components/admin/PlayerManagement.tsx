@@ -136,10 +136,10 @@ export default function PlayerManagement() {
 
       if (paymentFilter === "all") {
         // Show only registered players (NOT accepted)
-        matchesPayment = (player as any).paymentStatus !== "invited";
+        matchesPayment = (player as any).paymentStatus !== "paid";
       } else if (paymentFilter === "accepted") {
         // Show only accepted players
-        matchesPayment = (player as any).paymentStatus === "invited";
+        matchesPayment = (player as any).paymentStatus === "paid";
       }
 
       return matchesSearch && matchesPayment;
@@ -208,9 +208,9 @@ export default function PlayerManagement() {
   // Calculate payment statistics
   const totalPlayers = players?.length || 0;
   const registeredPlayers =
-    players?.filter((p) => (p as any).paymentStatus !== "invited").length || 0;
+    players?.filter((p) => (p as any).paymentStatus !== "paid").length || 0;
   const acceptedPlayers =
-    players?.filter((p) => (p as any).paymentStatus === "invited").length || 0;
+    players?.filter((p) => (p as any).paymentStatus === "paid").length || 0;
 
   // Pagination calculations
   const totalPages = Math.ceil((filteredPlayers?.length || 0) / itemsPerPage);
@@ -252,7 +252,7 @@ export default function PlayerManagement() {
     }
   };
 
-  // Handle mark as accepted (invited)
+  // Handle mark as accepted (paid)
   const handleMarkAsAccepted = async () => {
     if (selectedPlayerIds.size === 0) {
       showToast("Pilih minimal satu pemain", "warning");
@@ -262,7 +262,8 @@ export default function PlayerManagement() {
     try {
       await updatePaymentStatus({
         playerIds: Array.from(selectedPlayerIds),
-        paymentStatus: "invited",
+        paymentStatus: "paid",
+        paidStatus: "paid",
       });
       setSelectedPlayerIds(new Set());
       showToast(
@@ -285,6 +286,7 @@ export default function PlayerManagement() {
       await updatePaymentStatus({
         playerIds: Array.from(selectedPlayerIds),
         paymentStatus: "unpaid", // Back to registered status
+        paidStatus: "unpaid",
       });
       setSelectedPlayerIds(new Set());
       showToast(
