@@ -335,13 +335,12 @@ export default function AdminDashboard() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      tournament.status === "active"
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${tournament.status === "active"
                         ? "bg-green-900/40 text-green-400 border border-green-800/40"
                         : tournament.status === "upcoming"
                           ? "bg-blue-900/40 text-blue-400 border border-blue-800/40"
                           : "bg-gray-800/40 text-gray-400 border border-gray-700/40"
-                    }`}
+                      }`}
                   >
                     {tournament.status}
                   </span>
@@ -400,9 +399,8 @@ export default function AdminDashboard() {
 
       {/* Sidebar - Hidden on mobile/tablet, shown only when button clicked */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-[#2e2e2e] via-[#1a1a1a] to-black border-r border-red-900/40 transform transition-transform duration-300 ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-[#2e2e2e] via-[#1a1a1a] to-black border-r border-red-900/40 transform transition-transform duration-300 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Logo & Brand */}
         {/* <div className="h-16 flex items-center justify-between px-6 border-b border-red-900/30">
@@ -450,11 +448,10 @@ export default function AdminDashboard() {
                   setCurrentView(item.id);
                   setIsSidebarOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                  isActive
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive
                     ? "bg-gradient-to-r from-red-900/60 to-red-800/60 text-white shadow-lg border border-red-800/50"
                     : "text-gray-400 hover:bg-red-900/20 hover:text-white"
-                }`}
+                  }`}
               >
                 <item.icon
                   className={`w-5 h-5 ${isActive ? "text-red-400" : "text-gray-500 group-hover:text-red-400"}`}

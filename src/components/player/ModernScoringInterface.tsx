@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../shared/ToastContainer';
 import { useRetryMutation } from '../../hooks/useRetryMutation';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { 
+import {
   ArrowLeft,
   Check,
   Minus,
@@ -22,7 +22,7 @@ export default function ModernScoringInterface() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showSuccess, showError } = useToast();
-  
+
   // Get hole parameter from URL (reactive via useSearchParams)
   const [searchParams] = useSearchParams();
   const holeParam = searchParams.get('hole');
@@ -34,9 +34,9 @@ export default function ModernScoringInterface() {
 
   const tournamentDetails = useQuery(
     api.tournaments.getTournamentDetails,
-    id && user ? { 
+    id && user ? {
       tournamentId: id as Id<'tournaments'>,
-      userId: user._id 
+      userId: user._id
     } : 'skip'
   );
 
@@ -99,18 +99,16 @@ export default function ModernScoringInterface() {
   // All hooks must be called before any conditional returns
   const holesConfig = tournamentDetails?.holesConfig || [];
   const scoredHolesMap = new Map((playerScores || []).map((s) => [s.holeNumber, s]));
-  
+
   const currentHole = holesConfig[currentHoleIndex];
   const existingScore = currentHole ? scoredHolesMap.get(currentHole.holeNumber) : null;
   const isEditMode = !!existingScore;
 
   // Check if current hole is approved (locked)
-  const approvedHolesKey = id && user ? `approvedHoles_${id}_${user._id}` : null;
-  const approvedHoles: number[] = approvedHolesKey 
-    ? JSON.parse(localStorage.getItem(approvedHolesKey) || '[]')
-    : [];
-  
-  const isScoringFinished = playerFlight?.members?.find((m: any) => m._id === user?._id)?.scoringFinished === true 
+  const currentUserMember = playerFlight?.members?.find((m: any) => m._id === user?._id);
+  const approvedHoles: number[] = currentUserMember?.approvedHoles || [];
+
+  const isScoringFinished = playerFlight?.members?.find((m: any) => m._id === user?._id)?.scoringFinished === true
     || (id && user && localStorage.getItem(`tournamentFinished_${id}_${user._id}`) === 'true');
 
   const isHoleApproved = isScoringFinished || (currentHole ? approvedHoles.includes(currentHole.holeNumber) : false);
@@ -247,17 +245,17 @@ export default function ModernScoringInterface() {
     }
   };
 
-  const handlePrevHole = () => {
-    if (currentHoleIndex > 0) {
-      setCurrentHoleIndex(currentHoleIndex - 1);
-    }
-  };
+  // const handlePrevHole = () => {
+  //   if (currentHoleIndex > 0) {
+  //     setCurrentHoleIndex(currentHoleIndex - 1);
+  //   }
+  // };
 
-  const handleNextHole = () => {
-    if (currentHoleIndex < holesConfig.length - 1) {
-      setCurrentHoleIndex(currentHoleIndex + 1);
-    }
-  };
+  // const handleNextHole = () => {
+  //   if (currentHoleIndex < holesConfig.length - 1) {
+  //     setCurrentHoleIndex(currentHoleIndex + 1);
+  //   }
+  // };
 
   const incrementStrokes = () => setStrokes(prev => Math.min(prev + 1, 15));
   const decrementStrokes = () => setStrokes(prev => Math.max(prev - 1, 1));
@@ -298,7 +296,7 @@ export default function ModernScoringInterface() {
             {isScoringFinished ? "Pertandingan Selesai! 🎉" : "Hole Terkunci 🔒"}
           </h2>
           <p className="text-gray-400 mb-2">
-            {isScoringFinished 
+            {isScoringFinished
               ? "Anda sudah menyelesaikan pertandingan ini. Skor tidak dapat diubah lagi."
               : `Skor untuk Hole ${currentHole.holeNumber} sudah disetujui dan tidak dapat diubah lagi.`}
           </p>
@@ -333,10 +331,10 @@ export default function ModernScoringInterface() {
             >
               <ArrowLeft className="w-5 h-5 text-white" />
             </button>
-            
+
             <div className="flex-1 mx-3">
               <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-gradient-to-r from-red-600 to-red-700 transition-all duration-500"
                   style={{ width: `${progress}%` }}
                 />
@@ -348,9 +346,8 @@ export default function ModernScoringInterface() {
 
             <div className="text-right">
               <p className="text-[10px] text-gray-400">Score</p>
-              <p className={`text-sm font-bold ${
-                scoreToPar < 0 ? 'text-green-500' : scoreToPar > 0 ? 'text-red-500' : 'text-white'
-              }`}>
+              <p className={`text-sm font-bold ${scoreToPar < 0 ? 'text-green-500' : scoreToPar > 0 ? 'text-red-500' : 'text-white'
+                }`}>
                 {scoreToPar > 0 ? '+' : ''}{scoreToPar}
               </p>
             </div>
@@ -384,7 +381,7 @@ export default function ModernScoringInterface() {
                   <Flag className="w-3 h-3 text-red-500" />
                   <span>Index {currentHole.index}</span>
                 </div>
-                <div className="flex items-center gap-2">
+                {/* <div className="flex items-center gap-2">
                   {currentHoleIndex > 0 && (
                     <button
                       onClick={handlePrevHole}
@@ -401,7 +398,7 @@ export default function ModernScoringInterface() {
                       Next →
                     </button>
                   )}
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -415,11 +412,10 @@ export default function ModernScoringInterface() {
                   {strokes}
                 </div>
                 {currentScoreToPar !== 0 && (
-                  <div className={`absolute -top-1 -right-10 flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-bold ${
-                    currentScoreToPar < 0 
-                      ? 'bg-green-900/50 text-green-400 border border-green-700' 
-                      : 'bg-red-900/50 text-red-400 border border-red-700'
-                  }`}>
+                  <div className={`absolute -top-1 -right-10 flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-bold ${currentScoreToPar < 0
+                    ? 'bg-green-900/50 text-green-400 border border-green-700'
+                    : 'bg-red-900/50 text-red-400 border border-red-700'
+                    }`}>
                     {currentScoreToPar < 0 ? (
                       <TrendingDown className="w-3 h-3" />
                     ) : (
@@ -440,7 +436,7 @@ export default function ModernScoringInterface() {
               >
                 <Minus className="w-5 h-5" />
               </button>
-              
+
               <div className="flex-1 max-w-xs">
                 <input
                   type="range"
@@ -470,9 +466,8 @@ export default function ModernScoringInterface() {
                 <button
                   key={quick.label}
                   onClick={() => setStrokes(quick.value)}
-                  className={`py-2 rounded-lg font-bold text-[10px] transition-all transform hover:scale-105 active:scale-95 ${quick.color} ${quick.textColor} ${
-                    strokes === quick.value ? 'ring-2 ring-offset-1 ring-offset-black ring-red-500' : ''
-                  }`}
+                  className={`py-2 rounded-lg font-bold text-[10px] transition-all transform hover:scale-105 active:scale-95 ${quick.color} ${quick.textColor} ${strokes === quick.value ? 'ring-2 ring-offset-1 ring-offset-black ring-red-500' : ''
+                    }`}
                 >
                   {quick.label}
                 </button>
@@ -483,11 +478,10 @@ export default function ModernScoringInterface() {
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || strokes <= 0}
-              className={`w-full py-3 mb-2 ${
-                isEditMode 
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800' 
-                  : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800'
-              } disabled:from-gray-800 disabled:to-gray-800 text-white font-black text-sm rounded-xl transition-all transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:transform-none shadow-xl flex items-center justify-center gap-2`}
+              className={`w-full py-3 mb-2 ${isEditMode
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
+                : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800'
+                } disabled:from-gray-800 disabled:to-gray-800 text-white font-black text-sm rounded-xl transition-all transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:transform-none shadow-xl flex items-center justify-center gap-2`}
             >
               {isSubmitting ? (
                 <>
@@ -569,7 +563,7 @@ export default function ModernScoringInterface() {
                   Hapus Skor?
                 </h3>
                 <p className="text-gray-400 text-sm leading-relaxed">
-                  Apakah Anda yakin ingin menghapus skor untuk Hole {currentHole?.holeNumber}? 
+                  Apakah Anda yakin ingin menghapus skor untuk Hole {currentHole?.holeNumber}?
                   Tindakan ini tidak dapat dibatalkan.
                 </p>
               </div>

@@ -62,10 +62,11 @@ const FlightScoringOverview: React.FC = () => {
 
   // Determine current hole based on user's last scored hole and approved holes
   useEffect(() => {
-    if (currentUserScores !== undefined && id && user) {
-      // Get approved holes from localStorage
-      const approvedHolesKey = `approvedHoles_${id}_${user._id}`;
-      const approvedHoles: number[] = JSON.parse(localStorage.getItem(approvedHolesKey) || '[]');
+    if (currentUserScores !== undefined && id && user && flightParticipants.length > 0) {
+      // Get approved holes from DB instead of localStorage
+      const currentPlayer = flightParticipants.find((p: any) => p._id === user._id);
+      const approvedHoles: number[] = currentPlayer?.approvedHoles || [];
+      const startHole: number = currentPlayer?.startHole || 1;
       
       if (currentUserScores.length > 0) {
         // Find the last hole the user scored (most recently submitted)
@@ -82,11 +83,11 @@ const FlightScoringOverview: React.FC = () => {
           setCurrentHole(lastScoredHole);
         }
       } else {
-        // User hasn't scored any holes yet, set to null
-        setCurrentHole(null);
+        // User hasn't scored any holes yet, set to start hole
+        setCurrentHole(startHole);
       }
     }
-  }, [currentUserScores, id, user]);
+  }, [currentUserScores, id, user, flightParticipants]);
 
   // Show disclaimer dialog on first visit - only if player hasn't scored yet
   useEffect(() => {
@@ -392,7 +393,6 @@ const FlightScoringOverview: React.FC = () => {
               setScoringMode={setScoringMode}
               currentHole={currentHole}
               setCurrentHole={setCurrentHole}
-              tournamentId={id || ""}
               onHoleClick={(holeNumber) => {
                 // Navigate to scoring interface for the clicked hole
                 if (user) {
@@ -714,6 +714,8 @@ const ActionButtons: React.FC<{
       : "skip",
   );
 
+  const approveHoleMutation = useMutation(api.flights.approveHole);
+
   // Transform the data to match our expected format
   const participantScores = flightParticipants.map((participant) => {
     const playerData = flightScoresData?.find(
@@ -751,13 +753,13 @@ const ActionButtons: React.FC<{
     p => p.participant._id !== userId && p.lastHole !== userLastHole
   );
 
-  const userHasScored = currentHole !== null;
+  const userHasScored = currentHole !== null && !!userScoresData?.scores?.some((s: any) => s.holeNumber === currentHole);
   const allPlayersScored = allOnSameHole && playerLastHoles.every(p => p.lastHole !== null);
   const waitingCount = playerLastHoles.filter(p => p.lastHole === null).length;
 
   // Check if current hole is approved
-  const approvedHolesKey = `approvedHoles_${tournamentId}_${userId}`;
-  const approvedHoles: number[] = JSON.parse(localStorage.getItem(approvedHolesKey) || '[]');
+  const currentUserParticipant = flightParticipants.find(p => p._id === userId);
+  const approvedHoles: number[] = currentUserParticipant?.approvedHoles || [];
   const isCurrentHoleApproved = currentHole !== null && approvedHoles.includes(currentHole);
 
   // Check if all holes are completed by current user
@@ -808,17 +810,12 @@ const ActionButtons: React.FC<{
                     })),
                   });
                 } else if (allPlayersScored && userLastHole !== null) {
-                  // All players on same hole — save approval and stay on this page
-                  const approvedHolesKey = `approvedHoles_${tournamentId}_${userId}`;
-                  const approvedHoles = JSON.parse(localStorage.getItem(approvedHolesKey) || '[]');
-                  
-                  if (!approvedHoles.includes(userLastHole)) {
-                    approvedHoles.push(userLastHole);
-                    localStorage.setItem(approvedHolesKey, JSON.stringify(approvedHoles));
-                  }
-                  
-                  // Reload to update the view (currentHole will become null, showing "Input Skor")
-                  window.location.reload();
+                  // All players on same hole — save approval globally via db
+                  approveHoleMutation({
+                    tournamentId: tournamentId,
+                    playerId: userId,
+                    holeNumber: userLastHole!,
+                  });
                 }
               }}
               disabled={!allPlayersScored || waitingCount > 0}
@@ -877,6 +874,13 @@ const ActionButtons: React.FC<{
           {/* Show Input Score button that opens a hole selector */}
           <button
             onClick={() => {
+              if (currentHole !== null) {
+                navigate(
+                  `/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`,
+                );
+                return;
+              }
+
               const holesConfig: any[] = tournament.holesConfig || [];
 
               const userScoresData = participantScores.find(
@@ -1001,7 +1005,6 @@ const ScorecardTable: React.FC<{
   currentHole: number | null;
   setCurrentHole: (hole: number | null) => void;
   onHoleClick?: (holeNumber: number) => void;
-  tournamentId: string;
 }> = ({
   tournament,
   flightParticipants,
@@ -1011,7 +1014,6 @@ const ScorecardTable: React.FC<{
   setScoringMode,
   currentHole,
   onHoleClick,
-  tournamentId,
 }) => {
   // Fetch scores for ALL participants sekaligus — tidak pakai hook di dalam .map()
   const flightScoresData = useQuery(
@@ -1032,6 +1034,15 @@ const ScorecardTable: React.FC<{
   });
 
   const totalPar = holesConfig.reduce((sum, hole) => sum + hole.par, 0);
+
+  // Check if current user is waiting for approval on currentHole
+  const currentUserParticipant = flightParticipants.find((p: any) => p._id === currentUserId);
+  const currentUserScoresData = participantScores.find((ps: any) => ps.participant._id === currentUserId);
+  const userApprovedHoles: number[] = currentUserParticipant?.approvedHoles || [];
+  
+  const isWaitingForApproval = currentHole !== null && 
+    !!currentUserScoresData?.scores?.some((s: any) => s.holeNumber === currentHole) &&
+    !userApprovedHoles.includes(currentHole);
 
   return (
     <div className="space-y-3">
@@ -1126,16 +1137,20 @@ const ScorecardTable: React.FC<{
                   );
                   
                   // Check if this hole is approved
-                  const approvedHolesKey = currentUserId && tournamentId ? `approvedHoles_${tournamentId}_${currentUserId}` : null;
-                  const approvedHoles: number[] = approvedHolesKey 
-                    ? JSON.parse(localStorage.getItem(approvedHolesKey) || '[]')
-                    : [];
+                  const currentUserParticipant = flightParticipants.find(p => p._id === currentUserId);
+                  const approvedHoles: number[] = currentUserParticipant?.approvedHoles || [];
                   const isApproved = approvedHoles.includes(hole.holeNumber);
                   
                   return (
                     <th
                       key={hole.holeNumber}
                       onClick={() => {
+                        // Prevent clicking other holes if waiting for approval on current hole
+                        if (isWaitingForApproval && hole.holeNumber !== currentHole) {
+                          alert("Selesaikan persetujuan hole saat ini terlebih dahulu sebelum mengisi hole lain.");
+                          return;
+                        }
+
                         // Only allow clicking if user hasn't scored this hole yet OR hole is not approved
                         if ((!userHasScoredThisHole || !isApproved) && onHoleClick) {
                           onHoleClick(hole.holeNumber);
@@ -1148,6 +1163,8 @@ const ScorecardTable: React.FC<{
                       } ${
                         isApproved
                           ? "bg-green-900/30 cursor-not-allowed opacity-60"
+                          : isWaitingForApproval && hole.holeNumber !== currentHole
+                          ? "cursor-not-allowed opacity-50"
                           : !userHasScoredThisHole && onHoleClick
                           ? "cursor-pointer hover:bg-red-600/20 transition-colors"
                           : userHasScoredThisHole && !isApproved
@@ -1157,6 +1174,8 @@ const ScorecardTable: React.FC<{
                       title={
                         isApproved
                           ? "Skor sudah disetujui (locked)"
+                          : isWaitingForApproval && hole.holeNumber !== currentHole
+                          ? "Menunggu persetujuan hole saat ini"
                           : userHasScoredThisHole
                           ? "Klik untuk edit skor"
                           : "Klik untuk input skor"

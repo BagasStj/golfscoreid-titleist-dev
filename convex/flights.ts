@@ -24,16 +24,15 @@ export const createFlight = mutation({
       throw new Error("Tournament not found");
     }
 
-    // Check for duplicate flight number
+    // Check for duplicate flight name instead of number to allow same start hole
     const existing = await ctx.db
       .query("tournament_flights")
-      .withIndex("by_tournament_and_number", (q) =>
-        q.eq("tournamentId", args.tournamentId).eq("flightNumber", args.flightNumber)
-      )
+      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .filter((q) => q.eq(q.field("flightName"), args.flightName))
       .first();
 
     if (existing) {
-      throw new Error(`Flight number ${args.flightNumber} already exists`);
+      throw new Error(`Flight ${args.flightName} already exists`);
     }
 
     const flightId = await ctx.db.insert("tournament_flights", {
@@ -60,8 +59,13 @@ export const getFlightsByTournament = query({
       .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
       .collect();
 
-    // Sort by flight number
-    flights.sort((a, b) => a.flightNumber - b.flightNumber);
+    // Sort by flight number, then flight name
+    flights.sort((a, b) => {
+      if (a.flightNumber !== b.flightNumber) {
+        return a.flightNumber - b.flightNumber;
+      }
+      return a.flightName.localeCompare(b.flightName);
+    });
 
     // Get participant count for each flight
     const flightsWithCounts = await Promise.all(
@@ -109,6 +113,7 @@ export const getFlightDetails = query({
               registeredAt: p.registeredAt,
               participationId: p._id,
               scoringFinished: p.scoringFinished,
+              approvedHoles: p.approvedHoles || [],
             }
           : null;
       })
@@ -335,6 +340,7 @@ export const getPlayerFlight = query({
               registeredAt: p.registeredAt,
               participationId: p._id,
               scoringFinished: p.scoringFinished,
+              approvedHoles: p.approvedHoles || [],
             }
           : null;
       })
@@ -431,8 +437,13 @@ export const getTournamentFlightsWithParticipants = query({
       .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
       .collect();
 
-    // Sort by flight number
-    flights.sort((a, b) => a.flightNumber - b.flightNumber);
+    // Sort by flight number, then flight name
+    flights.sort((a, b) => {
+      if (a.flightNumber !== b.flightNumber) {
+        return a.flightNumber - b.flightNumber;
+      }
+      return a.flightName.localeCompare(b.flightName);
+    });
 
     // Get participants for each flight
     const flightsWithParticipants = await Promise.all(
@@ -454,6 +465,7 @@ export const getTournamentFlightsWithParticipants = query({
                   paymentStatus: player.paymentStatus,
                   paidAt: player.paidAt,
                   scoringFinished: p.scoringFinished,
+                  approvedHoles: p.approvedHoles || [],
                 }
               : null;
           })
@@ -494,6 +506,38 @@ export const finishScoring = mutation({
     await ctx.db.patch(participation._id, {
       scoringFinished: true,
     });
+
+    return { success: true };
+  },
+});
+
+// Approve Hole for a Player
+export const approveHole = mutation({
+  args: {
+    tournamentId: v.id("tournaments"),
+    playerId: v.id("users"),
+    holeNumber: v.number(),
+  },
+  handler: async (ctx, args) => {
+    // Find the participant entry
+    const participation = await ctx.db
+      .query("tournament_participants")
+      .withIndex("by_tournament_and_player", (q) =>
+        q.eq("tournamentId", args.tournamentId).eq("playerId", args.playerId)
+      )
+      .first();
+
+    if (!participation) {
+      throw new Error("Participation not found");
+    }
+
+    // Add hole to approved holes if not already approved
+    const currentApprovedHoles = participation.approvedHoles || [];
+    if (!currentApprovedHoles.includes(args.holeNumber)) {
+      await ctx.db.patch(participation._id, {
+        approvedHoles: [...currentApprovedHoles, args.holeNumber],
+      });
+    }
 
     return { success: true };
   },

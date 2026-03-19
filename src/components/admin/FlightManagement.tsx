@@ -4,14 +4,15 @@ import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { useAuth } from '../../contexts/AuthContext';
 import FlightExcelUpload from './FlightExcelUpload';
-import { 
-  Plane, 
-  Plus, 
-  Trash2, 
-  Users, 
-  MapPin, 
-  Upload, 
-  X, 
+import { useToast } from '../shared/ToastContainer';
+import {
+  Plane,
+  Plus,
+  Trash2,
+  Users,
+  MapPin,
+  Upload,
+  X,
   ChevronRight,
   Calendar,
   Trophy,
@@ -27,6 +28,7 @@ interface FlightManagementProps {
 
 const FlightManagement: React.FC<FlightManagementProps> = () => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [selectedTournament, setSelectedTournament] = useState<Id<"tournaments"> | null>(null);
   const [showAddFlightModal, setShowAddFlightModal] = useState(false);
   const [showEditFlightModal, setShowEditFlightModal] = useState(false);
@@ -49,7 +51,7 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
   const tournaments = useQuery(api.tournaments.getTournaments, user ? { userId: user._id } : "skip");
   const upcomingTournaments = tournaments?.filter((t: any) => t.status === 'upcoming' || t.status === 'active');
   const allPlayers = useQuery(api.users.listAllPlayers);
-  
+
   const flights = useQuery(
     api.flights.getFlightsByTournament,
     selectedTournament ? { tournamentId: selectedTournament } : "skip"
@@ -58,7 +60,7 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
     api.flights.getFlightDetails,
     selectedFlight ? { flightId: selectedFlight } : "skip"
   );
-  
+
   // Get all participants in the selected tournament (across all flights)
   const tournamentParticipants = useQuery(
     api.tournaments.getTournamentParticipants,
@@ -80,7 +82,7 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
 
     // Validate flight code format (should be letter only, A-Z)
     if (!/^[A-Z]$/.test(flightCode)) {
-      alert('Kode flight harus berupa satu huruf (A-Z)');
+      showToast('Kode flight harus berupa satu huruf (A-Z)', 'warning');
       return;
     }
 
@@ -95,14 +97,15 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
         startHole: parseInt(startHole),
         userId: user._id,
       });
-      
+
       // Reset form
       setFlightCode('');
       setStartHole('1');
       setShowAddFlightModal(false);
+      showToast('Flight berhasil dibuat', 'success');
     } catch (error) {
       console.error('Error creating flight:', error);
-      alert(error instanceof Error ? error.message : 'Gagal membuat flight');
+      showToast('Gagal membuat flight. Pastikan nama flight belum digunakan.', 'error');
     }
   };
 
@@ -112,7 +115,7 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
 
     // Validate flight code format (should be letter only, A-Z)
     if (!/^[A-Z]$/.test(flightCode)) {
-      alert('Kode flight harus berupa satu huruf (A-Z)');
+      showToast('Kode flight harus berupa satu huruf (A-Z)', 'warning');
       return;
     }
 
@@ -126,15 +129,16 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
         startHole: parseInt(startHole),
         userId: user._id,
       });
-      
+
       // Reset form
       setFlightCode('');
       setStartHole('1');
       setEditingFlight(null);
       setShowEditFlightModal(false);
+      showToast('Flight berhasil diperbarui', 'success');
     } catch (error) {
       console.error('Error updating flight:', error);
-      alert(error instanceof Error ? error.message : 'Gagal memperbarui flight');
+      showToast('Gagal memperbarui flight.', 'error');
     }
   };
 
@@ -158,7 +162,7 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
 
     // Check if flight has participants
     if (flight.participantCount > 0) {
-      alert(`Tidak dapat menghapus flight dengan ${flight.participantCount} pemain. Hapus semua pemain terlebih dahulu.`);
+      showToast(`Tidak dapat menghapus flight dengan ${flight.participantCount} pemain. Hapus semua pemain terlebih dahulu.`, 'warning');
       return;
     }
 
@@ -170,9 +174,10 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
       if (selectedFlight === flightId) {
         setSelectedFlight(null);
       }
+      showToast('Flight berhasil dihapus', 'success');
     } catch (error) {
       console.error('Error deleting flight:', error);
-      alert(error instanceof Error ? error.message : 'Gagal menghapus flight');
+      showToast('Gagal menghapus flight.', 'error');
     }
   };
 
@@ -194,14 +199,15 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
           userId: user._id,
         });
       }
-      
+
       // Reset form
       setSelectedPlayerIds(new Set());
       setSearchPlayerQuery('');
       setShowAddPlayer(false);
+      showToast('Pemain berhasil ditambahkan ke flight', 'success');
     } catch (error) {
       console.error('Error adding players:', error);
-      alert(error instanceof Error ? error.message : 'Gagal menambahkan pemain');
+      showToast('Gagal menambahkan pemain ke flight.', 'error');
     }
   };
 
@@ -232,13 +238,14 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
         startHole: parseInt(editingStartHole),
         userId: user._id,
       });
-      
+
       // Reset edit state
       setEditingPlayerId(null);
       setEditingStartHole('');
+      showToast('Hole awal pemain berhasil diperbarui', 'success');
     } catch (error) {
       console.error('Error updating player start hole:', error);
-      alert(error instanceof Error ? error.message : 'Gagal memperbarui hole awal');
+      showToast('Gagal memperbarui hole awal pemain.', 'error');
     }
   };
 
@@ -248,9 +255,10 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
 
     try {
       await removePlayerFromFlight({ participationId, userId: user._id });
+      showToast('Pemain berhasil dihapus dari flight', 'success');
     } catch (error) {
       console.error('Error removing player:', error);
-      alert(error instanceof Error ? error.message : 'Gagal menghapus pemain');
+      showToast('Gagal menghapus pemain dari flight.', 'error');
     }
   };
 
@@ -263,13 +271,14 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
         newFlightId: targetFlightId,
         userId: user._id,
       });
-      
+
       // Reset state
       setMovingPlayerId(null);
       setTargetFlightId(null);
+      showToast('Pemain berhasil dipindahkan', 'success');
     } catch (error) {
       console.error('Error moving player:', error);
-      alert(error instanceof Error ? error.message : 'Gagal memindahkan pemain');
+      showToast('Gagal memindahkan pemain.', 'error');
     }
   };
 
@@ -285,28 +294,28 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
   const registeredPlayerIds = new Set(
     tournamentParticipants?.map((p: any) => p._id) || []
   );
-  
+
   // Debug logging
   console.log('All Players:', allPlayers?.length);
   console.log('Tournament Participants:', tournamentParticipants?.length);
   console.log('Registered Player IDs:', Array.from(registeredPlayerIds));
-  
+
   // Filter players: must be paid (check both paidStatus and paymentStatus) and NOT already in a flight
   const availablePlayers = allPlayers?.filter(p => {
     const playerData = p as any;
     // Check both paidStatus and paymentStatus fields
     const isPaid = playerData.paidStatus === 'paid' || playerData.paymentStatus === 'paid';
     const notInFlight = !registeredPlayerIds.has(p._id);
-    
+
     console.log(`Player ${p.name}: isPaid=${isPaid}, notInFlight=${notInFlight}, paidStatus=${playerData.paidStatus}, paymentStatus=${playerData.paymentStatus}`);
-    
+
     return isPaid && notInFlight;
   });
-  
+
   console.log('Available Players:', availablePlayers?.length);
 
   // Filter available players by search query
-  const filteredAvailablePlayers = availablePlayers?.filter(player => 
+  const filteredAvailablePlayers = availablePlayers?.filter(player =>
     player.name.toLowerCase().includes(searchPlayerQuery.toLowerCase()) ||
     player.email.toLowerCase().includes(searchPlayerQuery.toLowerCase())
   ) || [];
@@ -326,7 +335,7 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
           Manajemen Flight
         </h2>
         <p className="text-gray-400 mt-1">
-          {selectedTournament 
+          {selectedTournament
             ? `Mengelola flight untuk ${selectedTournamentData?.name}`
             : 'Pilih turnamen untuk mengelola flight'}
         </p>
@@ -354,11 +363,10 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                             {tournament.name}
                           </h4>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${
-                              tournament.status === 'active' 
+                            <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${tournament.status === 'active'
                                 ? 'bg-green-900/40 text-green-400 border border-green-800/40'
                                 : 'bg-blue-900/40 text-blue-400 border border-blue-800/40'
-                            }`}>
+                              }`}>
                               {tournament.status}
                             </span>
                           </div>
@@ -445,11 +453,10 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                 {flights.map((flight) => (
                   <div
                     key={flight._id}
-                    className={`bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] transition-all cursor-pointer p-6 ${
-                      selectedFlight === flight._id
+                    className={`bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] transition-all cursor-pointer p-6 ${selectedFlight === flight._id
                         ? 'border-2 border-red-900/60 bg-red-950/20 shadow-[0_12px_32px_rgba(139,0,0,0.4)] ring-2 ring-red-900/30'
                         : 'border-2 border-gray-800/60 hover:border-red-900/40 hover:shadow-lg'
-                    }`}
+                      }`}
                     onClick={() => setSelectedFlight(flight._id)}
                   >
                     <div className="space-y-3">
@@ -871,11 +878,10 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                       return (
                         <label
                           key={player._id}
-                          className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                            isSelected
+                          className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${isSelected
                               ? 'bg-green-900/30 border-green-800/60 shadow-md'
                               : 'bg-gray-900/40 border-gray-800/60 hover:border-green-900/40 hover:bg-gray-900/60'
-                          }`}
+                            }`}
                         >
                           <input
                             type="checkbox"
@@ -884,19 +890,18 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                             className="w-5 h-5 rounded border-gray-600 text-green-600 focus:ring-2 focus:ring-green-900/50 focus:ring-offset-0 bg-gray-800 cursor-pointer"
                           />
                           <div className="flex items-center gap-3 flex-1">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md border ${
-                              isSelected
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md border ${isSelected
                                 ? 'bg-gradient-to-br from-green-900/60 to-green-950/60 border-green-900/30'
                                 : 'bg-gradient-to-br from-gray-700/60 to-gray-800/60 border-gray-700/30'
-                            }`}>
+                              }`}>
                               {player.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
                                 <h4 className="text-sm font-semibold text-white">{player.name}</h4>
-                            
+
                               </div>
-                              
+
                             </div>
                           </div>
                         </label>
@@ -910,8 +915,8 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                       {searchPlayerQuery ? 'Tidak Ada Pemain Ditemukan' : 'Tidak Ada Pemain Tersedia'}
                     </h4>
                     <p className="text-xs text-gray-400">
-                      {searchPlayerQuery 
-                        ? 'Coba ubah kata kunci pencarian Anda' 
+                      {searchPlayerQuery
+                        ? 'Coba ubah kata kunci pencarian Anda'
                         : 'Semua pemain yang sudah paid telah terdaftar di flight'}
                     </p>
                   </div>
@@ -921,19 +926,19 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
               {/* Modal Footer */}
               <div className="flex-shrink-0 bg-gradient-to-t from-[#1a1a1a] to-[#1a1a1a]/95 px-6 py-4 border-t border-green-900/40">
                 <div className="flex gap-3">
-                  <Button 
-                    type="submit" 
-                    variant="primary" 
-                    size="lg" 
-                    icon={UserPlus} 
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    icon={UserPlus}
                     fullWidth
                     disabled={selectedPlayerIds.size === 0}
                   >
                     Tambahkan {selectedPlayerIds.size > 0 ? `${selectedPlayerIds.size} Pemain` : 'Pemain'}
                   </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     size="lg"
                     onClick={() => {
                       setShowAddPlayer(false);
@@ -1005,7 +1010,7 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                   />
                 </div>
 
-               
+
               </div>
 
               {/* Modal Footer */}
@@ -1013,9 +1018,9 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                 <Button type="submit" variant="primary" size="lg" icon={Save} fullWidth>
                   Buat Flight
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   size="lg"
                   onClick={() => setShowAddFlightModal(false)}
                 >
@@ -1114,9 +1119,9 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                 <Button type="submit" variant="primary" size="lg" icon={Save} fullWidth>
                   Perbarui Flight
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   size="lg"
                   onClick={() => {
                     setShowEditFlightModal(false);

@@ -669,21 +669,19 @@ export default function PlayerManagement() {
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => handlePaymentFilterChange("all")}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  paymentFilter === "all"
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${paymentFilter === "all"
                     ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
                     : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
-                }`}
+                  }`}
               >
                 Registered ({registeredPlayers})
               </button>
               <button
                 onClick={() => handlePaymentFilterChange("accepted")}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
-                  paymentFilter === "accepted"
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${paymentFilter === "accepted"
                     ? "bg-gradient-to-r from-green-900 to-green-800 text-white border-2 border-green-700"
                     : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
-                }`}
+                  }`}
               >
                 <CheckCircle2 className="w-4 h-4" />
                 Accepted ({acceptedPlayers})
@@ -709,18 +707,16 @@ export default function PlayerManagement() {
 
       {/* Payment Action Bar - Always Visible */}
       <div
-        className={`backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border p-4 transition-all ${
-          selectedPlayerIds.size > 0
+        className={`backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border p-4 transition-all ${selectedPlayerIds.size > 0
             ? "bg-gradient-to-r from-blue-900/60 to-blue-800/60 border-blue-900/40"
             : "bg-gradient-to-r from-gray-900/60 to-gray-800/60 border-gray-800/40"
-        }`}
+          }`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
-              className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                selectedPlayerIds.size > 0 ? "bg-white/20" : "bg-gray-700/40"
-              }`}
+              className={`w-10 h-10 rounded-lg flex items-center justify-center ${selectedPlayerIds.size > 0 ? "bg-white/20" : "bg-gray-700/40"
+                }`}
             >
               <UserCheck
                 className={`w-5 h-5 ${selectedPlayerIds.size > 0 ? "text-white" : "text-gray-400"}`}
@@ -806,30 +802,6 @@ export default function PlayerManagement() {
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="h-16 bg-gray-800/60 rounded"></div>
             ))}
-          </div>
-        </div>
-      ) : filteredPlayers && filteredPlayers.length === 0 ? (
-        <div className="bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 p-6 text-center">
-          <div className="py-12">
-            <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">
-              {searchQuery ? "Pemain tidak ditemukan" : "Belum ada pemain"}
-            </h3>
-            <p className="text-gray-400 mb-6">
-              {searchQuery
-                ? "Coba sesuaikan kriteria pencarian Anda"
-                : "Mulai dengan menambahkan pemain pertama"}
-            </p>
-            {!searchQuery && (
-              <Button
-                variant="primary"
-                size="lg"
-                icon={Plus}
-                onClick={handleOpenCreateModal}
-              >
-                Tambah Pemain Pertama
-              </Button>
-            )}
           </div>
         </div>
       ) : (
@@ -922,13 +894,11 @@ export default function PlayerManagement() {
                   <tr
                     key={player._id}
                     onClick={() => handleCheckboxToggle(player._id)}
-                    className={`transition-colors cursor-pointer ${
-                      index % 2 === 0 ? "bg-gray-900/40" : "bg-gray-800/40"
-                    } ${
-                      selectedPlayerIds.has(player._id)
+                    className={`transition-colors cursor-pointer ${index % 2 === 0 ? "bg-gray-900/40" : "bg-gray-800/40"
+                      } ${selectedPlayerIds.has(player._id)
                         ? "bg-blue-900/30 hover:bg-blue-900/40"
                         : "hover:bg-red-900/20"
-                    }`}
+                      }`}
                   >
                     <td
                       className="px-4 py-4 text-center"
@@ -983,13 +953,12 @@ export default function PlayerManagement() {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                          player.gender === "male"
+                        className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${player.gender === "male"
                             ? "bg-blue-950/40 text-blue-400 border border-blue-900/30"
                             : player.gender === "female"
                               ? "bg-pink-950/40 text-pink-400 border border-pink-900/30"
                               : "bg-gray-950/40 text-gray-400 border border-gray-900/30"
-                        }`}
+                          }`}
                       >
                         {player.gender === "male"
                           ? "Pria"
@@ -1095,11 +1064,10 @@ export default function PlayerManagement() {
                           <button
                             key={page}
                             onClick={() => setCurrentPage(page)}
-                            className={`w-9 h-9 rounded-lg font-medium transition-colors ${
-                              currentPage === page
+                            className={`w-9 h-9 rounded-lg font-medium transition-colors ${currentPage === page
                                 ? "bg-red-900/60 text-white border border-red-900/40"
                                 : "bg-gray-900/60 border-2 border-gray-700/60 text-gray-300 hover:bg-gray-800/60"
-                            }`}
+                              }`}
                           >
                             {page}
                           </button>
@@ -1421,11 +1389,10 @@ export default function PlayerManagement() {
                           onClick={() =>
                             setFormData({ ...formData, gender: "male" })
                           }
-                          className={`py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
-                            formData.gender === "male"
+                          className={`py-3 px-4 rounded-xl text-sm font-semibold transition-all ${formData.gender === "male"
                               ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
                               : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
-                          }`}
+                            }`}
                         >
                           Male
                         </button>
@@ -1434,11 +1401,10 @@ export default function PlayerManagement() {
                           onClick={() =>
                             setFormData({ ...formData, gender: "female" })
                           }
-                          className={`py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
-                            formData.gender === "female"
+                          className={`py-3 px-4 rounded-xl text-sm font-semibold transition-all ${formData.gender === "female"
                               ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
                               : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
-                          }`}
+                            }`}
                         >
                           Female
                         </button>
@@ -1478,11 +1444,10 @@ export default function PlayerManagement() {
                                 shirtSize: size as any,
                               })
                             }
-                            className={`py-3 rounded-xl text-sm font-bold transition-all ${
-                              formData.shirtSize === size
+                            className={`py-3 rounded-xl text-sm font-bold transition-all ${formData.shirtSize === size
                                 ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
                                 : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
-                            }`}
+                              }`}
                           >
                             {size}
                           </button>
@@ -1505,11 +1470,10 @@ export default function PlayerManagement() {
                                 gloveSize: size as any,
                               })
                             }
-                            className={`py-3 rounded-xl text-sm font-bold transition-all ${
-                              formData.gloveSize === size
+                            className={`py-3 rounded-xl text-sm font-bold transition-all ${formData.gloveSize === size
                                 ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
                                 : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
-                            }`}
+                              }`}
                           >
                             {size}
                           </button>

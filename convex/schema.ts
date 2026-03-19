@@ -158,6 +158,7 @@ export default defineSchema({
     startHole: v.number(),
     registeredAt: v.number(),
     scoringFinished: v.optional(v.boolean()),
+    approvedHoles: v.optional(v.array(v.number())),
   })
     .index("by_tournament", ["tournamentId"])
     .index("by_flight", ["flightId"])
