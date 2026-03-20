@@ -767,6 +767,34 @@ const ActionButtons: React.FC<{
   const allHolesCompleted =
     userScoresData?.scores?.length === holesConfig.length;
 
+  // Check if there are any unapproved holes (if "Setujui & Lanjutkan" button is showing)
+  const hasUnapprovedHoles = userHasScored && !isCurrentHoleApproved;
+
+  // --- Waiting-approval guard ---
+  // When currentHole === null, user has approved their last hole and is trying to go to the next one.
+  // Before allowing that, ALL other players must have also approved the same hole.
+  const [showWaitingApprovalAlert, setShowWaitingApprovalAlert] = useState(false);
+  const [waitingApprovalPlayers, setWaitingApprovalPlayers] = useState<Array<{ name: string; hole: number }>>([]);
+
+  // The most recently approved hole by the current user
+  const userLastApprovedHole =
+    approvedHoles.length > 0 ? Math.max(...approvedHoles) : null;
+
+  // Players who have scored the same hole but not yet approved it
+  const playersNotYetApproved = flightParticipants
+    .filter(p => p._id !== userId)
+    .filter(p => {
+      if (userLastApprovedHole === null) return false;
+      const theirScores =
+        participantScores.find(ps => ps.participant._id === p._id)?.scores || [];
+      const theirApprovedHoles: number[] = p.approvedHoles || [];
+      const hasScored = theirScores.some((s: any) => s.holeNumber === userLastApprovedHole);
+      const hasApproved = theirApprovedHoles.includes(userLastApprovedHole);
+      // Block if they scored this hole but haven't approved yet
+      return hasScored && !hasApproved;
+    })
+    .map(p => ({ name: p.name, hole: userLastApprovedHole as number }));
+
   return (
     <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg border border-gray-800 p-3 space-y-2">
       {userHasScored && !isCurrentHoleApproved ? (
@@ -874,6 +902,13 @@ const ActionButtons: React.FC<{
           {/* Show Input Score button that opens a hole selector */}
           <button
             onClick={() => {
+              // Guard: if there are players who haven't approved yet, block and show alert
+              if (playersNotYetApproved.length > 0) {
+                setWaitingApprovalPlayers(playersNotYetApproved);
+                setShowWaitingApprovalAlert(true);
+                return;
+              }
+
               if (currentHole !== null) {
                 navigate(
                   `/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`,
@@ -972,7 +1007,17 @@ const ActionButtons: React.FC<{
       {allHolesCompleted && (
         <button
           onClick={handleFinishTournament}
-          className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-4 rounded-lg border border-green-600 transition-all flex items-center justify-center gap-2 shadow-lg"
+          disabled={hasUnapprovedHoles}
+          className={`w-full font-semibold py-3 px-4 rounded-lg border transition-all flex items-center justify-center gap-2 shadow-lg ${
+            hasUnapprovedHoles
+              ? "bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed opacity-60"
+              : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-green-600 cursor-pointer"
+          }`}
+          title={
+            hasUnapprovedHoles
+              ? "Setujui hole terakhir terlebih dahulu sebelum menyelesaikan pertandingan"
+              : "Selesaikan pertandingan"
+          }
         >
           <svg
             className="w-5 h-5"
@@ -987,8 +1032,81 @@ const ActionButtons: React.FC<{
               d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <span>Selesaikan Pertandingan</span>
+          <span>
+            {hasUnapprovedHoles
+              ? "Setujui hole terakhir dulu"
+              : "Selesaikan Pertandingan"}
+          </span>
         </button>
+      )}
+
+      {/* Waiting Approval Alert Dialog */}
+      {showWaitingApprovalAlert && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-2xl shadow-2xl border border-yellow-800/60 max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+            <div className="text-center space-y-4">
+              {/* Icon */}
+              <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto">
+                <svg
+                  className="w-8 h-8 text-yellow-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-xl font-bold text-white">
+                Tunggu Persetujuan Dulu ✋
+              </h3>
+
+              {/* Message */}
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Semua pemain dalam flight harus menyetujui skor hole sebelumnya sebelum Anda bisa melanjutkan ke hole berikutnya.
+              </p>
+
+              {/* Players list */}
+              <div className="bg-yellow-900/20 border border-yellow-800/40 rounded-xl p-4 text-left space-y-2">
+                <p className="text-yellow-300 text-xs font-semibold mb-2">
+                  Pemain yang belum menyetujui skor Hole {userLastApprovedHole}:
+                </p>
+                {waitingApprovalPlayers.map((player, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-yellow-700/40 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <span className="text-yellow-200 text-sm font-semibold">{player.name}</span>
+                    <span className="text-yellow-400/70 text-xs">belum menyetujui Hole {player.hole}</span>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-gray-500 text-xs">
+                Minta pemain tersebut untuk membuka aplikasi dan menekan tombol <span className="text-green-400 font-semibold">"Setujui &amp; Lanjutkan"</span>.
+              </p>
+
+              {/* Button */}
+              <button
+                onClick={() => {
+                  setShowWaitingApprovalAlert(false);
+                  setWaitingApprovalPlayers([]);
+                }}
+                className="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white font-bold py-3 px-4 rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95"
+              >
+                Oke, Mengerti
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1015,6 +1133,59 @@ const ScorecardTable: React.FC<{
   currentHole,
   onHoleClick,
 }) => {
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  // Keep the latest scroll position in memory so we can restore it after every re-render
+  const savedScrollRef = React.useRef<number>(
+    parseInt(sessionStorage.getItem(`scorecardScroll_${tournament._id}`) || '0', 10)
+  );
+
+  // Restore scroll after EVERY render (layout effect runs synchronously after DOM mutations)
+  // This prevents Convex data updates from silently resetting scrollLeft to 0
+  React.useLayoutEffect(() => {
+    if (scrollContainerRef.current && savedScrollRef.current > 0) {
+      scrollContainerRef.current.scrollLeft = savedScrollRef.current;
+    }
+  });
+
+  // On initial mount (e.g. returning from ModernScoringInterface), the browser may not have
+  // computed the table's full scroll width yet inside useLayoutEffect.
+  // A deferred restore ensures scrollLeft actually sticks after the browser finishes layout.
+  React.useEffect(() => {
+    if (savedScrollRef.current > 0) {
+      const el = scrollContainerRef.current;
+      if (el) {
+        // Immediate attempt (table is likely already wide)
+        el.scrollLeft = savedScrollRef.current;
+        // Deferred attempt as safety net in case layout wasn't ready
+        const raf = requestAnimationFrame(() => {
+          el.scrollLeft = savedScrollRef.current;
+        });
+        return () => cancelAnimationFrame(raf);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const newScroll = e.currentTarget.scrollLeft;
+    savedScrollRef.current = newScroll;
+    sessionStorage.setItem(
+      `scorecardScroll_${tournament._id}`,
+      newScroll.toString()
+    );
+  };
+
+  // Save scroll position explicitly right before navigating away from this page.
+  // This is critical because onScroll only fires during scrolling — not on click-to-navigate.
+  // Without this, the saved value in sessionStorage may be stale (or 0) when the component remounts.
+  const saveScrollBeforeLeave = () => {
+    if (scrollContainerRef.current) {
+      const current = scrollContainerRef.current.scrollLeft;
+      savedScrollRef.current = current;
+      sessionStorage.setItem(`scorecardScroll_${tournament._id}`, current.toString());
+    }
+  };
+
   // Fetch scores for ALL participants sekaligus — tidak pakai hook di dalam .map()
   const flightScoresData = useQuery(
     api.scores.getFlightScores,
@@ -1119,7 +1290,11 @@ const ScorecardTable: React.FC<{
 
       {/* Scorecard Table */}
       <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg border border-gray-800 overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
+        <div 
+          className="overflow-x-auto"
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+        >
           <table className="w-full text-xs">
             <thead>
               {/* Header Row 1 - Hole Numbers */}
@@ -1153,6 +1328,8 @@ const ScorecardTable: React.FC<{
 
                         // Only allow clicking if user hasn't scored this hole yet OR hole is not approved
                         if ((!userHasScoredThisHole || !isApproved) && onHoleClick) {
+                          // Save scroll BEFORE navigating away so it can be restored on return
+                          saveScrollBeforeLeave();
                           onHoleClick(hole.holeNumber);
                         }
                       }}

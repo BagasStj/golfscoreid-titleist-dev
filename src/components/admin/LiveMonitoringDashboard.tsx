@@ -477,9 +477,9 @@ export default function LiveMonitoringDashboard() {
                     <td className="sticky left-0 z-10 bg-inherit px-4 py-3 font-semibold text-white border-r-2 border-gray-800/60">
                       <div>
                         <div className="font-bold">{player.playerName}</div>
-                        <div className="text-xs text-gray-400 mt-1">
+                        {/* <div className="text-xs text-gray-400 mt-1">
                           Mulai: Hole {player.startHole} • Saat Ini: Hole {player.currentHole}
-                        </div>
+                        </div> */}
                       </div>
                     </td>
                     

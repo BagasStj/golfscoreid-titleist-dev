@@ -4,7 +4,6 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import {
   Users,
-  Plus,
   Eye,
   Trash2,
   Search,
@@ -298,32 +297,32 @@ export default function PlayerManagement() {
     }
   };
 
-  const handleOpenCreateModal = () => {
-    setModalMode("create");
-    setFormData({
-      name: "",
-      email: "",
-      username: "",
-      password: "",
-      handicap: 0,
-      phone: "",
-      nickname: "",
-      gender: "",
-      workLocation: "",
-      shirtSize: "",
-      gloveSize: "",
-      drivers: [],
-      fairways: [],
-      hybrids: [],
-      utilityIrons: [],
-      irons: [],
-      wedges: [],
-      putters: [],
-      golfBalls: [],
-    });
-    setError(null);
-    setShowModal(true);
-  };
+  // const handleOpenCreateModal = () => {
+  //   setModalMode("create");
+  //   setFormData({
+  //     name: "",
+  //     email: "",
+  //     username: "",
+  //     password: "",
+  //     handicap: 0,
+  //     phone: "",
+  //     nickname: "",
+  //     gender: "",
+  //     workLocation: "",
+  //     shirtSize: "",
+  //     gloveSize: "",
+  //     drivers: [],
+  //     fairways: [],
+  //     hybrids: [],
+  //     utilityIrons: [],
+  //     irons: [],
+  //     wedges: [],
+  //     putters: [],
+  //     golfBalls: [],
+  //   });
+  //   setError(null);
+  //   setShowModal(true);
+  // };
 
   const handleOpenDetailModal = (player: any) => {
     setModalMode("detail");

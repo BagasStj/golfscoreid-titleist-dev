@@ -1,30 +1,30 @@
-import { useState } from "react";
-import { TrendingUp, Award } from "lucide-react";
+// import { useState } from "react";
+// import { TrendingUp, Award } from "lucide-react";
 import LiveMonitoringDashboard from "./LiveMonitoringDashboard";
-import LeaderboardAdmin from "./LeaderboardAdmin";
+// import LeaderboardAdmin from "./LeaderboardAdmin";
 
-type ScoringTab = "live-scoring" | "leaderboard";
+// type ScoringTab = "live-scoring" | "leaderboard";
 
 export default function ScoringAndLeaderboard() {
-  const [activeTab, setActiveTab] = useState<ScoringTab>("live-scoring");
+  // const [activeTab, setActiveTab] = useState<ScoringTab>("live-scoring");
 
-  const tabs: { id: ScoringTab; label: string; icon: React.ReactNode }[] = [
-    {
-      id: "live-scoring",
-      label: "Live Scoring",
-      icon: <TrendingUp className="w-4 h-4" />,
-    },
-    {
-      id: "leaderboard",
-      label: "Leaderboard",
-      icon: <Award className="w-4 h-4" />,
-    },
-  ];
+  // const tabs: { id: ScoringTab; label: string; icon: React.ReactNode }[] = [
+  //   {
+  //     id: "live-scoring",
+  //     label: "Live Scoring",
+  //     icon: <TrendingUp className="w-4 h-4" />,
+  //   },
+  //   {
+  //     id: "leaderboard",
+  //     label: "Leaderboard",
+  //     icon: <Award className="w-4 h-4" />,
+  //   },
+  // ];
 
   return (
     <div className="space-y-4">
       {/* Tab Header */}
-      <div className="flex gap-2 bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 border border-red-900/30 rounded-xl p-1.5 w-fit">
+      {/* <div className="flex gap-2 bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 border border-red-900/30 rounded-xl p-1.5 w-fit">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -39,12 +39,12 @@ export default function ScoringAndLeaderboard() {
             {tab.label}
           </button>
         ))}
-      </div>
+      </div> */}
 
       {/* Tab Content */}
       <div>
-        {activeTab === "live-scoring" && <LiveMonitoringDashboard />}
-        {activeTab === "leaderboard" && <LeaderboardAdmin />}
+        <LiveMonitoringDashboard />
+        {/* {activeTab === "leaderboard" && <LeaderboardAdmin />} */}
       </div>
     </div>
   );

@@ -117,7 +117,7 @@ export default function AdminDashboard() {
     },
     {
       id: "scoring" as AdminView,
-      label: "Live Scoring & Leaderboard",
+      label: "Live Scoring",
       icon: TrendingUp,
       color: "warning",
     },
@@ -277,7 +277,7 @@ export default function AdminDashboard() {
               </div>
               <div className="flex-1 text-left">
                 <h3 className="font-bold text-white text-sm">
-                  Live Scoring & Leaderboard
+                  Live Scoring 
                 </h3>
                 <p className="text-gray-400 text-xs">
                   Real-time scoring & rankings
