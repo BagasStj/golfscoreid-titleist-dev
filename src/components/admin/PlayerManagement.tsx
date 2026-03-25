@@ -659,7 +659,6 @@ export default function PlayerManagement() {
         {/* Payment Filter Tabs */}
         <div className="mt-4 pt-4 border-t border-gray-700/60">
           <div className="flex items-center gap-3 flex-wrap">
-            <DollarSign className="w-5 h-5 text-gray-400" />
             <span className="text-sm font-semibold text-gray-400 mr-2">
               Filter Status:
             </span>
@@ -669,8 +668,8 @@ export default function PlayerManagement() {
               <button
                 onClick={() => handlePaymentFilterChange("all")}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${paymentFilter === "all"
-                    ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
-                    : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
+                  ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
+                  : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
                   }`}
               >
                 Registered ({registeredPlayers})
@@ -678,8 +677,8 @@ export default function PlayerManagement() {
               <button
                 onClick={() => handlePaymentFilterChange("accepted")}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${paymentFilter === "accepted"
-                    ? "bg-gradient-to-r from-green-900 to-green-800 text-white border-2 border-green-700"
-                    : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
+                  ? "bg-gradient-to-r from-green-900 to-green-800 text-white border-2 border-green-700"
+                  : "bg-gray-900/60 text-gray-400 border-2 border-gray-700/60 hover:border-gray-600"
                   }`}
               >
                 <CheckCircle2 className="w-4 h-4" />
@@ -707,8 +706,8 @@ export default function PlayerManagement() {
       {/* Payment Action Bar - Always Visible */}
       <div
         className={`backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border p-4 transition-all ${selectedPlayerIds.size > 0
-            ? "bg-gradient-to-r from-blue-900/60 to-blue-800/60 border-blue-900/40"
-            : "bg-gradient-to-r from-gray-900/60 to-gray-800/60 border-gray-800/40"
+          ? "bg-gradient-to-r from-blue-900/60 to-blue-800/60 border-blue-900/40"
+          : "bg-gradient-to-r from-gray-900/60 to-gray-800/60 border-gray-800/40"
           }`}
       >
         <div className="flex items-center justify-between">
@@ -734,7 +733,7 @@ export default function PlayerManagement() {
               ) : (
                 <>
                   <div className="text-gray-300 font-semibold">
-                    Payment Action Bar
+                    Player Action Bar
                   </div>
                   <div className="text-xs text-gray-400">
                     Pilih pemain terlebih dahulu untuk mengubah status
@@ -953,10 +952,10 @@ export default function PlayerManagement() {
                     <td className="px-6 py-4 text-center">
                       <span
                         className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${player.gender === "male"
-                            ? "bg-blue-950/40 text-blue-400 border border-blue-900/30"
-                            : player.gender === "female"
-                              ? "bg-pink-950/40 text-pink-400 border border-pink-900/30"
-                              : "bg-gray-950/40 text-gray-400 border border-gray-900/30"
+                          ? "bg-blue-950/40 text-blue-400 border border-blue-900/30"
+                          : player.gender === "female"
+                            ? "bg-pink-950/40 text-pink-400 border border-pink-900/30"
+                            : "bg-gray-950/40 text-gray-400 border border-gray-900/30"
                           }`}
                       >
                         {player.gender === "male"
@@ -1064,8 +1063,8 @@ export default function PlayerManagement() {
                             key={page}
                             onClick={() => setCurrentPage(page)}
                             className={`w-9 h-9 rounded-lg font-medium transition-colors ${currentPage === page
-                                ? "bg-red-900/60 text-white border border-red-900/40"
-                                : "bg-gray-900/60 border-2 border-gray-700/60 text-gray-300 hover:bg-gray-800/60"
+                              ? "bg-red-900/60 text-white border border-red-900/40"
+                              : "bg-gray-900/60 border-2 border-gray-700/60 text-gray-300 hover:bg-gray-800/60"
                               }`}
                           >
                             {page}
@@ -1389,8 +1388,8 @@ export default function PlayerManagement() {
                             setFormData({ ...formData, gender: "male" })
                           }
                           className={`py-3 px-4 rounded-xl text-sm font-semibold transition-all ${formData.gender === "male"
-                              ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
-                              : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
+                            ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
+                            : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
                             }`}
                         >
                           Male
@@ -1401,8 +1400,8 @@ export default function PlayerManagement() {
                             setFormData({ ...formData, gender: "female" })
                           }
                           className={`py-3 px-4 rounded-xl text-sm font-semibold transition-all ${formData.gender === "female"
-                              ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
-                              : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
+                            ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
+                            : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
                             }`}
                         >
                           Female
@@ -1444,8 +1443,8 @@ export default function PlayerManagement() {
                               })
                             }
                             className={`py-3 rounded-xl text-sm font-bold transition-all ${formData.shirtSize === size
-                                ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
-                                : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
+                              ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
+                              : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
                               }`}
                           >
                             {size}
@@ -1470,8 +1469,8 @@ export default function PlayerManagement() {
                               })
                             }
                             className={`py-3 rounded-xl text-sm font-bold transition-all ${formData.gloveSize === size
-                                ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
-                                : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
+                              ? "bg-gradient-to-r from-red-900 to-red-800 text-white border-2 border-red-700"
+                              : "bg-[#1a1a1a]/60 text-gray-400 border-2 border-gray-800/60 hover:border-gray-700"
                               }`}
                           >
                             {size}

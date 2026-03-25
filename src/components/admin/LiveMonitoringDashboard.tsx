@@ -3,7 +3,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { Trophy, Activity, RefreshCw, Star, Download, Maximize2, Edit2, Save, X } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import type { Id } from '../../../convex/_generated/dataModel';
 
 export default function LiveMonitoringDashboard() {
@@ -207,12 +207,63 @@ export default function LiveMonitoringDashboard() {
       // Add summary columns at the end
       row['Hole Selesai'] = completedHoles;
       row['Total Stroke'] = player.totalScore || 0;
-      row['Total Over/Under'] = totalOver > 0 ? `+${totalOver}` : totalOver === 0 ? 'E' : totalOver;
+      row['Total Over/Under'] = completedHoles === 0 ? 0 : (totalOver > 0 ? `+${totalOver}` : totalOver === 0 ? 'E' : totalOver);
 
       return row;
     });
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    // Default styles for all cells (font size, borders)
+    const defaultStyle = {
+      font: { name: "Arial", sz: 11 },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+      }
+    };
+
+    // Apply alignment styles
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || "A1");
+    // Column 0 is 'Nama Pemain'
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellRef = XLSX.utils.encode_cell({ c: C, r: R });
+        if (!worksheet[cellRef]) continue;
+
+        // Base cell styles
+        worksheet[cellRef].s = { ...defaultStyle };
+
+        // Headers row (R === 0)
+        if (R === 0) {
+          worksheet[cellRef].s.font.bold = true;
+          worksheet[cellRef].s.alignment = { horizontal: "center", vertical: "center" };
+          worksheet[cellRef].s.fill = { fgColor: { rgb: "E0E0E0" } };
+        } else {
+          // Body rows (R > 0)
+          // Column 0 (A) is Nama Pemain - left aligned
+          if (C === 0) {
+            worksheet[cellRef].s.alignment = { horizontal: "left", vertical: "center" };
+          } else {
+            // Other columns - center aligned
+            worksheet[cellRef].s.alignment = { horizontal: "center", vertical: "center" };
+          }
+        }
+      }
+    }
+
+    // Set column widths
+    const colWidths = [
+      { wch: 25 }, // Nama Pemain
+    ];
+    // Set other columns width based on header
+    for (let C = 1; C <= range.e.c; ++C) {
+      colWidths[C] = { wch: 15 };
+    }
+    worksheet['!cols'] = colWidths;
+
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Live Monitoring');
 
@@ -231,7 +282,7 @@ export default function LiveMonitoringDashboard() {
   };
 
   return (
-    <div className={`space-y-6 ${isFullView ? 'fixed inset-0 z-50 bg-[#1a1a1a] overflow-auto p-6' : ''}`}>
+    <div className={`space-y-6 w-full ${isFullView ? 'fixed inset-0 z-50 bg-[#1a1a1a] overflow-auto p-6 min-w-full' : ''}`} style={!isFullView ? { minWidth: 0, overflowX: 'hidden' } : {}}>
       {/* Header */}
       <div className="bg-gradient-to-r from-red-900/60 to-red-800/60 rounded-xl shadow-[0_8px_24px_rgba(139,0,0,0.4)] p-6 text-white border border-red-900/40">
         <div className="flex items-center justify-between">
@@ -613,7 +664,7 @@ export default function LiveMonitoringDashboard() {
                           {player.totalScore || '-'}
                         </td>
                         <td className="px-3 py-3 text-center font-bold text-purple-400 bg-purple-950/40 border-l-2 border-gray-800/60 text-lg">
-                          {totalOver > 0 ? `+${totalOver}` : totalOver === 0 ? 'E' : totalOver}
+                          {completedHoles === 0 ? 0 : (totalOver > 0 ? `+${totalOver}` : totalOver === 0 ? 'E' : totalOver)}
                         </td>
                         <td className="px-3 py-3 text-center font-bold text-orange-400 bg-orange-950/40 border-l-2 border-gray-800/60 text-lg">
                           {completedHoles}/18
@@ -685,7 +736,7 @@ export default function LiveMonitoringDashboard() {
                           {player.totalScore || '-'}
                         </td>
                         <td className="px-3 py-3 text-center font-bold text-purple-400 bg-purple-950/40 border-l-2 border-gray-800/60 text-lg">
-                          {totalOver > 0 ? `+${totalOver}` : totalOver === 0 ? 'E' : totalOver}
+                          {completedHoles === 0 ? 0 : (totalOver > 0 ? `+${totalOver}` : totalOver === 0 ? 'E' : totalOver)}
                         </td>
                         <td className="px-3 py-3 text-center font-bold text-orange-400 bg-orange-950/40 border-l-2 border-gray-800/60 text-lg">
                           {completedHoles}/9
@@ -873,7 +924,7 @@ export default function LiveMonitoringDashboard() {
                       {calculateSpecialTotal(player.scorecard, specialHoles) || '-'}
                     </td>
                     <td className="px-3 py-3 text-center font-bold text-purple-400 bg-purple-950/40 border-l-2 border-amber-900/40 text-lg">
-                      {specialTotalOver > 0 ? `+${specialTotalOver}` : specialTotalOver === 0 ? 'E' : specialTotalOver}
+                      {specialCompletedHoles === 0 ? 0 : (specialTotalOver > 0 ? `+${specialTotalOver}` : specialTotalOver === 0 ? 'E' : specialTotalOver)}
                     </td>
                     <td className="px-3 py-3 text-center font-bold text-orange-400 bg-orange-950/40 border-l-2 border-amber-900/40 text-lg">
                       {specialCompletedHoles}/{specialHoles.length}

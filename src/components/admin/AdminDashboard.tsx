@@ -481,7 +481,7 @@ export default function AdminDashboard() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen min-w-0 overflow-x-hidden">
         {/* Top Header */}
         <header className="h-14 bg-gradient-to-r from-[#2e2e2e] to-[#1a1a1a] border-b border-red-900/30 sticky top-0 z-20 flex items-center px-4 lg:px-6">
           <button
