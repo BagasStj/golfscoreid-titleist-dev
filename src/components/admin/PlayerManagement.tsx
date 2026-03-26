@@ -17,7 +17,6 @@ import {
   Phone,
   Calendar,
   Shirt,
-  DollarSign,
   CheckCircle2,
   XCircle,
   ArrowUpDown,

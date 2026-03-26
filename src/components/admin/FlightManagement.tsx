@@ -364,8 +364,8 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                           </h4>
                           <div className="flex items-center gap-2 mt-1">
                             <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${tournament.status === 'active'
-                                ? 'bg-green-900/40 text-green-400 border border-green-800/40'
-                                : 'bg-blue-900/40 text-blue-400 border border-blue-800/40'
+                              ? 'bg-green-900/40 text-green-400 border border-green-800/40'
+                              : 'bg-blue-900/40 text-blue-400 border border-blue-800/40'
                               }`}>
                               {tournament.status}
                             </span>
@@ -377,7 +377,7 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-red-500" />
                           <span>
-                            {new Date(tournament.startDate).toLocaleDateString('id-ID')} - {new Date(tournament.endDate).toLocaleDateString('id-ID')}
+                            {new Date(tournament.date).toLocaleDateString('id-ID')}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -454,8 +454,8 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                   <div
                     key={flight._id}
                     className={`bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] transition-all cursor-pointer p-6 ${selectedFlight === flight._id
-                        ? 'border-2 border-red-900/60 bg-red-950/20 shadow-[0_12px_32px_rgba(139,0,0,0.4)] ring-2 ring-red-900/30'
-                        : 'border-2 border-gray-800/60 hover:border-red-900/40 hover:shadow-lg'
+                      ? 'border-2 border-red-900/60 bg-red-950/20 shadow-[0_12px_32px_rgba(139,0,0,0.4)] ring-2 ring-red-900/30'
+                      : 'border-2 border-gray-800/60 hover:border-red-900/40 hover:shadow-lg'
                       }`}
                     onClick={() => setSelectedFlight(flight._id)}
                   >
@@ -879,8 +879,8 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                         <label
                           key={player._id}
                           className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${isSelected
-                              ? 'bg-green-900/30 border-green-800/60 shadow-md'
-                              : 'bg-gray-900/40 border-gray-800/60 hover:border-green-900/40 hover:bg-gray-900/60'
+                            ? 'bg-green-900/30 border-green-800/60 shadow-md'
+                            : 'bg-gray-900/40 border-gray-800/60 hover:border-green-900/40 hover:bg-gray-900/60'
                             }`}
                         >
                           <input
@@ -891,8 +891,8 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                           />
                           <div className="flex items-center gap-3 flex-1">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md border ${isSelected
-                                ? 'bg-gradient-to-br from-green-900/60 to-green-950/60 border-green-900/30'
-                                : 'bg-gradient-to-br from-gray-700/60 to-gray-800/60 border-gray-700/30'
+                              ? 'bg-gradient-to-br from-green-900/60 to-green-950/60 border-green-900/30'
+                              : 'bg-gradient-to-br from-gray-700/60 to-gray-800/60 border-gray-700/30'
                               }`}>
                               {player.name.charAt(0).toUpperCase()}
                             </div>

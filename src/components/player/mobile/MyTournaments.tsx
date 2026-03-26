@@ -59,7 +59,7 @@ const MyTournaments: React.FC = () => {
 
   // Player is accepted, show all active tournaments
   let tournamentsToShow = [];
-  
+
   if (allActiveTournaments) {
     // Merge registered tournaments with all active tournaments (avoid duplicates)
     const registeredIds = new Set(myTournaments.map(t => t._id));
@@ -77,7 +77,7 @@ const MyTournaments: React.FC = () => {
       {tournamentsToShow.map((tournament) => {
         // Check if player is registered in this tournament
         const isRegistered = myTournaments.some(t => t._id === tournament._id);
-        
+
         return (
           <TournamentCard
             key={tournament._id}
@@ -97,7 +97,7 @@ const MyTournaments: React.FC = () => {
           <div className="text-gray-400 text-lg font-semibold">
             Belum ada turnamen
           </div>
-         
+
         </div>
       )}
     </div>
@@ -122,9 +122,9 @@ const TournamentCard: React.FC<{
     api.scores.getPlayerScores,
     userId
       ? {
-          tournamentId: tournament._id,
-          playerId: userId,
-        }
+        tournamentId: tournament._id,
+        playerId: userId,
+      }
       : "skip",
   );
 
@@ -133,9 +133,9 @@ const TournamentCard: React.FC<{
     api.flights.getPlayerFlight,
     userId && isRegistered
       ? {
-          tournamentId: tournament._id,
-          playerId: userId,
-        }
+        tournamentId: tournament._id,
+        playerId: userId,
+      }
       : "skip",
   );
 
@@ -149,7 +149,7 @@ const TournamentCard: React.FC<{
 
   const allParticipants = React.useMemo(() => {
     if (!allPlayers) return null;
-    
+
     // Filter paid players
     const paidPlayers = allPlayers.filter(
       (p: any) => p.paymentStatus === "paid" || p.paidStatus === "paid"
@@ -160,7 +160,7 @@ const TournamentCard: React.FC<{
       const participation = allParticipantsQuery?.find(
         (tp: any) => tp._id === player._id
       );
-      
+
       return {
         ...player,
         flightId: participation?.flightId || null,
@@ -171,17 +171,17 @@ const TournamentCard: React.FC<{
 
   // Check if tournament is finished from localStorage or convex
   const [isTournamentFinished, setIsTournamentFinished] = React.useState(false);
-  
+
   React.useEffect(() => {
     if (tournament._id && userId) {
       const finishedKey = `tournamentFinished_${tournament._id}_${userId}`;
       const isFinishedFromLocal = localStorage.getItem(finishedKey) === 'true';
-      
+
       const currentPlayerParticipant = playerFlight?.members?.find(
         (m: any) => m._id === userId
       );
       const isFinishedFromConvex = currentPlayerParticipant?.scoringFinished === true;
-      
+
       setIsTournamentFinished(isFinishedFromLocal || isFinishedFromConvex);
     }
   }, [tournament._id, userId, playerFlight]);
@@ -421,19 +421,17 @@ const TournamentCard: React.FC<{
                 playerFlight.members.slice(0, 3).map((member: any) => (
                   <div
                     key={member._id}
-                    className={`flex items-center justify-between p-2 rounded-lg ${
-                      member._id === userId
+                    className={`flex items-center justify-between p-2 rounded-lg ${member._id === userId
                         ? "bg-blue-900/40 border border-blue-700/60"
                         : "bg-gray-900/40 border border-gray-800/60"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2">
                       <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs ${
-                          member._id === userId
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs ${member._id === userId
                             ? "bg-gradient-to-br from-blue-600 to-blue-700"
                             : "bg-gradient-to-br from-gray-600 to-gray-700"
-                        }`}
+                          }`}
                       >
                         {member.name.charAt(0).toUpperCase()}
                       </div>
@@ -502,22 +500,20 @@ const TournamentCard: React.FC<{
                     .map((participant: any, index: number) => (
                       <tr
                         key={`${participant._id}-${index}`}
-                        className={`hover:bg-gray-800/40 transition-colors ${
-                          participant._id === userId
+                        className={`hover:bg-gray-800/40 transition-colors ${participant._id === userId
                             ? "bg-green-900/30"
                             : index % 2 === 0
                               ? "bg-gray-900/20"
                               : "bg-transparent"
-                        }`}
+                          }`}
                       >
                         <td className="py-2.5 px-3">
                           <div className="flex items-center gap-2">
                             <div
-                              className={`w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0 ${
-                                participant._id === userId
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0 ${participant._id === userId
                                   ? "bg-gradient-to-br from-green-600 to-green-700"
                                   : "bg-gradient-to-br from-gray-600 to-gray-700"
-                              }`}
+                                }`}
                             >
                               {participant.name.charAt(0).toUpperCase()}
                             </div>
@@ -595,7 +591,7 @@ const TournamentCard: React.FC<{
         {/* Message if tournament is active but not today */}
         {tournament.status === "active" && !isTournamentToday && (
           <div className="w-full bg-gray-900/40 border border-gray-800/60 text-gray-400 font-semibold py-3 px-4 rounded-xl text-center">
-            <p className="text-sm">Scoring akan tersedia pada hari turnamen</p>
+            <p className="text-sm">Skoring hanya tersedia pada saat turnamen berlangsung</p>
           </div>
         )}
 
