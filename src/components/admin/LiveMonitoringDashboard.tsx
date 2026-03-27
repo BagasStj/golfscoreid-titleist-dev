@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { Trophy, Activity, RefreshCw, Star, Download, Maximize2, Edit2, Save, X } from 'lucide-react';
+import { Trophy, Activity, RefreshCw, Star, Download, Maximize2, Edit2, Save, X, Search } from 'lucide-react';
 import * as XLSX from 'xlsx-js-style';
 import type { Id } from '../../../convex/_generated/dataModel';
 
@@ -10,6 +10,13 @@ export default function LiveMonitoringDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'special'>('all');
   const [isFullView, setIsFullView] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [scrollTop, setScrollTop] = useState(0);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  };
+
   const [editingScore, setEditingScore] = useState<{
     scoreId: Id<"scores">;
     playerId: Id<"users">;
@@ -70,6 +77,11 @@ export default function LiveMonitoringDashboard() {
   const hasSpecialHoles = selectedTournament.specialScoringHoles && selectedTournament.specialScoringHoles.length > 0;
   const specialHoles = selectedTournament.specialScoringHoles || [];
   
+  // Search filter
+  const filteredPlayers = monitoringData.players.filter((p: any) => 
+    p.playerName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   // Create holes map for easy lookup
   const holesMap = new Map(holes.map(h => [h.holeNumber, h]));
 
@@ -173,7 +185,7 @@ export default function LiveMonitoringDashboard() {
   const exportToExcel = () => {
     if (!monitoringData || !selectedTournament) return;
 
-    const exportData = monitoringData.players.map(player => {
+    const exportData = filteredPlayers.map((player: any) => {
       const completedHoles = countCompletedHoles(player.scorecard);
       const totalOver = calculateTotalOver(player.scorecard, holesMap);
       
@@ -303,7 +315,7 @@ export default function LiveMonitoringDashboard() {
             <div className="text-right">
               <div className="text-4xl mb-2">🏆</div>
               <div className="text-sm text-gray-300">
-                {monitoringData.players.length} Pemain
+                {filteredPlayers.length} Pemain
               </div>
             </div>
             <div className="flex flex-col gap-2">
@@ -366,6 +378,20 @@ export default function LiveMonitoringDashboard() {
         </div>
       )}
 
+      {/* Search Bar */}
+      <div className="bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 p-4 flex items-center gap-3">
+        <div className="bg-red-900/30 p-2 rounded-lg border border-red-800/40">
+          <Search className="w-5 h-5 text-red-400" />
+        </div>
+        <input 
+          type="text"
+          placeholder="Cari berdasarkan nama pemain..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-500 font-medium"
+        />
+      </div>
+
       {/* Scorecard Table - All Holes */}
       {activeTab === 'all' && (
       <div className="bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 overflow-hidden">
@@ -385,12 +411,15 @@ export default function LiveMonitoringDashboard() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
+        <div 
+          className="max-h-[600px] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 relative"
+          onScroll={handleScroll}
+        >
+          <table className="w-full text-sm min-w-max">
+            <thead className="sticky top-0 z-20 shadow-md">
               {/* Hole Numbers Row */}
-              <tr className="bg-gray-800/80 border-b-2 border-gray-700/60">
-                <th className="sticky left-0 z-10 bg-gray-800/80 px-4 py-3 text-left font-bold text-gray-300 border-r-2 border-gray-700/60">
+              <tr className="bg-gray-800/90 backdrop-blur-sm border-b-2 border-gray-700/60">
+                <th className="sticky left-0 z-30 bg-gray-800/95 px-4 py-3 text-left font-bold text-gray-300 border-r-2 border-gray-700/60">
                   Pemain
                 </th>
                 {is18Holes ? (
@@ -451,8 +480,8 @@ export default function LiveMonitoringDashboard() {
               </tr>
 
               {/* Par Row */}
-              <tr className="bg-gray-900/60 border-b-2 border-gray-700/60">
-                <td className="sticky left-0 z-10 bg-gray-900/60 px-4 py-2 font-semibold text-gray-300 border-r-2 border-gray-700/60">
+              <tr className="bg-gray-900/90 backdrop-blur-sm border-b-2 border-gray-700/60">
+                <td className="sticky left-0 z-30 bg-gray-900/95 px-4 py-2 font-semibold text-gray-300 border-r-2 border-gray-700/60">
                   PAR
                 </td>
                 {is18Holes ? (
@@ -506,26 +535,41 @@ export default function LiveMonitoringDashboard() {
               </tr>
             </thead>
 
-            <tbody>
-              {monitoringData.players.length === 0 ? (
+            <tbody className="divide-y divide-gray-800/60">
+              {filteredPlayers.length === 0 ? (
                 <tr>
                   <td colSpan={is18Holes ? 25 : 14} className="px-4 py-12 text-center text-gray-400">
-                    Belum ada pemain terdaftar
+                    Belum ada pemain yang cocok
                   </td>
                 </tr>
               ) : (
-                monitoringData.players.map((player, playerIndex) => {
-                  const completedHoles = countCompletedHoles(player.scorecard);
-                  const totalOver = calculateTotalOver(player.scorecard, holesMap);
+                (() => {
+                  const ITEM_HEIGHT = 65; // Estimated row height
+                  const CONTAINER_HEIGHT = 600;
+                  const OVERSCAN = 10;
                   
-                  return (
-                  <tr 
-                    key={player.playerId}
-                    className={`border-b border-gray-800/60 hover:bg-red-950/20 ${
-                      playerIndex % 2 === 0 ? 'bg-[#1a1a1a]/60' : 'bg-[#2e2e2e]/40'
-                    }`}
-                  >
-                    <td className="sticky left-0 z-10 bg-inherit px-4 py-3 font-semibold text-white border-r-2 border-gray-800/60">
+                  const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
+                  const endIndex = Math.min(filteredPlayers.length - 1, Math.floor((scrollTop + CONTAINER_HEIGHT) / ITEM_HEIGHT) + OVERSCAN);
+                  
+                  const paddingTop = Math.max(0, startIndex * ITEM_HEIGHT);
+                  const paddingBottom = Math.max(0, (filteredPlayers.length - 1 - endIndex) * ITEM_HEIGHT);
+                  
+                  const visibleItems = filteredPlayers.slice(startIndex, endIndex + 1);
+
+                  const visibleItemsMap = visibleItems.map((player: any, playerIndex: number) => {
+                        const absoluteIndex = startIndex + playerIndex;
+                        const completedHoles = countCompletedHoles(player.scorecard);
+                        const totalOver = calculateTotalOver(player.scorecard, holesMap);
+                        
+                        return (
+                          <tr 
+                            key={player.playerId}
+                            style={{ height: `${ITEM_HEIGHT}px` }}
+                            className={`border-b border-gray-800/60 hover:bg-red-950/20 ${
+                              absoluteIndex % 2 === 0 ? 'bg-[#1a1a1a]/60' : 'bg-[#2e2e2e]/40'
+                            }`}
+                          >
+                            <td className="sticky left-0 z-10 bg-inherit px-4 py-3 font-semibold text-white border-r-2 border-gray-800/60" title={player.playerName}>
                       <div>
                         <div className="font-bold">{player.playerName}</div>
                         {/* <div className="text-xs text-gray-400 mt-1">
@@ -745,8 +789,15 @@ export default function LiveMonitoringDashboard() {
                     )}
                   </tr>
                   );
-                })
-              )}
+                });
+
+                return [
+                  paddingTop > 0 ? <tr key="all-pad-top" style={{ height: `${paddingTop}px` }}><td colSpan={is18Holes ? 25 : 14} aria-hidden="true" /></tr> : null,
+                  ...visibleItemsMap,
+                  paddingBottom > 0 ? <tr key="all-pad-bot" style={{ height: `${paddingBottom}px` }}><td colSpan={is18Holes ? 25 : 14} aria-hidden="true" /></tr> : null
+                ];
+              })()
+            )}
             </tbody>
           </table>
         </div>
@@ -775,12 +826,15 @@ export default function LiveMonitoringDashboard() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
+        <div 
+          className="max-h-[600px] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-thumb-amber-700 scrollbar-track-gray-900 relative"
+          onScroll={handleScroll}
+        >
+          <table className="w-full text-sm min-w-max">
+            <thead className="sticky top-0 z-20 shadow-md">
               {/* Hole Numbers Row */}
-              <tr className="bg-gray-800/80 border-b-2 border-amber-900/40">
-                <th className="sticky left-0 z-10 bg-gray-800/80 px-4 py-3 text-left font-bold text-gray-300 border-r-2 border-amber-900/40">
+              <tr className="bg-gray-800/90 backdrop-blur-sm border-b-2 border-amber-900/40">
+                <th className="sticky left-0 z-30 bg-gray-800/95 px-4 py-3 text-left font-bold text-gray-300 border-r-2 border-amber-900/40">
                   Pemain
                 </th>
                 {specialHoles.map(hole => (
@@ -803,8 +857,8 @@ export default function LiveMonitoringDashboard() {
               </tr>
 
               {/* Par Row */}
-              <tr className="bg-gray-900/60 border-b-2 border-amber-900/40">
-                <td className="sticky left-0 z-10 bg-gray-900/60 px-4 py-2 font-semibold text-gray-300 border-r-2 border-amber-900/40">
+              <tr className="bg-gray-900/90 backdrop-blur-sm border-b-2 border-amber-900/40">
+                <td className="sticky left-0 z-30 bg-gray-900/95 px-4 py-2 font-semibold text-gray-300 border-r-2 border-amber-900/40">
                   PAR
                 </td>
                 {specialHoles.map(hole => {
@@ -821,38 +875,53 @@ export default function LiveMonitoringDashboard() {
               </tr>
             </thead>
 
-            <tbody>
-              {monitoringData.players.length === 0 ? (
+            <tbody className="divide-y divide-gray-800/60">
+              {filteredPlayers.length === 0 ? (
                 <tr>
                   <td colSpan={specialHoles.length + 5} className="px-4 py-12 text-center text-gray-400">
-                    Belum ada pemain terdaftar
+                    Belum ada pemain yang cocok
                   </td>
                 </tr>
               ) : (
-                monitoringData.players.map((player, playerIndex) => {
-                  const specialCompletedHoles = specialHoles.filter(hole => 
-                    getScoreForHole(player.scorecard, hole) !== null
-                  ).length;
+                (() => {
+                  const ITEM_HEIGHT = 65; // Estimated row height
+                  const CONTAINER_HEIGHT = 600;
+                  const OVERSCAN = 10;
                   
-                  // Calculate over/under for special holes only
-                  let specialTotalOver = 0;
-                  for (const hole of specialHoles) {
-                    const score = getScoreForHole(player.scorecard, hole);
-                    if (score !== null) {
-                      const holeData = holesMap.get(hole);
-                      if (holeData) {
-                        specialTotalOver += score - holeData.par;
-                      }
-                    }
-                  }
+                  const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
+                  const endIndex = Math.min(filteredPlayers.length - 1, Math.floor((scrollTop + CONTAINER_HEIGHT) / ITEM_HEIGHT) + OVERSCAN);
                   
-                  return (
-                  <tr 
-                    key={player.playerId}
-                    className={`border-b border-gray-800/60 hover:bg-amber-950/20 ${
-                      playerIndex % 2 === 0 ? 'bg-[#1a1a1a]/60' : 'bg-[#2e2e2e]/40'
-                    }`}
-                  >
+                  const paddingTop = Math.max(0, startIndex * ITEM_HEIGHT);
+                  const paddingBottom = Math.max(0, (filteredPlayers.length - 1 - endIndex) * ITEM_HEIGHT);
+                  
+                  const visibleItems = filteredPlayers.slice(startIndex, endIndex + 1);
+
+                  const visibleItemsMap = visibleItems.map((player: any, playerIndex: number) => {
+                        const absoluteIndex = startIndex + playerIndex;
+                        const specialCompletedHoles = specialHoles.filter(hole => 
+                          getScoreForHole(player.scorecard, hole) !== null
+                        ).length;
+                        
+                        // Calculate over/under for special holes only
+                        let specialTotalOver = 0;
+                        for (const hole of specialHoles) {
+                          const score = getScoreForHole(player.scorecard, hole);
+                          if (score !== null) {
+                            const holeData = holesMap.get(hole);
+                            if (holeData) {
+                              specialTotalOver += score - holeData.par;
+                            }
+                          }
+                        }
+                        
+                        return (
+                          <tr 
+                            key={player.playerId}
+                            style={{ height: `${ITEM_HEIGHT}px` }}
+                            className={`border-b border-gray-800/60 hover:bg-amber-950/20 ${
+                              absoluteIndex % 2 === 0 ? 'bg-[#1a1a1a]/60' : 'bg-[#2e2e2e]/40'
+                            }`}
+                          >
                     <td className="sticky left-0 z-10 bg-inherit px-4 py-3 font-semibold text-white border-r-2 border-amber-900/40">
                       <div>
                         <div className="font-bold">{player.playerName}</div>
@@ -930,8 +999,15 @@ export default function LiveMonitoringDashboard() {
                       {specialCompletedHoles}/{specialHoles.length}
                     </td>
                   </tr>
-                  );
-                })
+                        );
+                      });
+
+                  return [
+                    paddingTop > 0 ? <tr key="spec-pad-top" style={{ height: `${paddingTop}px` }}><td colSpan={specialHoles.length + 5} aria-hidden="true" /></tr> : null,
+                    ...visibleItemsMap,
+                    paddingBottom > 0 ? <tr key="spec-pad-bot" style={{ height: `${paddingBottom}px` }}><td colSpan={specialHoles.length + 5} aria-hidden="true" /></tr> : null
+                  ];
+                })()
               )}
             </tbody>
           </table>

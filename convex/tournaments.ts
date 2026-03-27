@@ -405,9 +405,12 @@ export const getPlayerTournaments = query({
           )
           .collect();
 
-        // Calculate player's rank if tournament is completed
+        // Player has finished scoring if scoringFinished flag is true
+        const playerScoringFinished = participation.scoringFinished === true;
+
+        // Calculate player's rank if player has finished scoring OR tournament is completed
         let playerRank: number | undefined;
-        if (tournament.status === "completed" && playerScores.length > 0) {
+        if ((tournament.status === "completed" || playerScoringFinished) && playerScores.length > 0) {
           // Get all players' total scores
           const allPlayerScores = new Map<string, number>();
           
@@ -419,8 +422,10 @@ export const getPlayerTournaments = query({
               )
               .collect();
             
-            const totalScore = scores.reduce((sum, s) => sum + s.strokes, 0);
-            allPlayerScores.set(p.playerId, totalScore);
+            if (scores.length > 0) {
+              const totalScore = scores.reduce((sum, s) => sum + s.strokes, 0);
+              allPlayerScores.set(p.playerId, totalScore);
+            }
           }
 
           // Sort players by score (ascending for stroke play)
@@ -440,6 +445,9 @@ export const getPlayerTournaments = query({
           location,
           participantCount: allParticipations.length,
           playerRank,
+          scoringFinished: playerScoringFinished,
+          playerTotalStrokes: playerScores.reduce((sum, s) => sum + s.strokes, 0),
+          playerHolesPlayed: playerScores.length,
         };
       })
     );

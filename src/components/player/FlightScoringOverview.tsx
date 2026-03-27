@@ -919,6 +919,18 @@ const ActionButtons: React.FC<{
       })
       .map(p => ({ name: p.name, hole: userLastApprovedHole as number }));
 
+    // Check if all players in flight have approved all holes (everyone approved 18 holes)
+    const allPlayersApprovedAll = allHolesCompleted && flightParticipants.every(p => {
+      const pApprovedHoles: number[] = p.approvedHoles || [];
+      return pApprovedHoles.length >= holesConfig.length;
+    });
+
+    // Finish round is enabled when all holes completed, no unapproved holes, and no pending approvals from others
+    const isFinishRoundEnabled = allHolesCompleted && !hasUnapprovedHoles && playersNotYetApproved.length === 0;
+
+    // Score input should be locked when finish round is enabled OR all players have approved all holes
+    const isScoreInputLocked = isFinishRoundEnabled || allPlayersApprovedAll;
+
     return (
       <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg border border-gray-800 p-3 space-y-2">
         {/* Info Penting Scoring */}
@@ -1036,98 +1048,112 @@ const ActionButtons: React.FC<{
         ) : (
           <>
             {/* Show Input Score button that opens a hole selector */}
-            <button
-              onClick={() => {
-                // Guard: if there are players who haven't approved yet, block and show alert
-                if (playersNotYetApproved.length > 0) {
-                  setWaitingApprovalPlayers(playersNotYetApproved);
-                  setShowWaitingApprovalAlert(true);
-                  return;
-                }
+            {isScoreInputLocked ? (
+              /* Score is locked — show disabled state with explanation */
+              <div className="w-full bg-gray-800/60 border border-gray-700/60 rounded-lg p-3.5 flex items-center gap-3">
+                <div className="w-9 h-9 bg-green-900/40 border border-green-700/50 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-green-400 text-sm font-semibold">Skor Dikunci 🔒</p>
+                  <p className="text-gray-400 text-xs mt-0.5">Semua hole telah diisi dan disetujui. Tekan "Selesaikan Pertandingan" di bawah.</p>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  // Guard: if there are players who haven't approved yet, block and show alert
+                  if (playersNotYetApproved.length > 0) {
+                    setWaitingApprovalPlayers(playersNotYetApproved);
+                    setShowWaitingApprovalAlert(true);
+                    return;
+                  }
 
-                if (currentHole !== null) {
-                  navigate(
-                    `/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`,
-                  );
-                  return;
-                }
+                  if (currentHole !== null) {
+                    navigate(
+                      `/player/scoring/${tournamentId}?playerId=${userId}&hole=${currentHole}`,
+                    );
+                    return;
+                  }
 
-                const holesConfig: any[] = tournament.holesConfig || [];
+                  const holesConfig: any[] = tournament.holesConfig || [];
 
-                const userScoresData = participantScores.find(
-                  (ps) => ps.participant._id === userId,
-                );
-
-                const userScores: any[] = userScoresData?.scores || [];
-
-                // Build a set of all scored hole numbers
-                const scoredHoles = new Set(userScores.map((s: any) => s.holeNumber));
-
-                // Sort holesConfig by holeNumber ascending (canonical order)
-                const sortedHoles = [...holesConfig].sort(
-                  (a, b) => a.holeNumber - b.holeNumber
-                );
-
-                let targetHole: any = null;
-
-                if (userScores.length > 0) {
-                  // Find the most recently submitted hole (by submittedAt timestamp)
-                  const lastSubmittedScore = [...userScores].sort(
-                    (a, b) => (b.submittedAt ?? 0) - (a.submittedAt ?? 0)
-                  )[0];
-                  const lastSubmittedHoleNumber = lastSubmittedScore.holeNumber;
-
-                  // Find the index of lastSubmittedHole in sortedHoles
-                  const lastIndex = sortedHoles.findIndex(
-                    (h) => h.holeNumber === lastSubmittedHoleNumber
+                  const userScoresData = participantScores.find(
+                    (ps) => ps.participant._id === userId,
                   );
 
-                  // Search for the next UNSCORED hole AFTER the last submitted hole
-                  for (let i = lastIndex + 1; i < sortedHoles.length; i++) {
-                    if (!scoredHoles.has(sortedHoles[i].holeNumber)) {
-                      targetHole = sortedHoles[i];
-                      break;
+                  const userScores: any[] = userScoresData?.scores || [];
+
+                  // Build a set of all scored hole numbers
+                  const scoredHoles = new Set(userScores.map((s: any) => s.holeNumber));
+
+                  // Sort holesConfig by holeNumber ascending (canonical order)
+                  const sortedHoles = [...holesConfig].sort(
+                    (a, b) => a.holeNumber - b.holeNumber
+                  );
+
+                  let targetHole: any = null;
+
+                  if (userScores.length > 0) {
+                    // Find the most recently submitted hole (by submittedAt timestamp)
+                    const lastSubmittedScore = [...userScores].sort(
+                      (a, b) => (b.submittedAt ?? 0) - (a.submittedAt ?? 0)
+                    )[0];
+                    const lastSubmittedHoleNumber = lastSubmittedScore.holeNumber;
+
+                    // Find the index of lastSubmittedHole in sortedHoles
+                    const lastIndex = sortedHoles.findIndex(
+                      (h) => h.holeNumber === lastSubmittedHoleNumber
+                    );
+
+                    // Search for the next UNSCORED hole AFTER the last submitted hole
+                    for (let i = lastIndex + 1; i < sortedHoles.length; i++) {
+                      if (!scoredHoles.has(sortedHoles[i].holeNumber)) {
+                        targetHole = sortedHoles[i];
+                        break;
+                      }
                     }
                   }
-                }
 
-                // Fallback: first hole in config not yet scored (also handles wrap-around)
-                if (!targetHole) {
-                  targetHole = sortedHoles.find((h) => !scoredHoles.has(h.holeNumber));
-                }
+                  // Fallback: first hole in config not yet scored (also handles wrap-around)
+                  if (!targetHole) {
+                    targetHole = sortedHoles.find((h) => !scoredHoles.has(h.holeNumber));
+                  }
 
-                // Last fallback: last hole in config
-                if (!targetHole) {
-                  targetHole = sortedHoles[sortedHoles.length - 1];
-                }
+                  // Last fallback: last hole in config
+                  if (!targetHole) {
+                    targetHole = sortedHoles[sortedHoles.length - 1];
+                  }
 
-                if (targetHole) {
-                  navigate(
-                    `/player/scoring/${tournamentId}?playerId=${userId}&hole=${targetHole.holeNumber}`,
-                  );
-                }
-              }}
-              className={`w-full font-bold py-3.5 rounded-lg transition-all shadow-lg flex items-center justify-center space-x-2 ${
-                playersNotYetApproved.length > 0
-                  ? "bg-gray-800 text-gray-400 border border-gray-700"
-                  : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
-              }`}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+                  if (targetHole) {
+                    navigate(
+                      `/player/scoring/${tournamentId}?playerId=${userId}&hole=${targetHole.holeNumber}`,
+                    );
+                  }
+                }}
+                className={`w-full font-bold py-3.5 rounded-lg transition-all shadow-lg flex items-center justify-center space-x-2 ${playersNotYetApproved.length > 0
+                    ? "bg-gray-800 text-gray-400 border border-gray-700"
+                    : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
+                  }`}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
-              <span className="text-base">Input Skor</span>
-            </button>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+                <span className="text-base">Input Skor</span>
+              </button>
+            )}
 
             {/* Information Button */}
             <button
@@ -1368,7 +1394,7 @@ const ScorecardTable: React.FC<{
                     <span className="text-red-500 font-bold">#{currentHole}</span>
                   </>
                 ) : (
-                  <span className="text-blue-400">Klik nomor hole untuk mulai</span>
+                  <span className="text-blue-400">Klik nomor hole untuk skoring</span>
                 )}
               </span>
             </div>
@@ -1470,8 +1496,8 @@ const ScorecardTable: React.FC<{
                       </th>
                     );
                   })}
-                  <th className="text-center text-white font-bold py-2 px-2 border-l-2 border-red-600 min-w-[45px]">
-                    Tot
+                  <th className="text-center text-white font-bold py-2 px-2 border-l-2 border-red-600 min-w-[55px]">
+                    Total
                   </th>
                   <th className="text-center text-white font-bold py-2 px-2 border-l border-gray-800 min-w-[45px]">
                     +/-
@@ -1567,7 +1593,7 @@ const ScorecardTable: React.FC<{
                                 </span>
                               </div>
                               <div className="min-w-0">
-                                <div className="text-white font-semibold text-xs truncate">
+                                <div className="text-white font-semibold text-xs whitespace-normal break-words leading-tight">
                                   {participant.name}
 
                                 </div>
@@ -1774,7 +1800,7 @@ const LeaderboardView: React.FC<{
   return (
     <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg border border-gray-800 overflow-hidden shadow-xl">
       {/* Table Container with virtualized scrollable content */}
-      <div 
+      <div
         className="max-h-[600px] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 relative"
         onScroll={handleScroll}
       >
@@ -1809,10 +1835,10 @@ const LeaderboardView: React.FC<{
 
               const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
               const endIndex = Math.min(sortedParticipants.length - 1, Math.floor((scrollTop + CONTAINER_HEIGHT) / ITEM_HEIGHT) + OVERSCAN);
-              
+
               const paddingTop = Math.max(0, startIndex * ITEM_HEIGHT);
               const paddingBottom = Math.max(0, (sortedParticipants.length - 1 - endIndex) * ITEM_HEIGHT);
-              
+
               const visibleItems = sortedParticipants.slice(startIndex, endIndex + 1);
 
               return (
@@ -1830,99 +1856,99 @@ const LeaderboardView: React.FC<{
                     >
                       {/* Player Name */}
                       <td className="py-3 px-3">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center flex-shrink-0">
-                      <span className="text-white font-bold text-xs">
-                        {participant.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-white font-semibold text-sm truncate">
-                        {participant.name}
-                      </div>
-                      <div className="text-gray-400 text-[10px] flex items-center gap-1">
-                        <span className="text-blue-400">
-                          {participant.flightName}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </td>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center flex-shrink-0">
+                            <span className="text-white font-bold text-xs">
+                              {participant.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-white font-semibold text-sm whitespace-normal break-words leading-tight">
+                              {participant.name}
+                            </div>
+                            <div className="text-gray-400 text-[10px] flex items-center gap-1">
+                              <span className="text-blue-400">
+                                {participant.flightName}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
 
-                {/* Total Strokes */}
-                <td className="text-center py-3 px-2">
-                  <div
-                    className={`font-bold text-lg ${participant.holesPlayed === 0
-                      ? "text-gray-500"
-                      : "text-white"
-                      }`}
-                  >
-                    {participant.holesPlayed === 0
-                      ? "-"
-                      : participant.totalStrokes}
-                  </div>
-                </td>
+                      {/* Total Strokes */}
+                      <td className="text-center py-3 px-2">
+                        <div
+                          className={`font-bold text-lg ${participant.holesPlayed === 0
+                            ? "text-gray-500"
+                            : "text-white"
+                            }`}
+                        >
+                          {participant.holesPlayed === 0
+                            ? "-"
+                            : participant.totalStrokes}
+                        </div>
+                      </td>
 
-                {/* Score to Par (Over/Under) */}
-                <td className="text-center py-3 px-2">
-                  {participant.holesPlayed === 0 ? (
-                    <div className="text-gray-500 font-bold text-base">-</div>
-                  ) : (
-                    <div
-                      className={`font-bold text-base ${participant.scoreToPar > 0
-                        ? "text-red-400"
-                        : participant.scoreToPar < 0
-                          ? "text-green-400"
-                          : "text-gray-400"
-                        }`}
-                    >
-                      {participant.scoreToPar > 0
-                        ? `+${participant.scoreToPar}`
-                        : participant.scoreToPar === 0
-                          ? "E"
-                          : participant.scoreToPar}
-                    </div>
+                      {/* Score to Par (Over/Under) */}
+                      <td className="text-center py-3 px-2">
+                        {participant.holesPlayed === 0 ? (
+                          <div className="text-gray-500 font-bold text-base">-</div>
+                        ) : (
+                          <div
+                            className={`font-bold text-base ${participant.scoreToPar > 0
+                              ? "text-red-400"
+                              : participant.scoreToPar < 0
+                                ? "text-green-400"
+                                : "text-gray-400"
+                              }`}
+                          >
+                            {participant.scoreToPar > 0
+                              ? `+${participant.scoreToPar}`
+                              : participant.scoreToPar === 0
+                                ? "E"
+                                : participant.scoreToPar}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Holes Completed */}
+                      <td className="text-center py-3 px-2">
+                        <div className="flex flex-col items-center">
+                          <div
+                            className={`font-bold text-base ${participant.holesPlayed === 0
+                              ? "text-gray-500"
+                              : "text-white"
+                              }`}
+                          >
+                            {participant.holesPlayed}/{totalHoles}
+                          </div>
+                          {/* Progress Bar */}
+                          <div className="w-full max-w-[50px] h-1.5 bg-gray-700 rounded-full mt-1 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${participant.holesPlayed === 0
+                                ? "bg-gray-600"
+                                : "bg-gradient-to-r from-green-500 to-green-600"
+                                }`}
+                              style={{
+                                width: `${participant.holesPlayed === 0 ? 0 : (participant.holesPlayed / totalHoles) * 100}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {paddingBottom > 0 && (
+                    <tr style={{ height: `${paddingBottom}px` }}>
+                      <td colSpan={4} aria-hidden="true" />
+                    </tr>
                   )}
-                </td>
-
-                {/* Holes Completed */}
-                <td className="text-center py-3 px-2">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`font-bold text-base ${participant.holesPlayed === 0
-                        ? "text-gray-500"
-                        : "text-white"
-                        }`}
-                    >
-                      {participant.holesPlayed}/{totalHoles}
-                    </div>
-                    {/* Progress Bar */}
-                    <div className="w-full max-w-[50px] h-1.5 bg-gray-700 rounded-full mt-1 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${participant.holesPlayed === 0
-                          ? "bg-gray-600"
-                          : "bg-gradient-to-r from-green-500 to-green-600"
-                          }`}
-                        style={{
-                          width: `${participant.holesPlayed === 0 ? 0 : (participant.holesPlayed / totalHoles) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          {paddingBottom > 0 && (
-            <tr style={{ height: `${paddingBottom}px` }}>
-              <td colSpan={4} aria-hidden="true" />
-            </tr>
-          )}
-        </>
-      );
-    })()}
-  </tbody>
-</table>
-</div>
+                </>
+              );
+            })()}
+          </tbody>
+        </table>
+      </div>
 
       {/* Summary Footer */}
       <div className="bg-gray-900/50 border-t-2 border-gray-700 p-3">

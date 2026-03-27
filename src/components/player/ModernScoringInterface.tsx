@@ -113,19 +113,6 @@ export default function ModernScoringInterface() {
 
   const isHoleApproved = isScoringFinished || (currentHole ? approvedHoles.includes(currentHole.holeNumber) : false);
 
-  // Debug logging
-  useEffect(() => {
-    if (currentHole) {
-      console.log('🔍 Debug Info:', {
-        currentHoleNumber: currentHole.holeNumber,
-        existingScore: existingScore,
-        isEditMode: isEditMode,
-        isHoleApproved: isHoleApproved,
-        playerScoresCount: playerScores?.length || 0,
-        scoredHolesMapSize: scoredHolesMap.size,
-      });
-    }
-  }, [currentHole, existingScore, isEditMode, isHoleApproved, playerScores, scoredHolesMap]);
 
   const totalHoles = holesConfig.length;
   const holesCompleted = (playerScores || []).length;
@@ -295,17 +282,24 @@ export default function ModernScoringInterface() {
           <h2 className="text-3xl font-bold text-white mb-4">
             {isScoringFinished ? "Pertandingan Selesai! 🎉" : "Hole Terkunci 🔒"}
           </h2>
-          <p className="text-gray-400 mb-2">
+          {/* <p className="text-gray-400 mb-2">
             {isScoringFinished
               ? "Anda sudah menyelesaikan pertandingan ini. Skor tidak dapat diubah lagi."
               : `Skor untuk Hole ${currentHole.holeNumber} sudah disetujui dan tidak dapat diubah lagi.`}
-          </p>
-          <div className="bg-green-900/20 border border-green-800/40 rounded-xl p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-300 text-sm">Skor Anda:</span>
-              <span className="text-white font-bold text-2xl">{existingScore?.strokes || '-'} strokes</span>
+          </p> */}
+          {isScoringFinished ? (
+            <div className="rounded-xl p-4 mb-6">
+
             </div>
-          </div>
+          ) : (
+            <div className="bg-green-900/20 border border-green-800/40 rounded-xl p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-300 text-sm">Skor Anda:</span>
+                <span className="text-white font-bold text-2xl">{existingScore?.strokes || '-'} strokes</span>
+              </div>
+            </div>
+          )}
+
           <button
             onClick={() => navigate(`/player/flight-scoring/${id}`)}
             className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-xl"

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { Award, Trophy, Medal, TrendingUp, Calendar, Star } from 'lucide-react';
+import { Award, Trophy, Medal, TrendingUp, Calendar, Star, Search } from 'lucide-react';
 import { Card, Button } from '../ui';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -16,6 +16,12 @@ export default function LeaderboardAdmin({ tournamentId: initialTournamentId }: 
     initialTournamentId || null
   );
   const [activeTab, setActiveTab] = useState<'all' | 'special'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [scrollTop, setScrollTop] = useState(0);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  };
 
   // Get all tournaments for selection
   const tournaments = useQuery(
@@ -238,17 +244,25 @@ export default function LeaderboardAdmin({ tournamentId: initialTournamentId }: 
     );
   }
 
-  const { players, holesConfig, gameMode, courseType, tournament } = detailedData;
+  const { players: originalPlayers, holesConfig, gameMode, courseType, tournament } = detailedData;
   const isPointsBased = gameMode !== 'strokePlay';
   const is18Holes = courseType === '18holes';
   const hasSpecialHoles = tournament.specialScoringHoles && tournament.specialScoringHoles.length > 0;
   const specialHoles = tournament.specialScoringHoles || [];
 
+  // Gunakan originalPlayers
+  const players = originalPlayers;
+
+  // Search filter
+  const filteredPlayers = players.filter(p => 
+    p.playerName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   // Create holes map
   const holesMap = new Map(holesConfig.map(h => [h.holeNumber, h]));
 
   // Show empty state if no data
-  if (players.length === 0 && debugData) {
+  if (originalPlayers.length === 0 && debugData) {
     return (
       <div className="space-y-6">
         <Button
@@ -410,6 +424,20 @@ export default function LeaderboardAdmin({ tournamentId: initialTournamentId }: 
         </div>
       )}
 
+      {/* Search Bar */}
+      <div className="bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 p-4 flex items-center gap-3">
+        <div className="bg-red-900/30 p-2 rounded-lg border border-red-800/40">
+          <Search className="w-5 h-5 text-red-400" />
+        </div>
+        <input 
+          type="text"
+          placeholder="Cari berdasarkan nama pemain..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-500 font-medium"
+        />
+      </div>
+
       {/* Detailed Scorecard Table - All Holes */}
       {activeTab === 'all' && (
       <div className="bg-gradient-to-b from-[#2e2e2e]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-red-900/30 overflow-hidden">
@@ -431,8 +459,11 @@ export default function LeaderboardAdmin({ tournamentId: initialTournamentId }: 
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div 
+          className="max-h-[600px] overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 relative"
+          onScroll={handleScroll}
+        >
+          <table className="w-full text-sm min-w-max">
             <thead>
               {/* Hole Numbers Row */}
               <tr className="bg-gray-800/80 border-b-2 border-gray-700/60">
@@ -532,106 +563,136 @@ export default function LeaderboardAdmin({ tournamentId: initialTournamentId }: 
               </tr>
             </thead>
 
-            <tbody>
-              {players.map((player, playerIndex) => {
-                const isTopThree = player.rank <= 3;
-                const isEven = playerIndex % 2 === 0;
+            <tbody className="divide-y divide-gray-800/60">
+              {(() => {
+                const ITEM_HEIGHT = 65; // Estimated row height
+                const CONTAINER_HEIGHT = 600;
+                const OVERSCAN = 10;
+                
+                const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
+                const endIndex = Math.min(filteredPlayers.length - 1, Math.floor((scrollTop + CONTAINER_HEIGHT) / ITEM_HEIGHT) + OVERSCAN);
+                
+                const paddingTop = Math.max(0, startIndex * ITEM_HEIGHT);
+                const paddingBottom = Math.max(0, (filteredPlayers.length - 1 - endIndex) * ITEM_HEIGHT);
+                
+                const visibleItems = filteredPlayers.slice(startIndex, endIndex + 1);
 
                 return (
-                  <tr
-                    key={player.playerId}
-                    className={`border-b border-gray-800/60 hover:bg-red-950/20 transition-all ${
-                      isTopThree ? 'bg-red-950/30' : isEven ? 'bg-[#1a1a1a]/60' : 'bg-[#2e2e2e]/40'
-                    }`}
-                  >
-                    <td className="sticky left-0 z-10 bg-inherit px-4 py-3 border-r-2 border-gray-800/60">
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={`inline-flex items-center justify-center w-8 h-8 rounded-lg font-bold text-sm ${getRankBadgeColor(player.rank)}`}
-                        >
-                          {player.rank}
-                        </span>
-                        {getMedalIcon(player.rank)}
-                        <div>
-                          <div className="font-semibold text-white">{player.playerName}</div>
-                          <div className="text-xs text-gray-400">
-                            {player.holesCompleted}/{holesConfig.length} holes
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    {is18Holes ? (
-                      <>
-                        {/* Front 9 */}
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(holeNum => {
-                          const holeScore = player.scorecard.find(s => s.holeNumber === holeNum);
-                          const par = holesMap.get(holeNum)?.par || 0;
-                          return (
-                            <td
-                              key={holeNum}
-                              className={`px-3 py-3 text-center font-bold text-lg ${
-                                holeScore?.strokes ? getScoreColor(holeScore.strokes, par) : 'text-white'
-                              }`}
-                            >
-                              {holeScore?.strokes || '-'}
-                            </td>
-                          );
-                        })}
-                        <td className="px-3 py-3 text-center font-bold text-green-400 bg-green-950/40 border-x-2 border-gray-800/60">
-                          {calculateNineTotal(player.scorecard, 1, 9) || '-'}
-                        </td>
-
-                        {/* Back 9 */}
-                        {[10, 11, 12, 13, 14, 15, 16, 17, 18].map(holeNum => {
-                          const holeScore = player.scorecard.find(s => s.holeNumber === holeNum);
-                          const par = holesMap.get(holeNum)?.par || 0;
-                          return (
-                            <td
-                              key={holeNum}
-                              className={`px-3 py-3 text-center font-bold text-lg ${
-                                holeScore?.strokes ? getScoreColor(holeScore.strokes, par) : 'text-white'
-                              }`}
-                            >
-                              {holeScore?.strokes || '-'}
-                            </td>
-                          );
-                        })}
-                        <td className="px-3 py-3 text-center font-bold text-green-400 bg-green-950/40 border-x-2 border-gray-800/60">
-                          {calculateNineTotal(player.scorecard, 10, 18) || '-'}
-                        </td>
-
-                        <td className="px-4 py-3 text-center font-bold text-blue-400 bg-blue-950/40 border-l-2 border-gray-800/60 text-lg">
-                          {player.totalScore || '-'}
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        {(courseType === 'F9' 
-                          ? [1, 2, 3, 4, 5, 6, 7, 8, 9]
-                          : [10, 11, 12, 13, 14, 15, 16, 17, 18]
-                        ).map(holeNum => {
-                          const holeScore = player.scorecard.find(s => s.holeNumber === holeNum);
-                          const par = holesMap.get(holeNum)?.par || 0;
-                          return (
-                            <td
-                              key={holeNum}
-                              className={`px-3 py-3 text-center font-bold text-lg ${
-                                holeScore?.strokes ? getScoreColor(holeScore.strokes, par) : 'text-white'
-                              }`}
-                            >
-                              {holeScore?.strokes || '-'}
-                            </td>
-                          );
-                        })}
-                        <td className="px-4 py-3 text-center font-bold text-blue-400 bg-blue-950/40 border-l-2 border-gray-800/60 text-lg">
-                          {player.totalScore || '-'}
-                        </td>
-                      </>
+                  <>
+                    {paddingTop > 0 && (
+                      <tr style={{ height: `${paddingTop}px` }}>
+                        <td colSpan={is18Holes ? 22 : 11} aria-hidden="true" />
+                      </tr>
                     )}
-                  </tr>
+                    {visibleItems.map((player, playerIndex) => {
+                      const absoluteIndex = startIndex + playerIndex;
+                      const isTopThree = player.rank <= 3;
+                      const isEven = absoluteIndex % 2 === 0;
+
+                      return (
+                        <tr
+                          key={player.playerId}
+                          style={{ height: `${ITEM_HEIGHT}px` }}
+                          className={`hover:bg-red-950/20 transition-all ${
+                            isTopThree ? 'bg-red-950/30' : isEven ? 'bg-[#1a1a1a]/60' : 'bg-[#2e2e2e]/40'
+                          }`}
+                        >
+                          <td className="sticky left-0 z-10 bg-inherit px-4 py-3 border-r-2 border-gray-800/60 min-w-[150px]">
+                            <div className="flex items-center gap-3">
+                              <span
+                                className={`inline-flex items-center justify-center w-8 h-8 rounded-lg font-bold text-sm ${getRankBadgeColor(player.rank)}`}
+                              >
+                                {player.rank}
+                              </span>
+                              {getMedalIcon(player.rank)}
+                              <div className="min-w-0 pr-2">
+                                <div className="font-semibold text-white whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]" title={player.playerName}>{player.playerName}</div>
+                                <div className="text-xs text-gray-400">
+                                  {player.holesCompleted}/{holesConfig.length} holes
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          {is18Holes ? (
+                            <>
+                              {/* Front 9 */}
+                              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(holeNum => {
+                                const holeScore = player.scorecard.find(s => s.holeNumber === holeNum);
+                                const par = holesMap.get(holeNum)?.par || 0;
+                                return (
+                                  <td
+                                    key={holeNum}
+                                    className={`px-3 py-3 text-center font-bold text-lg ${
+                                      holeScore?.strokes ? getScoreColor(holeScore.strokes, par) : 'text-white'
+                                    }`}
+                                  >
+                                    {holeScore?.strokes || '-'}
+                                  </td>
+                                );
+                              })}
+                              <td className="px-3 py-3 text-center font-bold text-green-400 bg-green-950/40 border-x-2 border-gray-800/60 min-w-[50px]">
+                                {calculateNineTotal(player.scorecard, 1, 9) || '-'}
+                              </td>
+
+                              {/* Back 9 */}
+                              {[10, 11, 12, 13, 14, 15, 16, 17, 18].map(holeNum => {
+                                const holeScore = player.scorecard.find(s => s.holeNumber === holeNum);
+                                const par = holesMap.get(holeNum)?.par || 0;
+                                return (
+                                  <td
+                                    key={holeNum}
+                                    className={`px-3 py-3 text-center font-bold text-lg ${
+                                      holeScore?.strokes ? getScoreColor(holeScore.strokes, par) : 'text-white'
+                                    }`}
+                                  >
+                                    {holeScore?.strokes || '-'}
+                                  </td>
+                                );
+                              })}
+                              <td className="px-3 py-3 text-center font-bold text-green-400 bg-green-950/40 border-x-2 border-gray-800/60 min-w-[50px]">
+                                {calculateNineTotal(player.scorecard, 10, 18) || '-'}
+                              </td>
+
+                              <td className="px-4 py-3 text-center font-bold text-blue-400 bg-blue-950/40 border-l-2 border-gray-800/60 text-lg min-w-[60px]">
+                                {player.totalScore || '-'}
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              {(courseType === 'F9' 
+                                ? [1, 2, 3, 4, 5, 6, 7, 8, 9]
+                                : [10, 11, 12, 13, 14, 15, 16, 17, 18]
+                              ).map(holeNum => {
+                                const holeScore = player.scorecard.find(s => s.holeNumber === holeNum);
+                                const par = holesMap.get(holeNum)?.par || 0;
+                                return (
+                                  <td
+                                    key={holeNum}
+                                    className={`px-3 py-3 text-center font-bold text-lg ${
+                                      holeScore?.strokes ? getScoreColor(holeScore.strokes, par) : 'text-white'
+                                    }`}
+                                  >
+                                    {holeScore?.strokes || '-'}
+                                  </td>
+                                );
+                              })}
+                              <td className="px-4 py-3 text-center font-bold text-blue-400 bg-blue-950/40 border-l-2 border-gray-800/60 text-lg min-w-[60px]">
+                                {player.totalScore || '-'}
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      );
+                    })}
+                    {paddingBottom > 0 && (
+                      <tr style={{ height: `${paddingBottom}px` }}>
+                        <td colSpan={is18Holes ? 22 : 11} aria-hidden="true" />
+                      </tr>
+                    )}
+                  </>
                 );
-              })}
+              })()}
             </tbody>
           </table>
         </div>
@@ -659,8 +720,11 @@ export default function LeaderboardAdmin({ tournamentId: initialTournamentId }: 
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div 
+          className="max-h-[600px] overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 relative"
+          onScroll={handleScroll}
+        >
+          <table className="w-full text-sm min-w-max">
             <thead>
               {/* Hole Numbers Row */}
               <tr className="bg-gray-800/80 border-b-2 border-amber-900/40">
@@ -699,56 +763,86 @@ export default function LeaderboardAdmin({ tournamentId: initialTournamentId }: 
               </tr>
             </thead>
 
-            <tbody>
-              {players.map((player, playerIndex) => {
-                const isTopThree = player.rank <= 3;
-                const isEven = playerIndex % 2 === 0;
+            <tbody className="divide-y divide-gray-800/60">
+              {(() => {
+                const ITEM_HEIGHT = 65; // Estimated row height
+                const CONTAINER_HEIGHT = 600;
+                const OVERSCAN = 10;
+                
+                const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
+                const endIndex = Math.min(filteredPlayers.length - 1, Math.floor((scrollTop + CONTAINER_HEIGHT) / ITEM_HEIGHT) + OVERSCAN);
+                
+                const paddingTop = Math.max(0, startIndex * ITEM_HEIGHT);
+                const paddingBottom = Math.max(0, (filteredPlayers.length - 1 - endIndex) * ITEM_HEIGHT);
+                
+                const visibleItems = filteredPlayers.slice(startIndex, endIndex + 1);
 
                 return (
-                  <tr
-                    key={player.playerId}
-                    className={`border-b border-gray-800/60 hover:bg-amber-950/20 transition-all ${
-                      isTopThree ? 'bg-amber-950/30' : isEven ? 'bg-[#1a1a1a]/60' : 'bg-[#2e2e2e]/40'
-                    }`}
-                  >
-                    <td className="sticky left-0 z-10 bg-inherit px-4 py-3 border-r-2 border-amber-900/40">
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={`inline-flex items-center justify-center w-8 h-8 rounded-lg font-bold text-sm ${getRankBadgeColor(player.rank)}`}
-                        >
-                          {player.rank}
-                        </span>
-                        {getMedalIcon(player.rank)}
-                        <div>
-                          <div className="font-semibold text-white">{player.playerName}</div>
-                          <div className="text-xs text-gray-400">
-                            {player.scorecard.filter(s => specialHoles.includes(s.holeNumber) && s.strokes !== null).length}/{specialHoles.length} holes
-                          </div>
-                        </div>
-                      </div>
-                    </td>
+                  <>
+                    {paddingTop > 0 && (
+                      <tr style={{ height: `${paddingTop}px` }}>
+                        <td colSpan={specialHoles.length + 2} aria-hidden="true" />
+                      </tr>
+                    )}
+                    {visibleItems.map((player, playerIndex) => {
+                      const absoluteIndex = startIndex + playerIndex;
+                      const isTopThree = player.rank <= 3;
+                      const isEven = absoluteIndex % 2 === 0;
 
-                    {specialHoles.map(holeNum => {
-                      const holeScore = player.scorecard.find(s => s.holeNumber === holeNum);
-                      const par = holesMap.get(holeNum)?.par || 0;
                       return (
-                        <td
-                          key={holeNum}
-                          className={`px-3 py-3 text-center font-bold text-lg ${
-                            holeScore?.strokes ? getScoreColor(holeScore.strokes, par) : 'text-white'
+                        <tr
+                          key={player.playerId}
+                          style={{ height: `${ITEM_HEIGHT}px` }}
+                          className={`hover:bg-amber-950/20 transition-all ${
+                            isTopThree ? 'bg-amber-950/30' : isEven ? 'bg-[#1a1a1a]/60' : 'bg-[#2e2e2e]/40'
                           }`}
                         >
-                          {holeScore?.strokes || '-'}
-                        </td>
+                          <td className="sticky left-0 z-10 bg-inherit px-4 py-3 border-r-2 border-amber-900/40 min-w-[150px]">
+                            <div className="flex items-center gap-3">
+                              <span
+                                className={`inline-flex items-center justify-center w-8 h-8 rounded-lg font-bold text-sm ${getRankBadgeColor(player.rank)}`}
+                              >
+                                {player.rank}
+                              </span>
+                              {getMedalIcon(player.rank)}
+                              <div className="min-w-0 pr-2">
+                                <div className="font-semibold text-white whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]" title={player.playerName}>{player.playerName}</div>
+                                <div className="text-xs text-gray-400">
+                                  {player.scorecard.filter(s => specialHoles.includes(s.holeNumber) && s.strokes !== null).length}/{specialHoles.length} holes
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          {specialHoles.map(holeNum => {
+                            const holeScore = player.scorecard.find(s => s.holeNumber === holeNum);
+                            const par = holesMap.get(holeNum)?.par || 0;
+                            return (
+                              <td
+                                key={holeNum}
+                                className={`px-3 py-3 text-center font-bold text-lg ${
+                                  holeScore?.strokes ? getScoreColor(holeScore.strokes, par) : 'text-white'
+                                }`}
+                              >
+                                {holeScore?.strokes || '-'}
+                              </td>
+                            );
+                          })}
+
+                          <td className="px-4 py-3 text-center font-bold text-amber-400 bg-amber-950/40 border-l-2 border-amber-900/40 text-lg min-w-[60px]">
+                            {calculateSpecialTotal(player.scorecard, specialHoles) || '-'}
+                          </td>
+                        </tr>
                       );
                     })}
-
-                    <td className="px-4 py-3 text-center font-bold text-amber-400 bg-amber-950/40 border-l-2 border-amber-900/40 text-lg">
-                      {calculateSpecialTotal(player.scorecard, specialHoles) || '-'}
-                    </td>
-                  </tr>
+                    {paddingBottom > 0 && (
+                      <tr style={{ height: `${paddingBottom}px` }}>
+                        <td colSpan={specialHoles.length + 2} aria-hidden="true" />
+                      </tr>
+                    )}
+                  </>
                 );
-              })}
+              })()}
             </tbody>
           </table>
         </div>
