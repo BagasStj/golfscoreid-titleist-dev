@@ -25,6 +25,7 @@ const FlightScoringOverview: React.FC = () => {
   const [tournamentFinished, setTournamentFinished] = useState(false);
   const [showWaitingApprovalAlert, setShowWaitingApprovalAlert] = useState(false);
   const [waitingApprovalPlayers, setWaitingApprovalPlayers] = useState<Array<{ name: string; hole: number }>>([]);
+  const [showPendingHoleAlert, setShowPendingHoleAlert] = useState(false);
 
   // Fetch tournament details
   const tournament = useQuery(
@@ -345,8 +346,8 @@ const FlightScoringOverview: React.FC = () => {
           <button
             onClick={() => setActiveTab("scorecard")}
             className={`flex-1 py-2.5 rounded-md font-semibold text-sm transition-all ${activeTab === "scorecard"
-                ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
-                : "text-gray-400 hover:text-white"
+              ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
+              : "text-gray-400 hover:text-white"
               }`}
           >
             Scorecard
@@ -354,8 +355,8 @@ const FlightScoringOverview: React.FC = () => {
           <button
             onClick={() => setActiveTab("leaderboard")}
             className={`flex-1 py-2.5 rounded-md font-semibold text-sm transition-all ${activeTab === "leaderboard"
-                ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
-                : "text-gray-400 hover:text-white"
+              ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
+              : "text-gray-400 hover:text-white"
               }`}
           >
             Leaderboard
@@ -397,6 +398,7 @@ const FlightScoringOverview: React.FC = () => {
                 setWaitingApprovalPlayers(players);
                 setShowWaitingApprovalAlert(true);
               }}
+              onShowPendingHoleAlert={() => setShowPendingHoleAlert(true)}
               onHoleClick={(holeNumber) => {
                 // Navigate to scoring interface for the clicked hole
                 if (user) {
@@ -503,7 +505,7 @@ const FlightScoringOverview: React.FC = () => {
                       Skor yang Telah Disetujui Bersifat Final
                     </p>
                     <p className="text-blue-300/80 text-xs leading-relaxed">
-                      Setelah skor diinput dan mendapat persetujuan dari seluruh anggota flight, skor tersebut tidak dapat diubah kembali.
+                      Setelah skor diinput dan disetujui oleh seluruh anggota flight, skor tidak dapat diubah.
                     </p>
                   </div>
                 </div>
@@ -535,7 +537,7 @@ const FlightScoringOverview: React.FC = () => {
                       Skor Tidak Dapat Diubah Setelah Lanjut
                     </p>
                     <p className="text-blue-300/80 text-xs leading-relaxed">
-                      Setelah menekan tombol "Simpan & Lanjut ke Hole Berikutnya", skor pada hole sebelumnya tidak dapat diubah lagi. Pastikan semua skor sudah benar sebelum melanjutkan.
+                      Setelah menekan tombol "Setujui & Lanjutkan”, skor pada hole sebelumnya tidak dapat diubah. Pastikan semua skor sudah benar sebelum melanjutkan.
                     </p>
                   </div>
                 </div>
@@ -548,11 +550,16 @@ const FlightScoringOverview: React.FC = () => {
                   </div>
                   <div className="flex-1">
                     <p className="text-yellow-200 text-sm font-semibold mb-1">
-                      Hole Harus Sama dengan Semua Pemain dalam Flight
+                      ⁠Hole Harus Sama untuk Semua Pemain dalam Flight
                     </p>
                     <p className="text-yellow-300/80 text-xs leading-relaxed">
-                      Setiap anggota dalam satu flight <span className="font-bold text-yellow-200">wajib mengisi skor hole yang sama</span> sebelum dapat melanjutkan ke hole berikutnya. Tombol "Setujui &amp; Lanjutkan" hanya aktif jika semua pemain telah mengisi hole yang sama.
+                      Semua pemain dalam satu flight wajib mengisi skor pada hole yang sama sebelum dapat melanjutkan. Tombol "Setujui & Lanjutkan" hanya aktif jika semua pemain telah mengisi hole yang sama.
                     </p>
+                    <div className="mt-2.5 p-2 bg-red-900/20 border-l-2 border-red-500 rounded-r-lg">
+                      <p className="text-red-200/90 text-xs leading-relaxed">
+                        <span className="font-bold">⚠️ Peringatan:</span> Jika terlanjur mengisi skor pada hole yang berbeda, pemain yang salah input harus menghapus skor tersebut dan menginput ulang pada hole yang sama dengan pemain lainnya.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -752,6 +759,50 @@ const FlightScoringOverview: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Pending Hole Alert Dialog */}
+      {showPendingHoleAlert && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-2xl shadow-2xl border border-yellow-800/60 max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+            <div className="text-center space-y-4">
+              {/* Icon */}
+              <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto">
+                <svg
+                  className="w-8 h-8 text-yellow-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-xl font-bold text-white">
+                Belum Bisa Pindah Hole
+              </h3>
+
+              {/* Message */}
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Selesaikan persetujuan hole saat ini terlebih dahulu sebelum mengisi hole lain.
+              </p>
+
+              {/* Button */}
+              <button
+                onClick={() => setShowPendingHoleAlert(false)}
+                className="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white font-bold py-3 px-4 rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95"
+              >
+                Mengerti
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -870,6 +921,19 @@ const ActionButtons: React.FC<{
 
     return (
       <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg border border-gray-800 p-3 space-y-2">
+        {/* Info Penting Scoring */}
+        <div className="bg-gradient-to-br from-gray-800/30 to-black/40 border border-gray-700/50 border-l-[3px] border-l-yellow-400 rounded-lg p-3.5 mb-2">
+          <div className="flex items-center gap-2 mb-2.5">
+            <div className="w-[20px] h-[20px] rounded-full bg-blue-600/30 border border-blue-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-blue-400 text-xs font-bold font-serif mb-0.5 ml-0.5">i</span>
+            </div>
+            <span className="text-[#facc15] font-bold text-[15px] tracking-wide">Informasi Penting Scoring</span>
+          </div>
+          <p className="text-gray-300 text-sm leading-relaxed text-left">
+            Seluruh pemain wajib mengisi <span className="font-bold text-white">skor pada hole yang sama</span> sebelum lanjut. Jika ada <span className="font-bold text-white">kesalahan input</span> di hole berbeda, pemain harus hapus dan <span className="font-bold text-white">input ulang</span> ke hole yang sama.
+          </p>
+        </div>
+
         {userHasScored && !isCurrentHoleApproved ? (
           <>
             <button
@@ -921,8 +985,8 @@ const ActionButtons: React.FC<{
                 }}
                 disabled={!allPlayersScored || waitingCount > 0}
                 className={`w-full font-semibold py-3 px-4 rounded-lg border transition-all flex items-center justify-center gap-2 ${allPlayersScored && waitingCount === 0
-                    ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-green-600 shadow-lg cursor-pointer"
-                    : "bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed"
+                  ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-green-600 shadow-lg cursor-pointer"
+                  : "bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed"
                   }`}
               >
                 <svg
@@ -961,10 +1025,10 @@ const ActionButtons: React.FC<{
                 const event = new CustomEvent('showDisclaimerDialog');
                 window.dispatchEvent(event);
               }}
-              className="w-full bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black hover:from-gray-800 hover:via-[#171718] hover:to-black text-gray-300 hover:text-white font-semibold py-3 px-4 rounded-lg border border-gray-800 hover:border-gray-700 transition-all flex items-center justify-center gap-2"
+              className="w-full bg-transparent hover:bg-blue-900/10 text-blue-400 hover:text-blue-300 font-semibold py-3 px-4 rounded-lg border border-blue-500/30 hover:border-blue-400/60 transition-all flex items-center justify-center gap-2"
             >
               <Info className="w-5 h-5" />
-              <span className="text-sm">Informasi Scoring</span>
+              <span className="text-sm">Petunjuk Pengisian Skor</span>
             </button>
 
           </>
@@ -1043,7 +1107,11 @@ const ActionButtons: React.FC<{
                   );
                 }
               }}
-              className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3.5 rounded-lg transition-all shadow-lg flex items-center justify-center space-x-2"
+              className={`w-full font-bold py-3.5 rounded-lg transition-all shadow-lg flex items-center justify-center space-x-2 ${
+                playersNotYetApproved.length > 0
+                  ? "bg-gray-800 text-gray-400 border border-gray-700"
+                  : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
+              }`}
             >
               <svg
                 className="w-5 h-5"
@@ -1068,10 +1136,10 @@ const ActionButtons: React.FC<{
                 const event = new CustomEvent('showDisclaimerDialog');
                 window.dispatchEvent(event);
               }}
-              className="w-full bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black hover:from-gray-800 hover:via-[#171718] hover:to-black text-gray-300 hover:text-white font-semibold py-3 px-4 rounded-lg border border-gray-800 hover:border-gray-700 transition-all flex items-center justify-center gap-2"
+              className="w-full bg-transparent hover:bg-blue-900/10 text-blue-400 hover:text-blue-300 font-semibold py-3 px-4 rounded-lg border border-blue-500/30 hover:border-blue-400/60 transition-all flex items-center justify-center gap-2"
             >
               <Info className="w-5 h-5" />
-              <span className="text-sm">Informasi Scoring</span>
+              <span className="text-sm">Petunjuk Pengisian Skor</span>
             </button>
           </>
         )}
@@ -1081,8 +1149,8 @@ const ActionButtons: React.FC<{
             onClick={handleFinishTournament}
             disabled={hasUnapprovedHoles}
             className={`w-full font-semibold py-3 px-4 rounded-lg border transition-all flex items-center justify-center gap-2 shadow-lg ${hasUnapprovedHoles
-                ? "bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed opacity-60"
-                : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-green-600 cursor-pointer"
+              ? "bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed opacity-60"
+              : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-green-600 cursor-pointer"
               }`}
             title={
               hasUnapprovedHoles
@@ -1126,6 +1194,7 @@ const ScorecardTable: React.FC<{
   setCurrentHole: (hole: number | null) => void;
   onHoleClick?: (holeNumber: number) => void;
   onShowWaitingApprovalAlert?: (players: any) => void;
+  onShowPendingHoleAlert?: () => void;
 }> = ({
   tournament,
   flightParticipants,
@@ -1136,6 +1205,7 @@ const ScorecardTable: React.FC<{
   currentHole,
   onHoleClick,
   onShowWaitingApprovalAlert,
+  onShowPendingHoleAlert,
 }) => {
     const scrollContainerRef = React.useRef<HTMLDivElement>(null);
     // Keep the latest scroll position in memory so we can restore it after every re-render
@@ -1246,8 +1316,8 @@ const ScorecardTable: React.FC<{
               <button
                 onClick={() => setScoringMode("stroke")}
                 className={`px-3 py-1 rounded-md font-semibold text-xs transition-all ${scoringMode === "stroke"
-                    ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
-                    : "text-gray-400 hover:text-white"
+                  ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
+                  : "text-gray-400 hover:text-white"
                   }`}
               >
                 Stroke
@@ -1255,8 +1325,8 @@ const ScorecardTable: React.FC<{
               <button
                 onClick={() => setScoringMode("over")}
                 className={`px-3 py-1 rounded-md font-semibold text-xs transition-all ${scoringMode === "over"
-                    ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
-                    : "text-gray-400 hover:text-white"
+                  ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
+                  : "text-gray-400 hover:text-white"
                   }`}
               >
                 Over
@@ -1339,7 +1409,11 @@ const ScorecardTable: React.FC<{
                         onClick={() => {
                           // Prevent clicking other holes if waiting for approval on current hole
                           if (isWaitingForApproval && hole.holeNumber !== currentHole) {
-                            alert("Selesaikan persetujuan hole saat ini terlebih dahulu sebelum mengisi hole lain.");
+                            if (onShowPendingHoleAlert) {
+                              onShowPendingHoleAlert();
+                            } else {
+                              alert("Selesaikan persetujuan hole saat ini terlebih dahulu sebelum mengisi hole lain.");
+                            }
                             return;
                           }
 
@@ -1357,8 +1431,8 @@ const ScorecardTable: React.FC<{
                           }
                         }}
                         className={`text-center text-white font-bold text-[14px] py-2 px-1.5 min-w-[32px] ${hole.holeNumber === currentHole
-                            ? "bg-red-600/30 ring-2 ring-red-500"
-                            : ""
+                          ? "bg-red-600/30 ring-2 ring-red-500"
+                          : ""
                           } ${isApproved
                             ? "bg-green-900/30 cursor-not-allowed opacity-60"
                             : isWaitingForApproval && hole.holeNumber !== currentHole
@@ -1477,15 +1551,15 @@ const ScorecardTable: React.FC<{
                           {/* Player Name with Number */}
                           <td
                             className={`sticky left-0 z-20 ${isCurrentUser
-                                ? "bg-red-900"
-                                : "bg-gradient-to-r from-[#2e2e2e] to-gray-900"
+                              ? "bg-red-900"
+                              : "bg-gradient-to-r from-[#2e2e2e] to-gray-900"
                               } py-2 px-2 border-r border-gray-800`}
                           >
                             <div className="flex items-center space-x-2">
                               <div
                                 className={`w-6 h-6 rounded-full ${isCurrentUser
-                                    ? "bg-gradient-to-br from-red-600 to-red-700"
-                                    : "bg-gradient-to-br from-gray-700 to-gray-800"
+                                  ? "bg-gradient-to-br from-red-600 to-red-700"
+                                  : "bg-gradient-to-br from-gray-700 to-gray-800"
                                   } flex items-center justify-center flex-shrink-0`}
                               >
                                 <span className="text-white font-bold text-[10px]">
@@ -1584,10 +1658,10 @@ const ScorecardTable: React.FC<{
                           <td className="text-center py-2 px-2 border-l border-gray-800">
                             <div
                               className={`font-bold text-sm ${scoreToPar > 0
-                                  ? "text-red-400"
-                                  : scoreToPar < 0
-                                    ? "text-green-400"
-                                    : "text-gray-400"
+                                ? "text-red-400"
+                                : scoreToPar < 0
+                                  ? "text-green-400"
+                                  : "text-gray-400"
                                 }`}
                             >
                               {scoreToPar > 0
@@ -1749,8 +1823,8 @@ const LeaderboardView: React.FC<{
                 <td className="text-center py-3 px-2">
                   <div
                     className={`font-bold text-lg ${participant.holesPlayed === 0
-                        ? "text-gray-500"
-                        : "text-white"
+                      ? "text-gray-500"
+                      : "text-white"
                       }`}
                   >
                     {participant.holesPlayed === 0
@@ -1766,10 +1840,10 @@ const LeaderboardView: React.FC<{
                   ) : (
                     <div
                       className={`font-bold text-base ${participant.scoreToPar > 0
-                          ? "text-red-400"
-                          : participant.scoreToPar < 0
-                            ? "text-green-400"
-                            : "text-gray-400"
+                        ? "text-red-400"
+                        : participant.scoreToPar < 0
+                          ? "text-green-400"
+                          : "text-gray-400"
                         }`}
                     >
                       {participant.scoreToPar > 0
@@ -1786,8 +1860,8 @@ const LeaderboardView: React.FC<{
                   <div className="flex flex-col items-center">
                     <div
                       className={`font-bold text-base ${participant.holesPlayed === 0
-                          ? "text-gray-500"
-                          : "text-white"
+                        ? "text-gray-500"
+                        : "text-white"
                         }`}
                     >
                       {participant.holesPlayed}/{totalHoles}
@@ -1796,8 +1870,8 @@ const LeaderboardView: React.FC<{
                     <div className="w-full max-w-[50px] h-1.5 bg-gray-700 rounded-full mt-1 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all ${participant.holesPlayed === 0
-                            ? "bg-gray-600"
-                            : "bg-gradient-to-r from-green-500 to-green-600"
+                          ? "bg-gray-600"
+                          : "bg-gradient-to-r from-green-500 to-green-600"
                           }`}
                         style={{
                           width: `${participant.holesPlayed === 0 ? 0 : (participant.holesPlayed / totalHoles) * 100}%`,

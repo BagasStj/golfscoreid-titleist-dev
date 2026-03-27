@@ -1153,6 +1153,18 @@ export const updatePaymentStatus = mutation({
         continue; // Skip if player not found
       }
 
+      // If we are changing to unpaid, ensure they aren't registered in any tournament
+      if (paymentStatus === "unpaid" || paidStatus === "unpaid") {
+        const playerInTournaments = await ctx.db
+          .query("tournament_participants")
+          .withIndex("by_player", (q) => q.eq("playerId", playerId))
+          .collect();
+
+        if (playerInTournaments.length > 0) {
+          throw new Error(`Pemain ${player.name} sudah terdaftar di flight/tournament. Tidak dapat dikembalikan ke status Registered.`);
+        }
+      }
+
       const updateData: any = {};
 
       // Update paymentStatus if provided

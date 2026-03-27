@@ -67,6 +67,22 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
     selectedTournament ? { tournamentId: selectedTournament } : "skip"
   );
 
+  // Check if flight has started scoring
+  const flightScoresData = useQuery(
+    api.scores.getFlightScores,
+    selectedTournament && flightDetails && flightDetails.participants && flightDetails.participants.length > 0
+      ? {
+        tournamentId: selectedTournament,
+        playerIds: flightDetails.participants.map((p: any) => p._id),
+      }
+      : "skip"
+  );
+
+  const isFlightScoringStarted = React.useMemo(() => {
+    if (!flightScoresData) return false;
+    return flightScoresData.some((ps: any) => ps.scores && ps.scores.length > 0);
+  }, [flightScoresData]);
+
   // Mutations
   const createFlight = useMutation(api.flights.createFlight);
   const updateFlight = useMutation(api.flights.updateFlight);
@@ -560,10 +576,24 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                     size="md"
                     icon={UserPlus}
                     onClick={() => setShowAddPlayer(!showAddPlayer)}
+                    disabled={isFlightScoringStarted}
+                    title={isFlightScoringStarted ? "Tidak dapat menambah pemain karena flight sudah melakukan scoring" : ""}
                   >
                     {showAddPlayer ? 'Batal' : 'Tambah Pemain'}
                   </Button>
                 </div>
+
+                {isFlightScoringStarted && (
+                  <div className="bg-yellow-900/30 border border-yellow-800/40 rounded-xl p-4 flex items-start gap-3">
+                    <div className="text-yellow-500 mt-0.5">⚠️</div>
+                    <div>
+                      <h4 className="text-yellow-500 text-sm font-bold">Pengeditan Dinonaktifkan</h4>
+                      <p className="text-yellow-600/90 text-xs mt-1">
+                        Pemain di flight ini tidak dapat diedit karena sudah ada pemain yang mulai melakukan input skor pada flight ini.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Add Player Form */}
                 {showAddPlayer && (
@@ -708,10 +738,18 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                                       <>
                                         <button
                                           onClick={() => {
+                                            if (isFlightScoringStarted) {
+                                              showToast("Tidak bisa mengedit pemain karena flight sudah memulai scoring.", "warning");
+                                              return;
+                                            }
                                             setEditingPlayerId(player.participationId);
                                             setEditingStartHole(player.startHole.toString());
                                           }}
-                                          className="p-2 hover:bg-blue-900/30 text-blue-500 rounded-lg transition-colors border border-blue-900/30"
+                                          disabled={isFlightScoringStarted}
+                                          className={`p-2 rounded-lg transition-colors border ${isFlightScoringStarted
+                                            ? "bg-gray-800/30 text-gray-600 border-gray-800/30 cursor-not-allowed"
+                                            : "hover:bg-blue-900/30 text-blue-500 border-blue-900/30"
+                                            }`}
                                           title="Edit Hole Awal"
                                         >
                                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -721,10 +759,18 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                                         {availableFlightsForMove.length > 0 && (
                                           <button
                                             onClick={() => {
+                                              if (isFlightScoringStarted) {
+                                                showToast("Tidak bisa memindah pemain karena flight sudah memulai scoring.", "warning");
+                                                return;
+                                              }
                                               setMovingPlayerId(player.participationId);
                                               setTargetFlightId(null);
                                             }}
-                                            className="p-2 hover:bg-blue-900/30 text-blue-500 rounded-lg transition-colors border border-blue-900/30"
+                                            disabled={isFlightScoringStarted}
+                                            className={`p-2 rounded-lg transition-colors border ${isFlightScoringStarted
+                                              ? "bg-gray-800/30 text-gray-600 border-gray-800/30 cursor-not-allowed"
+                                              : "hover:bg-blue-900/30 text-blue-500 border-blue-900/30"
+                                              }`}
                                             title="Pindah ke flight lain"
                                           >
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -733,8 +779,18 @@ const FlightManagement: React.FC<FlightManagementProps> = () => {
                                           </button>
                                         )}
                                         <button
-                                          onClick={() => handleRemovePlayer(player.participationId)}
-                                          className="p-2 hover:bg-red-900/30 text-red-500 rounded-lg transition-colors border border-red-900/30"
+                                          onClick={() => {
+                                            if (isFlightScoringStarted) {
+                                              showToast("Tidak bisa menghapus pemain karena flight sudah memulai scoring.", "warning");
+                                              return;
+                                            }
+                                            handleRemovePlayer(player.participationId);
+                                          }}
+                                          disabled={isFlightScoringStarted}
+                                          className={`p-2 rounded-lg transition-colors border ${isFlightScoringStarted
+                                            ? "bg-gray-800/30 text-gray-600 border-gray-800/30 cursor-not-allowed"
+                                            : "hover:bg-red-900/30 text-red-500 border-red-900/30"
+                                            }`}
                                           title="Hapus dari flight"
                                         >
                                           <Trash2 className="w-4 h-4" />

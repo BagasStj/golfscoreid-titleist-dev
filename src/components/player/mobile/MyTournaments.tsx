@@ -418,19 +418,19 @@ const TournamentCard: React.FC<{
             </p>
             <div className="space-y-1.5">
               {playerFlight.members && playerFlight.members.length > 0 ? (
-                playerFlight.members.slice(0, 3).map((member: any) => (
+                playerFlight.members.slice(0, 5).map((member: any) => (
                   <div
                     key={member._id}
                     className={`flex items-center justify-between p-2 rounded-lg ${member._id === userId
-                        ? "bg-blue-900/40 border border-blue-700/60"
-                        : "bg-gray-900/40 border border-gray-800/60"
+                      ? "bg-blue-900/40 border border-blue-700/60"
+                      : "bg-gray-900/40 border border-gray-800/60"
                       }`}
                   >
                     <div className="flex items-center gap-2">
                       <div
                         className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs ${member._id === userId
-                            ? "bg-gradient-to-br from-blue-600 to-blue-700"
-                            : "bg-gradient-to-br from-gray-600 to-gray-700"
+                          ? "bg-gradient-to-br from-blue-600 to-blue-700"
+                          : "bg-gradient-to-br from-gray-600 to-gray-700"
                           }`}
                       >
                         {member.name.charAt(0).toUpperCase()}
@@ -453,9 +453,9 @@ const TournamentCard: React.FC<{
                   <p className="text-gray-500 text-xs">Belum ada anggota</p>
                 </div>
               )}
-              {playerFlight.members && playerFlight.members.length > 3 && (
+              {playerFlight.members && playerFlight.members.length > 5 && (
                 <p className="text-gray-500 text-xs text-center">
-                  +{playerFlight.members.length - 3} anggota lainnya
+                  +{playerFlight.members.length - 5} anggota lainnya
                 </p>
               )}
             </div>
@@ -501,18 +501,18 @@ const TournamentCard: React.FC<{
                       <tr
                         key={`${participant._id}-${index}`}
                         className={`hover:bg-gray-800/40 transition-colors ${participant._id === userId
-                            ? "bg-green-900/30"
-                            : index % 2 === 0
-                              ? "bg-gray-900/20"
-                              : "bg-transparent"
+                          ? "bg-green-900/30"
+                          : index % 2 === 0
+                            ? "bg-gray-900/20"
+                            : "bg-transparent"
                           }`}
                       >
                         <td className="py-2.5 px-3">
                           <div className="flex items-center gap-2">
                             <div
                               className={`w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0 ${participant._id === userId
-                                  ? "bg-gradient-to-br from-green-600 to-green-700"
-                                  : "bg-gradient-to-br from-gray-600 to-gray-700"
+                                ? "bg-gradient-to-br from-green-600 to-green-700"
+                                : "bg-gradient-to-br from-gray-600 to-gray-700"
                                 }`}
                             >
                               {participant.name.charAt(0).toUpperCase()}

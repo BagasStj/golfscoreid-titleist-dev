@@ -292,7 +292,15 @@ export default function PlayerManagement() {
         "success",
       );
     } catch (err) {
-      showToast((err as Error).message, "error");
+      const msg = (err as Error).message;
+      if (msg.includes("sudah terdaftar di flight/tournament")) {
+        showToast(
+          "Gagal: Terdapat pemain yang sudah terdaftar di flight tournament. Hapus dari turnamen terlebih dahulu.", 
+          "error"
+        );
+      } else {
+        showToast("Gagal mengembalikan ke Registered.", "error");
+      }
     }
   };
 
@@ -453,12 +461,32 @@ export default function PlayerManagement() {
     if (!playerToDelete) return;
 
     try {
-      await deletePlayer({ playerId: playerToDelete.id });
+      if (paymentFilter === "accepted") {
+        await updatePaymentStatus({
+          playerIds: [playerToDelete.id],
+          paymentStatus: "unpaid",
+          paidStatus: "unpaid",
+        });
+        showToast("Pemain berhasil dikembalikan ke status Registered", "success");
+      } else {
+        await deletePlayer({ playerId: playerToDelete.id });
+        showToast("Pemain berhasil dihapus", "success");
+      }
       setShowDeleteDialog(false);
       setPlayerToDelete(null);
-      showToast("Pemain berhasil dihapus", "success");
     } catch (err) {
-      showToast((err as Error).message, "error");
+      console.error("Gagal memproses pemain:", err);
+      const msg = (err as Error).message;
+      if (msg.includes("sudah terdaftar di flight/tournament")) {
+        showToast("Pemain gagal dikembalikan karena sudah terdaftar di flight tournament.", "error");
+      } else if (paymentFilter === "accepted") {
+        showToast("Gagal mengembalikan pemain ke Registered.", "error");
+      } else {
+        showToast(
+          "Gagal menghapus pemain. Pemain tersebut mungkin masih terdaftar dalam turnamen aktif.", 
+          "error"
+        );
+      }
     }
   };
 
@@ -996,9 +1024,9 @@ export default function PlayerManagement() {
                         <button
                           onClick={() => handleDeleteClick(player)}
                           className="p-2 hover:bg-red-900/50 text-red-500 rounded-lg transition-colors border border-red-900/40"
-                          title="Hapus Pemain"
+                          title={paymentFilter === "accepted" ? "Kembalikan ke Registered" : "Hapus Pemain"}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          {paymentFilter === "accepted" ? <XCircle className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
                         </button>
                       </div>
                     </td>
@@ -1549,10 +1577,14 @@ export default function PlayerManagement() {
           setPlayerToDelete(null);
         }}
         onConfirm={handleConfirmDelete}
-        title="Hapus Pemain"
-        message={`Apakah Anda yakin ingin menghapus ${playerToDelete?.name}? Tindakan ini tidak dapat dibatalkan.`}
-        confirmText="Hapus"
-        variant="danger"
+        title={paymentFilter === "accepted" ? "Kembalikan Pemain" : "Hapus Pemain"}
+        message={
+          paymentFilter === "accepted"
+            ? `Apakah Anda yakin ingin mengembalikan ${playerToDelete?.name} ke status Registered?`
+            : `Apakah Anda yakin ingin menghapus ${playerToDelete?.name}? Tindakan ini tidak dapat dibatalkan.`
+        }
+        confirmText={paymentFilter === "accepted" ? "Kembalikan" : "Hapus"}
+        variant={paymentFilter === "accepted" ? "warning" : "danger"}
       />
     </div>
   );
