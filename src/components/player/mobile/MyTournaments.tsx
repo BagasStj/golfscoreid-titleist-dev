@@ -171,6 +171,11 @@ const TournamentCard: React.FC<{
 
   // Check if tournament is finished from localStorage or convex
   const [isTournamentFinished, setIsTournamentFinished] = React.useState(false);
+  const [scrollTop, setScrollTop] = React.useState(0);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  };
 
   React.useEffect(() => {
     if (tournament._id && userId) {
@@ -480,9 +485,12 @@ const TournamentCard: React.FC<{
             Semua Peserta Turnamen
           </h4>
 
-          {/* Table Container with scrollable content */}
+          {/* Table Container with virtualized scrollable content */}
           <div className="bg-gray-900/40 rounded-lg border border-gray-800/60 overflow-hidden">
-            <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
+            <div
+              className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900"
+              onScroll={handleScroll}
+            >
               <table className="w-full text-xs">
                 <thead className="sticky top-0 bg-gray-800/90 backdrop-blur-sm z-10">
                   <tr className="border-b border-gray-700">
@@ -495,49 +503,83 @@ const TournamentCard: React.FC<{
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800/60">
-                  {allParticipants
-                    .sort((a: any, b: any) => a.name.localeCompare(b.name)) // Sort by name
-                    .map((participant: any, index: number) => (
-                      <tr
-                        key={`${participant._id}-${index}`}
-                        className={`hover:bg-gray-800/40 transition-colors ${participant._id === userId
-                          ? "bg-green-900/30"
-                          : index % 2 === 0
-                            ? "bg-gray-900/20"
-                            : "bg-transparent"
-                          }`}
-                      >
-                        <td className="py-2.5 px-3">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0 ${participant._id === userId
-                                ? "bg-gradient-to-br from-green-600 to-green-700"
-                                : "bg-gradient-to-br from-gray-600 to-gray-700"
+                  {(() => {
+                    const ITEM_HEIGHT = 49; // estimated standard row height for participants
+                    const CONTAINER_HEIGHT = 400; // max-height of our container
+                    const OVERSCAN = 10; // how many extra rows to render above and below view for buffer
+                    
+                    const sortedParticipants = [...allParticipants].sort((a: any, b: any) => 
+                      a.name.localeCompare(b.name)
+                    );
+                    
+                    const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
+                    const endIndex = Math.min(sortedParticipants.length - 1, Math.floor((scrollTop + CONTAINER_HEIGHT) / ITEM_HEIGHT) + OVERSCAN);
+                    
+                    const paddingTop = Math.max(0, startIndex * ITEM_HEIGHT);
+                    const paddingBottom = Math.max(0, (sortedParticipants.length - 1 - endIndex) * ITEM_HEIGHT);
+                    
+                    const visibleItems = sortedParticipants.slice(startIndex, endIndex + 1);
+
+                    return (
+                      <>
+                        {paddingTop > 0 && (
+                          <tr style={{ height: `${paddingTop}px` }}>
+                            <td colSpan={2} aria-hidden="true" />
+                          </tr>
+                        )}
+                        {visibleItems.map((participant: any, index: number) => {
+                          const originalIndex = startIndex + index;
+                          return (
+                            <tr
+                              key={`${participant._id}-${originalIndex}`}
+                              className={`hover:bg-gray-800/40 transition-colors ${participant._id === userId
+                                ? "bg-green-900/30"
+                                : originalIndex % 2 === 0
+                                  ? "bg-gray-900/20"
+                                  : "bg-transparent"
                                 }`}
+                              style={{ height: `${ITEM_HEIGHT}px` }}
                             >
-                              {participant.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                              <span className="text-white font-semibold truncate">
-                                {participant.name}
-                              </span>
-                              {participant._id === userId && (
-                                <span className="text-[9px] bg-green-600 text-white px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">
-                                  Anda
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <span className="text-gray-300 font-semibold text-center">
-                              {participant.flightId ? participant.flightName : "-"}
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                              <td className="py-2.5 px-3">
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className={`w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0 ${participant._id === userId
+                                      ? "bg-gradient-to-br from-green-600 to-green-700"
+                                      : "bg-gradient-to-br from-gray-600 to-gray-700"
+                                      }`}
+                                  >
+                                    {participant.name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                    <span className="text-white font-semibold truncate">
+                                      {participant.name}
+                                    </span>
+                                    {participant._id === userId && (
+                                      <span className="text-[9px] bg-green-600 text-white px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0">
+                                        Anda
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-2.5 px-3">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <span className="text-gray-300 font-semibold text-center">
+                                    {participant.flightId ? participant.flightName : "-"}
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {paddingBottom > 0 && (
+                          <tr style={{ height: `${paddingBottom}px` }}>
+                            <td colSpan={2} aria-hidden="true" />
+                          </tr>
+                        )}
+                      </>
+                    );
+                  })()}
                 </tbody>
               </table>
             </div>

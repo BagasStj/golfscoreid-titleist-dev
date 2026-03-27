@@ -1765,12 +1765,21 @@ const LeaderboardView: React.FC<{
 
   const totalHoles = holesConfig.length;
 
+  const [scrollTop, setScrollTop] = React.useState(0);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  };
+
   return (
     <div className="bg-gradient-to-b from-[#2e2e2e] via-[#171718] to-black rounded-lg border border-gray-800 overflow-hidden shadow-xl">
-      {/* Table Header */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs">
-          <thead className="bg-gray-900/50 border-b-2 border-gray-700">
+      {/* Table Container with virtualized scrollable content */}
+      <div 
+        className="max-h-[600px] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 relative"
+        onScroll={handleScroll}
+      >
+        <table className="w-full text-xs min-w-[340px]">
+          <thead className="sticky top-0 bg-gray-900/95 backdrop-blur-sm border-b-2 border-gray-700 z-10 shadow-sm">
             <tr>
               <th className="text-left text-gray-300 font-semibold py-2 px-3 min-w-[140px]">
                 Nama Pemain
@@ -1793,13 +1802,34 @@ const LeaderboardView: React.FC<{
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800">
-            {sortedParticipants.map((participant) => (
-              <tr
-                key={participant._id}
-                className="hover:bg-gray-900/50 transition-colors"
-              >
-                {/* Player Name */}
-                <td className="py-3 px-3">
+            {(() => {
+              const ITEM_HEIGHT = 65; // estimated standard row height for leaderboard
+              const CONTAINER_HEIGHT = 600; // max-height of our container
+              const OVERSCAN = 10; // how many extra rows to render above and below view for buffer
+
+              const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
+              const endIndex = Math.min(sortedParticipants.length - 1, Math.floor((scrollTop + CONTAINER_HEIGHT) / ITEM_HEIGHT) + OVERSCAN);
+              
+              const paddingTop = Math.max(0, startIndex * ITEM_HEIGHT);
+              const paddingBottom = Math.max(0, (sortedParticipants.length - 1 - endIndex) * ITEM_HEIGHT);
+              
+              const visibleItems = sortedParticipants.slice(startIndex, endIndex + 1);
+
+              return (
+                <>
+                  {paddingTop > 0 && (
+                    <tr style={{ height: `${paddingTop}px` }}>
+                      <td colSpan={4} aria-hidden="true" />
+                    </tr>
+                  )}
+                  {visibleItems.map((participant) => (
+                    <tr
+                      key={participant._id}
+                      className="hover:bg-gray-900/50 transition-colors"
+                      style={{ height: `${ITEM_HEIGHT}px` }}
+                    >
+                      {/* Player Name */}
+                      <td className="py-3 px-3">
                   <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center flex-shrink-0">
                       <span className="text-white font-bold text-xs">
@@ -1882,9 +1912,17 @@ const LeaderboardView: React.FC<{
                 </td>
               </tr>
             ))}
-          </tbody>
-        </table>
-      </div>
+          {paddingBottom > 0 && (
+            <tr style={{ height: `${paddingBottom}px` }}>
+              <td colSpan={4} aria-hidden="true" />
+            </tr>
+          )}
+        </>
+      );
+    })()}
+  </tbody>
+</table>
+</div>
 
       {/* Summary Footer */}
       <div className="bg-gray-900/50 border-t-2 border-gray-700 p-3">
