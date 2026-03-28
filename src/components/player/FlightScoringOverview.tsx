@@ -497,34 +497,15 @@ const FlightScoringOverview: React.FC = () => {
                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 bg-blue-700/40 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                     <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <p className="text-blue-200 text-sm font-semibold mb-1">
-                      Skor yang Telah Disetujui Bersifat Final
-                    </p>
-                    <p className="text-blue-300/80 text-xs leading-relaxed">
-                      Setelah skor diinput dan disetujui oleh seluruh anggota flight, skor tidak dapat diubah.
+                    <p className="text-blue-300/90 text-sm leading-relaxed">
+                      Pemain dapat mengubah skor selama belum menekan tombol <span className="font-bold text-blue-200">"Setujui &amp; Lanjutkan"</span>.
                     </p>
                   </div>
                 </div>
-
-                {/* <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-700/40 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-blue-200 text-sm font-semibold mb-1">
-                      Integritas dan Sportivitas
-                    </p>
-                    <p className="text-blue-300/80 text-xs leading-relaxed">
-                      Pencatatan skor yang akurat mencerminkan nilai-nilai sportivitas dan fair play dalam permainan golf.
-                    </p>
-                  </div>
-                </div> */}
 
                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 bg-blue-700/40 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -533,11 +514,8 @@ const FlightScoringOverview: React.FC = () => {
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <p className="text-blue-200 text-sm font-semibold mb-1">
-                      Skor Tidak Dapat Diubah Setelah Lanjut
-                    </p>
-                    <p className="text-blue-300/80 text-xs leading-relaxed">
-                      Setelah menekan tombol "Setujui & Lanjutkan”, skor pada hole sebelumnya tidak dapat diubah. Pastikan semua skor sudah benar sebelum melanjutkan.
+                    <p className="text-blue-300/90 text-sm leading-relaxed">
+                      Setelah menekan tombol <span className="font-bold text-blue-200">"Setujui &amp; Lanjutkan"</span>, skor tidak dapat diubah.
                     </p>
                   </div>
                 </div>
@@ -549,17 +527,9 @@ const FlightScoringOverview: React.FC = () => {
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <p className="text-yellow-200 text-sm font-semibold mb-1">
-                      ⁠Hole Harus Sama untuk Semua Pemain dalam Flight
+                    <p className="text-yellow-300/90 text-sm leading-relaxed">
+                      Setelah melanjutkan, pemain dapat mengisi hole berikutnya, namun <span className="font-bold text-yellow-200">seluruh pemain dalam satu flight harus berada pada hole yang sama</span>. Jika ada pemain mengisi hole berbeda, skor tersebut harus dihapus dan diinput ulang.
                     </p>
-                    <p className="text-yellow-300/80 text-xs leading-relaxed">
-                      Semua pemain dalam satu flight wajib mengisi skor pada hole yang sama sebelum dapat melanjutkan. Tombol "Setujui & Lanjutkan" hanya aktif jika semua pemain telah mengisi hole yang sama.
-                    </p>
-                    <div className="mt-2.5 p-2 bg-red-900/20 border-l-2 border-red-500 rounded-r-lg">
-                      <p className="text-red-200/90 text-xs leading-relaxed">
-                        <span className="font-bold">⚠️ Peringatan:</span> Jika terlanjur mengisi skor pada hole yang berbeda, pemain yang salah input harus menghapus skor tersebut dan menginput ulang pada hole yang sama dengan pemain lainnya.
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -942,7 +912,7 @@ const ActionButtons: React.FC<{
             <span className="text-[#facc15] font-bold text-[15px] tracking-wide">Informasi Penting Scoring</span>
           </div>
           <p className="text-gray-300 text-sm leading-relaxed text-left">
-            Seluruh pemain wajib mengisi <span className="font-bold text-white">skor pada hole yang sama</span> sebelum lanjut. Jika ada <span className="font-bold text-white">kesalahan input</span> di hole berbeda, pemain harus hapus dan <span className="font-bold text-white">input ulang</span> ke hole yang sama.
+            Pastikan semua pemain mengisi hole yang sama. Jika berbeda, skor harus dihapus dan diinput ulang pada hole yang sama dalam satu flight.
           </p>
         </div>
 
