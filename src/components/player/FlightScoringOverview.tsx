@@ -870,9 +870,18 @@ const ActionButtons: React.FC<{
     // Check if there are any unapproved holes (if "Setujui & Lanjutkan" button is showing)
     const hasUnapprovedHoles = userHasScored && !isCurrentHoleApproved;
 
-    // The most recently approved hole by the current user
-    const userLastApprovedHole =
-      approvedHoles.length > 0 ? Math.max(...approvedHoles) : null;
+    // The most recently approved hole by the current user (based on submission time, not hole number)
+    // This correctly handles wrap-around scenarios (e.g., hole 18 → hole 1)
+    const userLastApprovedHole = React.useMemo(() => {
+      if (!userScoresData?.scores || userScoresData.scores.length === 0) return null;
+      
+      // Get all approved scores sorted by submission time (most recent first)
+      const approvedScores = userScoresData.scores
+        .filter((s: any) => approvedHoles.includes(s.holeNumber))
+        .sort((a: any, b: any) => (b.submittedAt ?? 0) - (a.submittedAt ?? 0));
+      
+      return approvedScores.length > 0 ? approvedScores[0].holeNumber : null;
+    }, [userScoresData?.scores, approvedHoles]);
 
     // Players who have scored the same hole but not yet approved it
     const playersNotYetApproved = flightParticipants
@@ -1286,7 +1295,18 @@ const ScorecardTable: React.FC<{
       !userApprovedHoles.includes(currentHole);
 
     // Compute playersNotYetApproved for navigating to new unscored holes
-    const userLastApprovedHole = userApprovedHoles.length > 0 ? Math.max(...userApprovedHoles) : null;
+    // Use submission time to determine the last approved hole (handles wrap-around correctly)
+    const userLastApprovedHole = React.useMemo(() => {
+      if (!currentUserScoresData?.scores || currentUserScoresData.scores.length === 0) return null;
+      
+      // Get all approved scores sorted by submission time (most recent first)
+      const approvedScores = currentUserScoresData.scores
+        .filter((s: any) => userApprovedHoles.includes(s.holeNumber))
+        .sort((a: any, b: any) => (b.submittedAt ?? 0) - (a.submittedAt ?? 0));
+      
+      return approvedScores.length > 0 ? approvedScores[0].holeNumber : null;
+    }, [currentUserScoresData?.scores, userApprovedHoles]);
+
     const playersNotYetApproved = flightParticipants
       .filter((p: any) => p._id !== currentUserId)
       .filter((p: any) => {
